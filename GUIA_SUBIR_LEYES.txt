@@ -1,0 +1,75 @@
+===========================================================================
+    GUÍA PASO A PASO PARA SUBIR NUEVAS LEYES - APP LEYES
+===========================================================================
+
+Sigue estos 5 pasos para agregar una nueva ley a tu aplicación de forma
+correcta y profesional.
+
+---------------------------------------------------------------------------
+PASO 1: PREPARAR EL PDF
+---------------------------------------------------------------------------
+1. Busca el archivo PDF de la ley.
+2. Cámbiale el nombre para que no tenga espacios ni caracteres raros.
+   Ejemplo: "ley_de_tierras.pdf" o "reforma_judicial.pdf".
+3. Copia el archivo dentro de la carpeta:
+   data/
+
+---------------------------------------------------------------------------
+PASO 2: CONFIGURAR LA EXTRACCIÓN
+---------------------------------------------------------------------------
+Antes de convertir, debes decirle al sistema los datos de la ley.
+1. Abre el archivo: scripts/add_new_law.py
+2. Busca la sección "LAW_CONFIG" (está cerca de la línea 33).
+3. Cambia los datos por los de tu nueva ley:
+   - "pdf_filename": "el_nombre_de_tu_archivo.pdf"
+   - "title": "Nombre Completo de la Ley"
+   - "category": "nombre_corto" (ejemplo: ley_tierras)
+   - "type": "ley_organica" o "ley_base"
+   - "date": "2024-01-01" (YYYY-MM-DD)
+   - "description": "Una breve descripción"
+4. Guarda los cambios en el archivo add_new_law.py.
+
+---------------------------------------------------------------------------
+PASO 3: CONVERTIR PDF A JSON
+---------------------------------------------------------------------------
+Abre tu terminal en la carpeta del proyecto y ejecuta:
+
+   node scripts/convertPdfToJson.js
+
+Si el comando te pide confirmar, escribe "s" y presiona Enter.
+Esto creará un archivo nuevo en la carpeta "data/" que terminará en "_full.json".
+
+---------------------------------------------------------------------------
+PASO 4: LIMPIAR EL FORMATO (RECOMENDADO)
+---------------------------------------------------------------------------
+Para que los artículos se vean perfectos en la App (con sus párrafos y
+numerales bien ordenados), ejecuta:
+
+   python scripts/fix_formatting.py
+
+Este comando revisará todos los archivos JSON y les aplicará el formato ideal.
+
+---------------------------------------------------------------------------
+PASO 5: SUBIR A FIREBASE
+---------------------------------------------------------------------------
+Finalmente, sube la ley a la nube:
+
+   node scripts/seedDatabase.js
+
+¿Qué hace este script?:
+- Detecta si la ley es nueva y la sube.
+- Si la ley ya existe pero hiciste cambios en el JSON, la actualiza.
+- Si no hay cambios, la salta para no gastar tus escrituras de Firebase.
+
+---------------------------------------------------------------------------
+✅ ¡LISTO!
+---------------------------------------------------------------------------
+Abre la App y verás la nueva ley en la lista. Si no aparece de inmediato,
+cierra la App y vuelve a abrirla.
+
+---------------------------------------------------------------------------
+NOTAS IMPORTANTES:
+- Asegúrate de tener conexión a internet al ejecutar el Paso 5.
+- Tu cuota de Firebase es de 20.000 escrituras al día. El script se encarga
+  de usarlas sabiamente.
+===========================================================================

@@ -1,0 +1,45 @@
+⚖️ GUÍA DE MANTENIMIENTO: JURISPRUDENCIA TSJ ⚖️
+
+Este documento explica cómo mantener actualizada la base de datos de sentencias del TSJ en tu aplicación.
+
+---
+
+1. ACTUALIZACIÓN DIARIA (Sentencias de hoy)
+-------------------------------------------
+Para descargar las sentencias que el TSJ publique cada día, ejecuta este comando en tu terminal:
+
+    node scripts/getJurisprudence.js daily
+
+Lógica: El script entrará a cada sala, buscará las publicadas en la fecha actual y las subirá a Firebase automáticamente.
+
+---
+
+2. DESCARGAR AÑOS ANTERIORES (Histórico)
+-----------------------------------------
+Si quieres poblar la App con sentencias de años pasados, usa el modo 'historical' seguido del año:
+
+    node scripts/getJurisprudence.js historical 2023
+    node scripts/getJurisprudence.js historical 2022
+
+Nota: Recuerda que el Plan Gratuito de Firebase permite 20,000 escrituras al día. Si descargas muchos años a la vez, podrías alcanzar el límite.
+
+---
+
+3. REQUERIMIENTO DE ÍNDICES (Solo la primera vez)
+--------------------------------------------------
+Al filtrar por Sala en la App, Firestore requiere un "Índice Compuesto". 
+Si ves un error en tu terminal de Expo que dice "The query requires an index", simplemente:
+1. Haz Ctrl+Clic en el link que aparece en la terminal.
+2. Dale al botón "Crear" en tu consola de Firebase.
+
+---
+
+4. RECOMENDACIONES DE PRODUCCIÓN
+--------------------------------
+Para la Play Store, se recomienda pasar al Plan Blaze (Pago por uso) de Firebase.
+- Es muy económico (solo pagas céntimos si tienes pocos usuarios).
+- Elimina los límites diarios que podrían bloquear la App si tienes muchos datos.
+- Permite que el buscador y los filtros funcionen sin interrupciones.
+
+---
+¡AppLeyes está lista para el éxito judicial! 🚀

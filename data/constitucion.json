@@ -1,0 +1,43 @@
+[
+    {
+        "title": "Constitución de la República Bolivariana de Venezuela",
+        "category": "constitucion",
+        "type": "ley_base",
+        "date": "1999-12-30",
+        "content": {
+            "articles": [
+                {
+                    "number": 1,
+                    "title": "Artículo 1",
+                    "text": "La República Bolivariana de Venezuela es irrevocablemente libre e independiente y fundamenta su patrimonio moral y sus valores de libertad, igualdad, justicia y paz internacional en la doctrina de Simón Bolívar, el Libertador. Son derechos irrenunciables de la Nación la independencia, la libertad, la soberanía, la inmunidad, la integridad territorial y la autodeterminación nacional."
+                },
+                {
+                    "number": 2,
+                    "title": "Artículo 2",
+                    "text": "Venezuela se constituye en un Estado democrático y social de Derecho y de Justicia, que propugna como valores superiores de su ordenamiento jurídico y de su actuación, la vida, la libertad, la justicia, la igualdad, la solidaridad, la democracia, la responsabilidad social y en general, la preeminencia de los derechos humanos, la ética y el pluralismo político."
+                },
+                {
+                    "number": 3,
+                    "title": "Artículo 3",
+                    "text": "El Estado tiene como fines esenciales la defensa y el desarrollo de la persona y el respeto a su dignidad, el ejercicio democrático de la voluntad popular, la construcción de una sociedad justa y amante de la paz, la promoción de la prosperidad y bienestar del pueblo y la garantía del cumplimiento de los principios, derechos y deberes reconocidos y consagrados en esta Constitución. La educación y el trabajo son los procesos fundamentales para alcanzar dichos fines."
+                },
+                {
+                    "number": 4,
+                    "title": "Artículo 4",
+                    "text": "La República Bolivariana de Venezuela es un Estado Federal descentralizado en los términos consagrados en esta Constitución, y se rige por los principios de integridad territorial, cooperación, solidaridad, concurrencia y corresponsabilidad."
+                },
+                {
+                    "number": 5,
+                    "title": "Artículo 5",
+                    "text": "La soberanía reside intransferiblemente en el pueblo, quien la ejerce directamente en la forma prevista en esta Constitución y en la ley, e indirectamente, mediante el sufragio, por los órganos que ejercen el Poder Público. Los órganos del Estado emanan de la soberanía popular y a ella están sometidos."
+                }
+            ]
+        },
+        "source": "manual",
+        "searchableText": "Constitución República Bolivariana Venezuela libre independiente democrático social Derecho Justicia derechos humanos soberanía pueblo poder público",
+        "metadata": {
+            "year": 1999,
+            "status": "vigente"
+        }
+    }
+]

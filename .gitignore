@@ -39,3 +39,32 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Security & Firebase (CRITICAL)
+scripts/serviceAccountKey.json
+serviceAccountKey.json
+*.json.bak
+firebase-debug.log*
+.firebaserc
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Workspace / AI data
+.gemini/
+.idea/
+.vscode/
