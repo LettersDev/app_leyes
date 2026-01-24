@@ -73,6 +73,17 @@ async function executeSync(mode, year, roomIds, cookieStr) {
     }
 }
 
+async function executeSyncManualDate(fecha, roomIds, cookieStr) {
+    for (const salaId of roomIds) {
+        const salaInfo = SALA_MAP[salaId];
+        try {
+            await syncDay(salaId, fecha, cookieStr);
+        } catch (error) {
+            console.error(`   ❌ Error en sala ${salaInfo.short}: ${error.message}`);
+        }
+    }
+}
+
 async function runAutoSync(roomIds) {
     const currentYear = new Date().getFullYear();
     const configRef = doc(db, 'sync_monitor', 'historical_sync');
@@ -91,9 +102,22 @@ async function runAutoSync(roomIds) {
     const cookieStr = await getSessionCookies();
     if (!cookieStr) return;
 
-    // 1. Siempre sincronizar DIA ACTUAL para capturar lo nuevo
-    console.log(`\n🔄 [SmartSync] Paso 1: Sincronizando día actual (${currentYear})`);
-    await executeSync('daily', currentYear, roomIds, cookieStr);
+    // 1. Siempre sincronizar ÚLTIMOS 2 DÍAS (Hoy y Ayer) para no perder nada
+    console.log(`\n🔄 [SmartSync] Paso 1: Sincronizando capturas recientes (${currentYear})`);
+
+    // Obtener fechas
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const fmtToday = today.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const fmtYesterday = yesterday.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    console.log(`   🔎 Verificando ayer (${fmtYesterday})...`);
+    await executeSyncManualDate(fmtYesterday, roomIds, cookieStr);
+
+    console.log(`   🔎 Verificando hoy (${fmtToday})...`);
+    await executeSyncManualDate(fmtToday, roomIds, cookieStr);
 
     // 2. Si aún falta historia (del 2000 al presente), avanzar un año por ejecución
     if (nextYear < currentYear) {
