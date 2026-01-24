@@ -1,17 +1,18 @@
 const axios = require('axios');
 const https = require('https');
 const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, doc, setDoc } = require('firebase/firestore');
+const { getFirestore, collection, doc, setDoc, getDoc } = require('firebase/firestore');
 const { SALA_MAP } = require('./tsj_config');
 
 // Configuración de Firebase para AppLeyes (Nuevo Proyecto: appley-3f0fb)
+// Configuración de Firebase - Protegiendo con Variables de Entorno
 const firebaseConfig = {
-    apiKey: "AIzaSyCgMdSE-aiAkyGIFYWzCHCGTfB_6n9vrkc",
-    authDomain: "appley-3f0fb.firebaseapp.com",
-    projectId: "appley-3f0fb",
-    storageBucket: "appley-3f0fb.firebasestorage.app",
-    messagingSenderId: "591288865686",
-    appId: "1:591288865686:web:b7f16ebd3bd3edf90443b7"
+    apiKey: process.env.FIREBASE_API_KEY || "AIzaSyCgMdSE-aiAkyGIFYWzCHCGTfB_6n9vrkc",
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "appley-3f0fb.firebaseapp.com",
+    projectId: process.env.FIREBASE_PROJECT_ID || "appley-3f0fb",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "appley-3f0fb.firebasestorage.app",
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "591288865686",
+    appId: process.env.FIREBASE_APP_ID || "1:591288865686:web:b7f16ebd3bd3edf90443b7"
 };
 
 // Inicializar Firebase
@@ -25,11 +26,20 @@ async function getJurisprudence(options = {}) {
     const { mode = 'daily', year, roomIds = Object.keys(SALA_MAP) } = options;
 
     console.log(`\n⚖️ Iniciando Scraper de Jurisprudencia TSJ...`);
-    console.log(`📅 Modo: ${mode}${year ? ` | Año: ${year}` : ''}`);
 
-    // 1. Obtener Sesión (Cookies) para Liferay
-    let cookies = [];
-    let pAuth = '';
+    if (mode === 'auto') {
+        await runAutoSync(roomIds);
+        return;
+    }
+
+    console.log(`📅 Modo: ${mode}${year ? ` | Año: ${year}` : ''}`);
+    const cookieStr = await getSessionCookies();
+    if (!cookieStr) return;
+
+    await executeSync(mode, year, roomIds, cookieStr);
+}
+
+async function getSessionCookies() {
     try {
         const initRes = await axios.get('https://www.tsj.gob.ve/decisiones', {
             httpsAgent: agent,
@@ -37,38 +47,67 @@ async function getJurisprudence(options = {}) {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             }
         });
-        cookies = initRes.headers['set-cookie'] || [];
-
-        // 1.5 Extraer p_auth del HTML
-        const pAuthMatch = initRes.data.match(/Liferay\.authToken\s*=\s*"([^"]+)"/);
-        pAuth = pAuthMatch ? pAuthMatch[1] : '';
-
+        const cookies = initRes.headers['set-cookie'] || [];
         console.log(`✅ Sesión OK (${cookies.length} cookies)`);
-        console.log(`🔑 Liferay AuthToken: ${pAuth || 'No encontrado'}`);
+        return cookies.join('; ');
     } catch (error) {
         console.error(`❌ Error iniciando sesión: ${error.message}`);
-        return;
+        return null;
     }
+}
 
-    const cookieStr = cookies.join('; ');
-
-    // 2. Procesar cada Sala
+async function executeSync(mode, year, roomIds, cookieStr) {
     for (const salaId of roomIds) {
         const salaInfo = SALA_MAP[salaId];
         console.log(`\n🏛️ Procesando: ${salaInfo.name}...`);
-
         try {
-            // Si es modo histórico, necesitamos obtener la lista de días con sentencias para ese año
             if (mode === 'historical' && year) {
                 await syncHistoricalYear(salaId, year, cookieStr);
             } else {
-                // Modo diario: por simplicidad hoy, buscaremos la fecha de hoy
                 const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
                 await syncDay(salaId, today, cookieStr);
             }
         } catch (error) {
             console.error(`   ❌ Error en sala ${salaInfo.short}: ${error.message}`);
         }
+    }
+}
+
+async function runAutoSync(roomIds) {
+    const currentYear = new Date().getFullYear();
+    const configRef = doc(db, 'sync_monitor', 'historical_sync');
+
+    let lastYearSynced = 1999;
+    try {
+        const configSnap = await getDoc(configRef);
+        if (configSnap.exists()) {
+            lastYearSynced = configSnap.data().lastYearSynced || 1999;
+        }
+    } catch (e) {
+        console.log("⚠️ No se pudo leer el estado anterior, iniciando desde 2000.");
+    }
+
+    const nextYear = lastYearSynced + 1;
+    const cookieStr = await getSessionCookies();
+    if (!cookieStr) return;
+
+    // 1. Siempre sincronizar DIA ACTUAL para capturar lo nuevo
+    console.log(`\n🔄 [SmartSync] Paso 1: Sincronizando día actual (${currentYear})`);
+    await executeSync('daily', currentYear, roomIds, cookieStr);
+
+    // 2. Si aún falta historia (del 2000 al presente), avanzar un año por ejecución
+    if (nextYear < currentYear) {
+        console.log(`\n⏳ [SmartSync] Paso 2: Avanzando historia. Sincronizando año: ${nextYear}`);
+        await executeSync('historical', nextYear, roomIds, cookieStr);
+
+        // Guardar progreso en Firestore para la próxima vez
+        await setDoc(configRef, {
+            lastYearSynced: nextYear,
+            lastUpdate: new Date().toISOString()
+        }, { merge: true });
+        console.log(`\n✅ [SmartSync] Año ${nextYear} completado y guardado en DB.`);
+    } else {
+        console.log(`\n✨ [SmartSync] Toda la historia está al día (hasta ${lastYearSynced}).`);
     }
 }
 
@@ -123,29 +162,39 @@ async function syncDay(salaId, fecha, cookies) {
 
 async function saveToFirestore(s, salaId) {
     const salaInfo = SALA_MAP[salaId];
-    const expId = s.SSENTEXPEDIENTE.replace(/\//g, '-'); // Limpiar slash para Firestore ID
-
-    // Crear el objeto ligero
-    const metadata = {
-        expediente: s.SSENTEXPEDIENTE,
-        numero: s.SSENTNUMERO,
-        sala: salaInfo.name,
-        ponente: s.SPONENOMBRE,
-        fecha: s.DSENTFECHA, // Formato DD/MM/YYYY
-        titulo: `Sentencia N° ${s.SSENTNUMERO}`,
-        procedimiento: s.SPROCDESCRIPCION,
-        partes: s.SSENTPARTES || 'N/A',
-        resumen: s.SSENTDECISION || '',
-        url_original: `http://historico.tsj.gob.ve/decisiones/${s.SSALADIR}/${s.NOMBREMES?.trim()}/${s.SSENTNOMBREDOC}`,
-        timestamp: new Date().toISOString()
-    };
+    // --- MEJORA: Unicidad por sentencia, no por expediente ---
+    const sentId = `${salaInfo.code}-${s.SSENTNUMERO}`.toLowerCase().replace(/\s+/g, '');
 
     try {
-        const docRef = doc(db, 'jurisprudence', expId);
+        const docRef = doc(db, 'jurisprudence', sentId);
+
+        // Verificar si ya existe esta sentencia específica
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            console.log(`      ⏭️ Saltado: Sentencia ${s.SSENTNUMERO} (${salaInfo.short}) - Ya existe`);
+            return;
+        }
+
+        // Crear el objeto de metadatos
+        const metadata = {
+            id_sentencia: sentId,
+            expediente: s.SSENTEXPEDIENTE,
+            numero: s.SSENTNUMERO,
+            sala: salaInfo.name,
+            ponente: s.SPONENOMBRE,
+            fecha: s.DSENTFECHA, // Formato DD/MM/YYYY
+            titulo: `Sentencia N° ${s.SSENTNUMERO}`,
+            procedimiento: s.SPROCDESCRIPCION,
+            partes: s.SSENTPARTES || 'N/A',
+            resumen: s.SSENTDECISION || '',
+            url_original: `http://historico.tsj.gob.ve/decisiones/${s.SSALADIR}/${s.NOMBREMES?.trim()}/${s.SSENTNOMBREDOC}`,
+            timestamp: new Date().toISOString()
+        };
+
         await setDoc(docRef, metadata, { merge: true });
-        console.log(`      ✅ Guardada Exp: ${s.SSENTEXPEDIENTE}`);
+        console.log(`      ✅ Guardada: Sentencia ${s.SSENTNUMERO} (${salaInfo.short})`);
     } catch (e) {
-        console.error(`      ⚠️ Error al guardar ${s.SSENTEXPEDIENTE}: ${e.message}`);
+        console.error(`      ⚠️ Error al procesar sentencia ${s.SSENTNUMERO}: ${e.message}`);
     }
 }
 
@@ -197,6 +246,6 @@ async function syncHistoricalYear(salaId, year, cookies) {
 // Interfaz de CLI simple
 const myArgs = process.argv.slice(2);
 const mode = myArgs[0] || 'daily';
-const year = myArgs[1] || '2024';
+const year = myArgs[1] || new Date().getFullYear().toString();
 
 getJurisprudence({ mode, year });
