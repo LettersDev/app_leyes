@@ -12,10 +12,138 @@ import { useSettings } from '../context/SettingsContext';
 import ReadingSettingsModal from '../components/ReadingSettingsModal';
 import HistoryManager from '../utils/historyManager';
 import NotesManager from '../utils/notesManager';
-import { Portal, Dialog, TextInput } from 'react-native-paper';
+import { Portal, Dialog, TextInput, Surface } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { GRADIENTS } from '../utils/constants';
 
 // Tamaño optimizado para leyes grandes
 const PAGE_SIZE = 50;
+
+const LawArticle = React.memo(({
+    item,
+    index,
+    fontSize,
+    fontFamily,
+    searchQuery,
+    isSearching,
+    isExactMatch,
+    onOpenNote,
+    onToggleFavorite,
+    onShare,
+    onJumpToContext,
+    hasNote,
+    noteText,
+    isFavorite
+}) => {
+    const highlightText = (text, query) => {
+        if (!text || !query) return <Text>{text}</Text>;
+        const normalize = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const normText = normalize(text);
+        const normQuery = normalize(query.trim());
+        if (!normQuery) return <Text>{text}</Text>;
+
+        let lastIndex = 0;
+        const result = [];
+        const regex = new RegExp(normQuery, 'gi');
+        let match;
+        while ((match = regex.exec(normText)) !== null) {
+            result.push(text.substring(lastIndex, match.index));
+            result.push(
+                <Text key={match.index} style={styles.highlight}>
+                    {text.substring(match.index, match.index + normQuery.length)}
+                </Text>
+            );
+            lastIndex = match.index + normQuery.length;
+        }
+        result.push(text.substring(lastIndex));
+        return <Text>{result}</Text>;
+    };
+
+    if (item.type === 'header') {
+        return (
+            <View style={styles.headerContainer}>
+                <Text style={styles.chapterHeader}>{item.text}</Text>
+                <View style={styles.headerUnderline} />
+            </View>
+        );
+    }
+
+    const Content = (
+        <View style={[
+            styles.articleCard,
+            isExactMatch && styles.exactMatchCard,
+            isSearching && styles.clickableCard
+        ]}>
+            <View style={styles.articleHeaderRow}>
+                <Text
+                    selectable={true}
+                    style={[
+                        styles.articleTitleBold,
+                        { fontSize: fontSize + 2, fontFamily: fontFamily === 'Serif' ? 'serif' : 'System' }
+                    ]}
+                >
+                    {highlightText(item.title || `Artículo ${item.number}`, searchQuery)}
+                </Text>
+
+                <View style={styles.articleActions}>
+                    <IconButton
+                        icon={hasNote ? "note-text" : "pencil-outline"}
+                        iconColor={hasNote ? COLORS.accent : COLORS.primary}
+                        size={20}
+                        style={styles.smallIconButton}
+                        onPress={() => onOpenNote(item)}
+                    />
+                    <IconButton
+                        icon={isFavorite ? "star" : "star-outline"}
+                        iconColor={isFavorite ? "#FFD700" : COLORS.primary}
+                        size={20}
+                        style={styles.smallIconButton}
+                        onPress={() => onToggleFavorite(item)}
+                    />
+                    <IconButton
+                        icon="share-variant"
+                        iconColor={COLORS.primary}
+                        size={20}
+                        style={styles.smallIconButton}
+                        onPress={() => onShare(item)}
+                    />
+                </View>
+            </View>
+
+            <Text
+                selectable={true}
+                style={[
+                    styles.articleText,
+                    {
+                        fontSize,
+                        fontFamily: fontFamily === 'Serif' ? 'serif' : 'System',
+                        marginTop: 10,
+                        lineHeight: fontSize * 1.6
+                    }
+                ]}
+            >
+                {highlightText(item.text, searchQuery)}
+            </Text>
+
+            {hasNote && (
+                <View style={styles.noteContent}>
+                    <Text style={styles.noteTextLabel}>Mi nota:</Text>
+                    <Text style={styles.noteTextContent}>{noteText}</Text>
+                </View>
+            )}
+        </View>
+    );
+
+    if (isSearching) {
+        return (
+            <TouchableOpacity onPress={() => onJumpToContext(item.index)} activeOpacity={0.7}>
+                {Content}
+            </TouchableOpacity>
+        );
+    }
+
+    return Content;
+});
 
 const LawDetailScreen = ({ route }) => {
     const { lawId } = route.params;
@@ -162,7 +290,18 @@ const LawDetailScreen = ({ route }) => {
     const onChangeSearch = query => {
         setSearchQuery(query);
         if (searchTimeout.current) clearTimeout(searchTimeout.current);
-        searchTimeout.current = setTimeout(() => handleSearch(query), 500);
+
+        const trimmed = query.trim();
+        // Permitir búsqueda automática si:
+        // 1. Son 3 o más caracteres
+        // 2. Es un número (posible artículo)
+        const isNumeric = /^\d+$/.test(trimmed);
+
+        if (trimmed.length >= 3 || isNumeric) {
+            searchTimeout.current = setTimeout(() => handleSearch(query), 500);
+        } else if (trimmed.length === 0) {
+            handleSearch('');
+        }
     };
 
     const handleSearch = async (query = searchQuery) => {
@@ -203,7 +342,7 @@ const LawDetailScreen = ({ route }) => {
         }
     };
 
-    const jumpToContext = async (index) => {
+    const jumpToContext = useCallback(async (index) => {
         try {
             setLoading(true);
             setIsSearching(false);
@@ -220,21 +359,20 @@ const LawDetailScreen = ({ route }) => {
                 setHasMore(true);
             }
 
-            // Actualizar historial con el nuevo índice
             HistoryManager.updateVisitIndex(lawId, index);
         } catch (err) {
             console.error('Error al saltar al contexto:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [lawId]);
 
-    const clearSearch = () => {
+    const clearSearch = useCallback(() => {
         setSearchQuery('');
         setIsSearching(false);
         setSearchResults([]);
         setSearchTargetNum(null);
-    };
+    }, []);
 
     const onViewableItemsChanged = useRef(({ viewableItems }) => {
         if (viewableItems.length > 0 && !isSearching) {
@@ -342,7 +480,7 @@ const LawDetailScreen = ({ route }) => {
         );
     };
 
-    const openNoteDialog = (item) => {
+    const openNoteDialog = useCallback((item) => {
         const articleId = `${lawId}-${item.id || item.index}`;
         setEditingNote({
             id: articleId,
@@ -350,7 +488,7 @@ const LawDetailScreen = ({ route }) => {
             title: item.title || `Artículo ${item.number}`
         });
         setNoteDialogVisible(true);
-    };
+    }, [lawId, notes]);
 
     const saveNote = async () => {
         await NotesManager.saveNote(editingNote.id, editingNote.text);
@@ -359,156 +497,68 @@ const LawDetailScreen = ({ route }) => {
     };
 
     const renderHeader = () => (
-        <View>
-            <Card style={styles.headerCard}>
-                <Card.Content>
-                    <View style={styles.titleRow}>
-                        <Title style={styles.title}>{law.title}</Title>
-                        {law.isLargeLaw && (
-                            <Badge style={styles.largeLawBadge} size={20}>Ley Extensa</Badge>
-                        )}
-                    </View>
-                    {law.itemCount && (
-                        <Paragraph style={styles.itemCount}>{law.itemCount} artículos</Paragraph>
-                    )}
-                    {law.date && <Paragraph style={styles.date}>Fecha: {formatDate(law.date)}</Paragraph>}
-                    {law.metadata?.gacetaNumber && (
-                        <Paragraph style={styles.metadata}>Gaceta Oficial N° {law.metadata.gacetaNumber}</Paragraph>
-                    )}
-                    <View style={styles.actionButtons}>
-                        {localUri ? (
-                            <Button mode="contained" onPress={handleOpenFile} icon="file-pdf-box" style={styles.downloadButton} buttonColor={COLORS.secondary} textColor={COLORS.text}>
-                                Abrir PDF Offline
-                            </Button>
-                        ) : law.metadata?.pdfUrl ? (
-                            <Button mode="contained" onPress={handleDownload} loading={downloading} disabled={downloading} icon="download" style={styles.downloadButton} buttonColor={COLORS.secondary} textColor={COLORS.text}>
-                                Descargar PDF
-                            </Button>
-                        ) : null}
-
-                        <IconButton
-                            icon={favoriteIds.has(lawId) ? "star" : "star-outline"}
-                            iconColor={favoriteIds.has(lawId) ? "#FFD700" : "#fff"}
-                            size={24}
-                            onPress={toggleFavoriteLaw}
-                        />
-                        <IconButton
-                            icon="share-variant"
-                            iconColor="#fff"
-                            size={24}
-                            onPress={handleShareLaw}
-                        />
-                        <IconButton
-                            icon={isOfflineAvailable ? "cloud-check" : "cloud-download-outline"}
-                            iconColor={isOfflineAvailable ? COLORS.secondary : "#fff"}
-                            size={24}
-                            onPress={isOfflineAvailable ? handleRemoveOffline : handleDownloadContent}
-                            loading={isDownloadingContent}
-                            disabled={isDownloadingContent}
-                        />
-                        <IconButton
-                            icon="format-size"
-                            iconColor="#fff"
-                            size={24}
-                            onPress={() => setSettingsVisible(true)}
-                        />
-                    </View>
-                </Card.Content>
-            </Card>
-        </View>
+        <LinearGradient
+            colors={GRADIENTS.legal}
+            style={styles.headerFlat}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+        >
+            <View style={styles.badgeRow}>
+                <View style={styles.premiumBadge}>
+                    <Text style={styles.premiumBadgeText}>{law.type?.replace('_', ' ').toUpperCase()}</Text>
+                </View>
+            </View>
+            <Title style={styles.titleFlat}>{law.title}</Title>
+            <View style={styles.headerInfoFlat}>
+                {law.itemCount && (
+                    <Text style={styles.itemCountFlat}>{law.itemCount} artículos</Text>
+                )}
+                {law.date && <Text style={styles.dateFlat}> • {formatDate(law.date)}</Text>}
+            </View>
+            <View style={styles.actionButtonsFlat}>
+                <IconButton
+                    icon={favoriteIds.has(lawId) ? "star" : "star-outline"}
+                    iconColor={favoriteIds.has(lawId) ? "#FFD700" : "#fff"}
+                    size={24}
+                    onPress={toggleFavoriteLaw}
+                />
+                <IconButton
+                    icon="share-variant"
+                    iconColor="#fff"
+                    size={24}
+                    onPress={handleShareLaw}
+                />
+                <IconButton
+                    icon="format-size"
+                    iconColor="#fff"
+                    size={24}
+                    onPress={() => setSettingsVisible(true)}
+                />
+            </View>
+        </LinearGradient>
     );
 
-    const renderItem = ({ item, index }) => {
-        if (item.type === 'header') {
-            return (
-                <View style={styles.headerContainer}>
-                    <Text style={styles.chapterHeader}>{item.text}</Text>
-                    <Divider style={styles.headerDivider} />
-                </View>
-            );
-        }
-
-        const isExactMatch = searchTargetNum && item.number === searchTargetNum;
-        const dataList = isSearching ? searchResults : items;
-
-        const Content = (
-            <View style={[
-                styles.articleContainer,
-                isExactMatch && styles.exactMatchContainer,
-                isSearching && styles.clickableArticle
-            ]}>
-                <View style={styles.articleHeaderRow}>
-                    <View style={styles.titleBadgeRow}>
-                        <Title
-                            selectable={true}
-                            style={[
-                                styles.articleTitle,
-                                isExactMatch && styles.exactMatchTitle,
-                                { fontSize: fontSize + 2, fontFamily: fontFamily === 'Serif' ? 'serif' : 'System' }
-                            ]}
-                        >
-                            {highlightText(item.title || `Artículo ${item.number}`, searchQuery)}
-                        </Title>
-                        {isExactMatch && <Badge style={styles.matchBadge}>Encontrado</Badge>}
-                    </View>
-                    <View style={styles.articleActions}>
-                        <IconButton
-                            icon={notes[`${lawId}-${item.id || item.index}`] ? "note-text" : "pencil-outline"}
-                            iconColor={notes[`${lawId}-${item.id || item.index}`] ? COLORS.secondary : COLORS.primary}
-                            size={20}
-                            style={styles.smallIconButton}
-                            onPress={() => openNoteDialog(item)}
-                        />
-                        <IconButton
-                            icon={favoriteIds.has(`${lawId}-${item.id || item.index}`) ? "star" : "star-outline"}
-                            iconColor={favoriteIds.has(`${lawId}-${item.id || item.index}`) ? "#FFD700" : COLORS.primary}
-                            size={20}
-                            style={styles.smallIconButton}
-                            onPress={() => toggleFavoriteArticle(item)}
-                        />
-                        <IconButton
-                            icon="share-variant"
-                            iconColor={COLORS.primary}
-                            size={20}
-                            style={styles.smallIconButton}
-                            onPress={() => handleShareArticle(item)}
-                        />
-                        {isSearching && (
-                            <Text style={styles.tapToSeeMore}>Toca para ver todo</Text>
-                        )}
-                    </View>
-                </View>
-                <Text
-                    selectable={true}
-                    style={[
-                        styles.articleText,
-                        { fontSize, fontFamily: fontFamily === 'Serif' ? 'serif' : 'System' }
-                    ]}
-                >
-                    {highlightText(item.text, searchQuery)}
-                </Text>
-                {notes[`${lawId}-${item.id || item.index}`] && (
-                    <View style={styles.noteContent}>
-                        <Text style={styles.noteTextLabel}>Mi nota:</Text>
-                        <Text style={styles.noteTextContent}>{notes[`${lawId}-${item.id || item.index}`].text}</Text>
-                    </View>
-                )}
-                {index < dataList.length - 1 && dataList[index + 1]?.type !== 'header' && (
-                    <Divider style={styles.divider} />
-                )}
-            </View>
+    const renderItem = useCallback(({ item, index }) => {
+        const articleId = `${lawId}-${item.id || item.index}`;
+        return (
+            <LawArticle
+                item={item}
+                index={index}
+                fontSize={fontSize}
+                fontFamily={fontFamily}
+                searchQuery={searchQuery}
+                isSearching={isSearching}
+                isExactMatch={searchTargetNum && item.number === searchTargetNum}
+                onOpenNote={openNoteDialog}
+                onToggleFavorite={toggleFavoriteArticle}
+                onShare={handleShareArticle}
+                onJumpToContext={jumpToContext}
+                hasNote={!!notes[articleId]}
+                noteText={notes[articleId]?.text}
+                isFavorite={favoriteIds.has(articleId)}
+            />
         );
-
-        if (isSearching) {
-            return (
-                <TouchableOpacity onPress={() => jumpToContext(item.index)} activeOpacity={0.7}>
-                    {Content}
-                </TouchableOpacity>
-            );
-        }
-
-        return Content;
-    };
+    }, [lawId, fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, openNoteDialog, toggleFavoriteArticle, handleShareArticle, jumpToContext, notes, favoriteIds]);
 
     const renderFooter = () => {
         if (!loadingMore) return <View style={{ height: 40 }} />;
@@ -615,35 +665,122 @@ const LawDetailScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
+    container: { flex: 1, backgroundColor: COLORS.surface },
     centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: COLORS.background },
-    headerCard: { margin: 16, backgroundColor: COLORS.primary, borderRadius: 12, elevation: 4 },
-    title: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 12 },
-    date: { fontSize: 14, color: '#E5E7EB', marginBottom: 4 },
-    metadata: { fontSize: 14, color: COLORS.secondary, fontWeight: '600', marginTop: 4 },
-    contentContainer: { paddingHorizontal: 16, paddingBottom: 24 },
-    articleContainer: { marginBottom: 20, padding: 8, borderRadius: 8 },
-    clickableArticle: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB' },
-    exactMatchContainer: { backgroundColor: '#F0F9FF', borderLeftWidth: 4, borderLeftColor: COLORS.primary, borderColor: COLORS.primary },
-    articleHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-    titleBadgeRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-    articleTitle: { fontSize: 16, fontWeight: 'bold', color: COLORS.primary, flexShrink: 1 },
-    exactMatchTitle: { color: COLORS.primary },
-    matchBadge: { backgroundColor: COLORS.primary, color: '#fff', marginLeft: 8 },
-    tapToSeeMore: { fontSize: 10, color: COLORS.secondary, fontStyle: 'italic' },
-    articleText: { fontSize: 15, color: COLORS.text, lineHeight: 24, textAlign: 'justify' },
-    divider: { marginTop: 16, backgroundColor: COLORS.border },
-    actionButtons: { marginTop: 16, flexDirection: 'row', justifyContent: 'center' },
-    downloadButton: { borderRadius: 8, paddingHorizontal: 16 },
-    loadingText: { marginTop: 12, fontSize: 16, color: COLORS.textSecondary },
-    errorText: { fontSize: 16, color: COLORS.error, textAlign: 'center' },
-    headerContainer: { marginTop: 24, marginBottom: 16 },
-    chapterHeader: { fontSize: 18, fontWeight: 'bold', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-    headerDivider: { height: 2, backgroundColor: COLORS.secondary, borderRadius: 2 },
-    searchBarSticky: { margin: 16, backgroundColor: COLORS.surface, elevation: 4, borderRadius: 8, height: 50 },
-    searchResultsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 8 },
-    resultsText: { fontSize: 14, color: COLORS.primary, fontWeight: 'bold' },
-    clearSearchText: { color: COLORS.primary, fontWeight: '600' },
+    headerFlat: {
+        paddingTop: 40,
+        paddingBottom: 30,
+        paddingHorizontal: 20,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+        elevation: 10,
+    },
+    badgeRow: { alignItems: 'center', marginBottom: 12 },
+    premiumBadge: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: 15,
+        paddingVertical: 4,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
+    },
+    premiumBadgeText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 10,
+        letterSpacing: 1,
+    },
+    typeBadge: {
+        backgroundColor: COLORS.secondary,
+        color: COLORS.text,
+        paddingHorizontal: 12,
+        height: 24,
+        borderRadius: 12,
+        fontWeight: 'bold',
+        fontSize: 10,
+    },
+    titleFlat: { fontSize: 22, fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 8 },
+    headerInfoFlat: { flexDirection: 'row', justifyContent: 'center', marginBottom: 16 },
+    itemCountFlat: { fontSize: 13, color: '#CBD5E1' },
+    dateFlat: { fontSize: 13, color: '#CBD5E1' },
+    actionButtonsFlat: { flexDirection: 'row', justifyContent: 'center' },
+    headerDividerFlat: { height: 1, backgroundColor: COLORS.border, marginTop: 10 },
+    title: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 12, textAlign: 'left' },
+    date: { fontSize: 14, color: '#E5E7EB', marginBottom: 4, textAlign: 'left' },
+    metadata: { fontSize: 14, color: COLORS.secondary, fontWeight: '600', marginTop: 4, textAlign: 'left' },
+    contentContainer: { paddingHorizontal: 15, paddingVertical: 20 },
+    articleCard: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 20,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+    },
+    clickableCard: {
+        backgroundColor: '#F8FAFC',
+        borderWidth: 1,
+        borderColor: '#E2E8F0'
+    },
+    exactMatchCard: {
+        backgroundColor: '#FFFBEB',
+        borderWidth: 1,
+        borderColor: COLORS.accent
+    },
+    articleHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 5
+    },
+    articleActions: { flexDirection: 'row', alignItems: 'center' },
+    articleTitleBold: {
+        fontWeight: 'bold',
+        color: COLORS.primary,
+        flex: 1,
+        paddingRight: 10
+    },
+    articleText: {
+        color: '#334155',
+        textAlign: 'justify',
+    },
+    divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 15 },
+    headerContainer: {
+        marginTop: 30,
+        marginBottom: 20,
+        paddingHorizontal: 10
+    },
+    chapterHeader: {
+        fontSize: 20,
+        fontWeight: '900',
+        color: COLORS.primary,
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginBottom: 8
+    },
+    headerUnderline: {
+        height: 3,
+        width: 50,
+        backgroundColor: COLORS.accent,
+        borderRadius: 2
+    },
+    searchBarSticky: {
+        margin: 16,
+        backgroundColor: '#fff',
+        elevation: 8,
+        borderRadius: 15,
+        height: 55,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+    },
+    searchResultsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 15 },
+    resultsText: { fontSize: 15, color: COLORS.accent, fontWeight: 'bold' },
+    clearSearchText: { color: COLORS.primary, fontWeight: 'bold' },
     footerLoader: { paddingVertical: 20, alignItems: 'center', justifyContent: 'center' },
     loadingMoreText: { marginTop: 8, fontSize: 14, color: COLORS.textSecondary },
     highlight: { backgroundColor: '#FFD700', fontWeight: 'bold', color: '#000' },

@@ -2,7 +2,7 @@
   {
     "title": "Código Civil de Venezuela",
     "category": "codigo_civil",
-    "type": "ley_base",
+    "type": "Código",
     "date": "1982-07-26",
     "content": {
       "articles": [
@@ -284,11 +284,7 @@
           "type": "article",
           "number": 42,
           "title": "Artículo 42",
-          "text": "La promesa consta de los carteles ordenados en el"
-        },
-        {
-          "type": "header",
-          "text": "Capítulo II de este Título o de otro documento público, la parte que sin justo motivo rehusare cumplirla, satisfará a la otra los gastos que haya hecho por causa del prometido matrimonio."
+          "text": "La promesa consta de los carteles ordenados en el Capítulo II de este Título o de otro documento público, la parte que sin justo motivo rehusare cumplirla, satisfará a la otra los gastos que haya hecho por causa del prometido matrimonio."
         },
         {
           "type": "article",
@@ -468,11 +464,7 @@
           "type": "article",
           "number": 70,
           "title": "Artículo 70",
-          "text": "Podrá prescindirse de los documentos indicados en el artículo anterior y de la previa fijación de carteles, cuando los contrayentes deseen legalizar la unión concubinaria existente en que hayan estado viviendo. Esta circunstancia se certificará expresamente en la partida matrimonial. Si alguno de los contrayentes o ambos, tuvieren hijos menores bajó su patria potestad, deberán dentro de los tres (3) meses siguientes a la celebración del matrimonio, practicar el inventario de los bienes propios de sus hijos conforme a lo establecido en el"
-        },
-        {
-          "type": "header",
-          "text": "Capítulo VII de este Título."
+          "text": "Podrá prescindirse de los documentos indicados en el artículo anterior y de la previa fijación de carteles, cuando los contrayentes deseen legalizar la unión concubinaria existente en que hayan estado viviendo. Esta circunstancia se certificará expresamente en la partida matrimonial. Si alguno de los contrayentes o ambos, tuvieren hijos menores bajó su patria potestad, deberán dentro de los tres (3) meses siguientes a la celebración del matrimonio, practicar el inventario de los bienes propios de sus hijos conforme a lo establecido en el Capítulo VII de este Título."
         },
         {
           "type": "article",
@@ -506,7 +498,7 @@
           "type": "article",
           "number": 75,
           "title": "Artículo 75",
-          "text": "Si se trata del matrimonio que quiera contraer la mujer en contravención del"
+          "text": "Si se trata del matrimonio que quiera contraer la mujer en contravención del artículo 57, el derecho de hacer oposición compete a sus ascendientes, y a los del marido de quien el primer matrimonio de aquella haya quedado disuelto."
         },
         {
           "type": "article",
@@ -546,11 +538,7 @@
           "type": "article",
           "number": 81,
           "title": "Artículo 81",
-          "text": "El matrimonio no podrá celebrarse sino después de vencidos los ocho días a que se refiere el artículo 68, salvo lo dispuesto en los artículos 70 y 96 y si no se celebrare dentro de los seis meses siguientes contados a partir de la fecha del acta esponsalicia, no podrá efectuarse sin haberse llenado de nuevo las formalidades prescritas en el"
-        },
-        {
-          "type": "header",
-          "text": "Capítulo II de este Título."
+          "text": "El matrimonio no podrá celebrarse sino después de vencidos los ocho días a que se refiere el artículo 68, salvo lo dispuesto en los artículos 70 y 96 y si no se celebrare dentro de los seis meses siguientes contados a partir de la fecha del acta esponsalicia, no podrá efectuarse sin haberse llenado de nuevo las formalidades prescritas en el Capítulo II de este Título."
         },
         {
           "type": "article",
@@ -592,11 +580,7 @@
           "type": "article",
           "number": 88,
           "title": "Artículo 88",
-          "text": "En la celebración del matrimonio se observarán las formalidades siguientes: Reunidos el funcionario que autorice el acto, su Secretario, los contrayentes y los testigos, el Secretario dará lectura a la"
-        },
-        {
-          "type": "header",
-          "text": "Sección I del Capítulo XI del presente Título, que trata de los deberes y derechos de los cónyuges, y en seguida dicho funcionario recibirá de los contrayentes uno después del otro, la declaración de que ellos se toman por marido y mujer, respectivamente y los declarará unidos en matrimonio en nombre de la República y por autoridad de la Ley."
+          "text": "En la celebración del matrimonio se observarán las formalidades siguientes: Reunidos el funcionario que autorice el acto, su Secretario, los contrayentes y los testigos, el Secretario dará lectura a la Sección I del Capítulo XI del presente Título, que trata de los deberes y derechos de los cónyuges, y en seguida dicho funcionario recibirá de los contrayentes uno después del otro, la declaración de que ellos se toman por marido y mujer, respectivamente y los declarará unidos en matrimonio en nombre de la República y por autoridad de la Ley."
         },
         {
           "type": "article",
@@ -614,21 +598,13 @@
           "type": "article",
           "number": 91,
           "title": "Artículo 91",
-          "text": "Cuando quien presencie el matrimonio sea la Primera Autoridad Civil del Municipio o Parroquia, extenderá el acta en uno de los dos ejemplares del registro de matrimonios, y la copiará y certificara en el otro. Si el matrimonio se celebrare ante cualquiera otro funcionario autorizado, se extenderá el acta en el"
-        },
-        {
-          "type": "header",
-          "text": "libro de registro de matrimonios, y enviará de ella inmediatamente copia certificada a la Primera Autoridad Civil del Municipio, quien la copiará y certificará con toda preferencia en los dos libros respectivos. También, para que la certifique en el registro de matrimonios, enviará la Primera Autoridad Civil del Municipio o Parroquia al Presidente del Concejo Municipal, copia certificada del acta del matrimonio que autorice cualquier otro funcionario que no sea el Presidente del Concejo Municipal. Los expedientes de matrimonios celebrados ante otro funcionario que no sea el Presidente del Concejo Municipal, serán remitidos a éste, para su archivo, dentro de los tres días siguientes a la celebración. El funcionarlo que autorice el matrimonio entregará a los interesados, a la mayor brevedad posible, copla certificada del acta de matrimonio."
+          "text": "Cuando quien presencie el matrimonio sea la Primera Autoridad Civil del Municipio o Parroquia, extenderá el acta en uno de los dos ejemplares del registro de matrimonios, y la copiará y certificara en el otro. Si el matrimonio se celebrare ante cualquiera otro funcionario autorizado, se extenderá el acta en el libro de registro de matrimonios, y enviará de ella inmediatamente copia certificada a la Primera Autoridad Civil del Municipio, quien la copiará y certificará con toda preferencia en los dos libros respectivos. También, para que la certifique en el registro de matrimonios, enviará la Primera Autoridad Civil del Municipio o Parroquia al Presidente del Concejo Municipal, copia certificada del acta del matrimonio que autorice cualquier otro funcionario que no sea el Presidente del Concejo Municipal. Los expedientes de matrimonios celebrados ante otro funcionario que no sea el Presidente del Concejo Municipal, serán remitidos a éste, para su archivo, dentro de los tres días siguientes a la celebración. El funcionarlo que autorice el matrimonio entregará a los interesados, a la mayor brevedad posible, copla certificada del acta de matrimonio."
         },
         {
           "type": "article",
           "number": 92,
           "title": "Artículo 92",
-          "text": "El Presidente del Concejo Municipal remitirá inmediatamente copia certificada del acta del matrimonio que haya presenciado, así cómo de las copias que reciba en virtud del artículo anterior, a la Primera Autoridad Civil de las Parroquias o Municipios a que corresponda el lugar del nacimiento de los cónyuges, para que la inserte en el"
-        },
-        {
-          "type": "header",
-          "text": "libro correspondiente, y anote el acta de nacimiento del cónyuge respectivo con la fecha del acta de matrimonio. La Primera Autoridad Civil de la Parroquia o Municipio, a su vez, remitirá al Registrador Principal una copia de las notas marginales que inserte, para que este funcionario verifique igual anotación en el duplicado de los Libros de Nacimiento que reposan en el Archivo de la Oficina a su cargo."
+          "text": "El Presidente del Concejo Municipal remitirá inmediatamente copia certificada del acta del matrimonio que haya presenciado, así cómo de las copias que reciba en virtud del artículo anterior, a la Primera Autoridad Civil de las Parroquias o Municipios a que corresponda el lugar del nacimiento de los cónyuges, para que la inserte en el libro correspondiente, y anote el acta de nacimiento del cónyuge respectivo con la fecha del acta de matrimonio. La Primera Autoridad Civil de la Parroquia o Municipio, a su vez, remitirá al Registrador Principal una copia de las notas marginales que inserte, para que este funcionario verifique igual anotación en el duplicado de los Libros de Nacimiento que reposan en el Archivo de la Oficina a su cargo."
         },
         {
           "type": "article",
@@ -1242,13 +1218,19 @@
           "type": "article",
           "number": 185,
           "title": "Artículo 185",
-          "text": "A Cuando los cónyuges han permanecido separados de hecho por más de cinco (5) años, cualquiera de ellos podrá solicitar el divorcio, alegando ruptura prolongada de la vida en común. Con la solicitud deberá acompañar copia certificada de la partida de matrimonio. En caso de que la solicitud sea presentada por un extranjero que hubiere contraído matrimonio en el exterior, deberá acreditar constancia de residencia de diez (10) años en el país. Admitida la solicitud, el Juez librará sendas boletas de citación al otro cónyuge y al Fiscal del Ministerio Público, enviándoles además, copia de la solicitud. El otro cónyuge deberá comparecer personalmente ante el Juez en la tercera audiencia después de citado. Si reconociere el hecho y si el Fiscal del Ministerio Público no hiciere oposición dentro de las diez audiencias siguientes, el Juez declarará el divorcio en la duodécima audiencia siguiente a la comparecencia de los interesados. Si el otro cónyuge no compareciere personalmente o si al comparecer negare el hecho, o si el Fiscal del Ministerio Público lo objetare, se declarará terminado el procedimiento y se ordenará el archivo del expediente."
+          "text": "Son causales de divorcio:\n\n1º. El adulterio.\n\n2º. El abandono voluntario.\n\n3º. Los excesos, sevicia e injurias graves que hagan imposible la vida en común.\n\n4º. El conato de uno de los cónyuges para corromper o prostituir al otro cónyuge, o a sus hijos, así como la connivencia en su corrupción o prostitución.\n\n5º. La condenación a presidio.\n\n6º. La adición alcohólica u otras formas graves de fármaco-dependencia que hagan imposible la vida en común.\n\n7º. La interdicción por causa de perturbación psiquiátrica grave que imposibilite la vida en común. En este caso el Juez no decretará el divorcio sin antes procurar la manutención y el tratamiento médico del enfermo."
+        },
+        {
+          "type": "article",
+          "number": "185-A",
+          "title": "Artículo 185-A",
+          "text": "Cuando los cónyuges han permanecido separados de hecho por más de cinco (5) años, cualquiera de ellos podrá solicitar el divorcio, alegando ruptura prolongada de la vida en común. Con la solicitud deberá acompañar copia certificada de la partida de matrimonio. En caso de que la solicitud sea presentada por un extranjero que hubiere contraído matrimonio en el exterior, deberá acreditar constancia de residencia de diez (10) años en el país.\n\nAdmitida la solicitud, el Juez librará sendas boletas de citación al otro cónyuge y al Fiscal del Ministerio Público, enviándoles además, copia de la solicitud. El otro cónyuge deberá comparecer personalmente ante el Juez en la tercera audiencia después de citado. Si reconociere el hecho y si el Fiscal del Ministerio Público no hiciere oposición dentro de las diez audiencias siguientes, el Juez declarará el divorcio en la duodécima audiencia siguiente a la comparecencia de los interesados. Si el otro cónyuge no compareciere personalmente o si al comparecer negare el hecho, o si el Fiscal del Ministerio Público lo objetare, se declarará terminado el procedimiento y se ordenará el archivo del expediente."
         },
         {
           "type": "article",
           "number": 186,
           "title": "Artículo 186",
-          "text": "Ejecutoria la sentencia que declaró el divorcio, queda disuelto el matrimonio, y cesará la comunidad entre los cónyuges y se procederá a liquidarla. Las partes podrán contraer libremente nuevo matrimonio observándose lo dispuesto en el"
+          "text": "Ejecutoriada la sentencia que declaró el divorcio, queda disuelto el matrimonio, y cesará la comunidad entre los cónyuges y se procederá a liquidarla. Las partes podrán contraer libremente nuevo matrimonio, observándose lo dispuesto en el artículo 57 de este Código."
         },
         {
           "type": "article",
@@ -1270,7 +1252,7 @@
           "type": "article",
           "number": 189,
           "title": "Artículo 189",
-          "text": "Son causas únicas de separación de cuerpos las seis primeras que establece el"
+          "text": "Son causas únicas de separación de cuerpos las seis primeras que establece el artículo 185."
         },
         {
           "type": "article",
@@ -1332,11 +1314,7 @@
           "type": "article",
           "number": 198,
           "title": "Artículo 198",
-          "text": "En defecto de la partida de nacimiento, son también pruebas de filiación materna:\n\n1°. La declaración que hiciere la madre o después de su muerte, sus ascendientes, con el fin de reconocer la filiación, en las condiciones y con las formalidades que se señalan en el"
-        },
-        {
-          "type": "header",
-          "text": "Capítulo III de este Título.\n\n2°. La posesión de estado del hijo, establecida de conformidad con las reglas contempladas en ese mismo Capítulo."
+          "text": "En defecto de la partida de nacimiento, son también pruebas de filiación materna:\n\n1°. La declaración que hiciere la madre o después de su muerte, sus ascendientes, con el fin de reconocer la filiación, en las condiciones y con las formalidades que se señalan en el Capítulo III de este Título.\n\n2°. La posesión de estado del hijo, establecida de conformidad con las reglas contempladas en ese mismo Capítulo."
         },
         {
           "type": "article",
@@ -12993,6 +12971,7 @@
           "text": "El presente Código reformado empezará a regir desde su publicación en la GACETA OFICIAL DE LA REPÚBLICA DE VENEZUELA. Dado, firmado y sellado en el Palacio Federal Legislativo, en Caracas a los seis días del mes de julio de mil novecientos ochenta y dos. Años\n\n172º de la Independencia y\n\n123º de la Federación. El Presidente, (L. S. ), Godofredo González. El Vicepresidente, Armando Sanchez Bueno Los Secretarios, José Rafael García, Héctor Carpio Castillo Palacio de Miraflores, en Caracas a los veintiséis días del mes de julio de mil novecientos ochenta y dos. Años\n\n172º de la Independencia y\n\n123º de la Federación. Cúmplase (L. S. ) Luis Herrera Campins Trascrito de la Gaceta Oficial N° 2. 990 del 26 de julio de 1982 NOTA 1: Reforma el Código Civil del 13-08-1942, publicado en Gaceta Oficial No. 17 del 01-09-1942. NOTA 2: El artículo 1989 de este Código fue anulada por Sentencia de la Corte Suprema en pleno de 11-07-1990 (sic) (G. O. 4. 738 de 23-06-1994)."
         }
       ]
-    }
+    },
+    "parent_category": "codigos"
   }
 ]

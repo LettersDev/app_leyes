@@ -49,8 +49,23 @@ export const getLawsByCategory = async (category) => {
 };
 
 /**
- * Obtener una ley específica por ID (solo metadatos)
+ * Obtener leyes por categoría padre (Agrupación)
  */
+export const getLawsByParentCategory = async (parentCategory) => {
+    try {
+        const lawsRef = collection(db, LAWS_COLLECTION);
+        const q = query(lawsRef, where('parent_category', '==', parentCategory));
+        const snapshot = await getDocs(q);
+
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error('Error al obtener leyes por categoría padre:', error);
+        throw error;
+    }
+};
 export const getLawById = async (lawId) => {
     try {
         // Intentar local primero

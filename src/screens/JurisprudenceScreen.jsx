@@ -21,6 +21,7 @@ import { COLORS } from '../utils/constants';
 
 const SALAS = [
     { id: 'all', label: 'Todas' },
+    { id: 'recent', label: 'Recientes (7d)' },
     { id: 'Sala Constitucional', label: 'Constitucional' },
     { id: 'Sala Político-Administrativa', label: 'Político' },
     { id: 'Sala Electoral', label: 'Electoral' },
@@ -29,6 +30,98 @@ const SALAS = [
     { id: 'Sala de Casación Social', label: 'Social' },
     { id: 'Sala Plena', label: 'Plena' },
 ];
+// Helper para obtener los últimos N días en formato DD/MM/YYYY
+const getLastNDaysStrings = (n) => {
+    const dates = [];
+    for (let i = 0; i < n; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const year = d.getFullYear();
+        dates.push(`${day}/${month}/${year}`);
+    }
+    return dates;
+};
+
+// Helper para parsear fecha DD/MM/YYYY a objeto Date
+const parseDateString = (dateStr) => {
+    const [day, month, year] = dateStr.split('/');
+    return new Date(year, month - 1, day);
+};
+
+// Componente de tarjeta memoizado para evitar re-renders innecesarios
+const JurisprudenceCard = React.memo(({
+    item,
+    isFavorite,
+    onToggleFavorite,
+    onShare,
+    onOpenOriginal
+}) => {
+    return (
+        <Card style={styles.card}>
+            <Card.Content>
+                <View style={styles.cardHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.expediente}>Exp: {item.expediente}</Text>
+                        {item.fecha && (new Date() - parseDateString(item.fecha)) < (5 * 24 * 60 * 60 * 1000) && (
+                            <View style={{
+                                marginLeft: 8,
+                                backgroundColor: '#E8F5E9',
+                                paddingHorizontal: 6,
+                                paddingVertical: 2,
+                                borderRadius: 4,
+                                borderWidth: 0.5,
+                                borderColor: '#2E7D32'
+                            }}>
+                                <Text style={{ fontSize: 9, color: '#2E7D32', fontWeight: 'bold' }}>
+                                    NUEVO
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                    <Chip compact textStyle={{ fontSize: 10 }}>{item.sala}</Chip>
+                </View>
+                <Title style={styles.title}>{item.titulo}</Title>
+                <View style={styles.metaRow}>
+                    <Text variant="labelSmall" style={styles.metaLabel}>Ponente:</Text>
+                    <Text variant="bodySmall" style={styles.metaValue}>{item.ponente}</Text>
+                </View>
+                <View style={styles.metaRow}>
+                    <Text variant="labelSmall" style={styles.metaLabel}>Fecha:</Text>
+                    <Text variant="bodySmall" style={styles.metaValue}>{item.fecha}</Text>
+                </View>
+                <Paragraph numberOfLines={3} style={styles.resumen}>
+                    {item.resumen || 'Sin resumen disponible.'}
+                </Paragraph>
+            </Card.Content>
+            <Card.Actions style={styles.cardActions}>
+                <View style={styles.leftActions}>
+                    <IconButton
+                        icon={isFavorite ? "star" : "star-outline"}
+                        iconColor={isFavorite ? "#FFD700" : COLORS.primary}
+                        size={24}
+                        onPress={() => onToggleFavorite(item)}
+                    />
+                    <IconButton
+                        icon="share-variant"
+                        iconColor={COLORS.primary}
+                        size={24}
+                        onPress={() => onShare(item)}
+                    />
+                </View>
+                <Button
+                    mode="contained"
+                    onPress={() => onOpenOriginal(item)}
+                    buttonColor={COLORS.secondary}
+                    labelStyle={{ fontSize: 12 }}
+                >
+                    Leer Sentencia
+                </Button>
+            </Card.Actions>
+        </Card>
+    );
+});
 
 
 const JurisprudenceScreen = ({ navigation }) => {
@@ -78,8 +171,15 @@ const JurisprudenceScreen = ({ navigation }) => {
             let q = collection(db, 'jurisprudence');
             const constraints = [];
 
-            // 1. Filtro por Sala
-            if (selectedSala !== 'all') {
+            // 1. Filtro por Sala o Recientes
+            if (selectedSala === 'recent') {
+                const recentDates = getLastNDaysStrings(7);
+                console.log(`🕒 Filtrando sentencias publicadas en: ${recentDates.join(', ')}`);
+                constraints.push(where('fecha', 'in', recentDates));
+                // Nota: Firestore 'in' solo permite 10 elementos. 7 está bien.
+                // En este modo ordenamos por timestamp para ver lo último guardado de esos días
+                constraints.push(orderBy('timestamp', 'desc'));
+            } else if (selectedSala !== 'all') {
                 console.log(`🏛️ Filtrando por sala: ${selectedSala}`);
                 constraints.push(where('sala', '==', selectedSala));
             }
@@ -107,7 +207,7 @@ const JurisprudenceScreen = ({ navigation }) => {
                     constraints.push(where('expediente', '<=', queryText + '\uf8ff'));
                     constraints.push(orderBy('expediente'));
                 }
-            } else {
+            } else if (selectedSala !== 'recent') {
                 constraints.push(orderBy('timestamp', 'desc'));
             }
 
@@ -154,13 +254,12 @@ const JurisprudenceScreen = ({ navigation }) => {
         }
     };
 
-    const handleSearch = () => {
+    const handleSearch = useCallback(() => {
         fetchJurisprudence(true);
-    };
+    }, [fetchJurisprudence]);
 
-    const openOriginal = (item) => {
+    const openOriginal = useCallback((item) => {
         if (item.url_original) {
-            // Registrar en historial
             HistoryManager.addVisit({
                 id: item.id,
                 type: 'juris',
@@ -174,9 +273,9 @@ const JurisprudenceScreen = ({ navigation }) => {
                 title: `Sentencia Exp: ${item.expediente}`
             });
         }
-    };
+    }, [navigation]);
 
-    const toggleFavorite = async (item) => {
+    const toggleFavorite = useCallback(async (item) => {
         const favItem = {
             id: item.id,
             type: 'juris',
@@ -186,59 +285,22 @@ const JurisprudenceScreen = ({ navigation }) => {
         };
         await FavoritesManager.toggleFavorite(favItem);
         loadFavoriteStatus();
-    };
+    }, []);
 
-    const handleShare = (item) => {
+    const handleShare = useCallback((item) => {
         const message = `${item.titulo}\nExp: ${item.expediente}\nSala: ${item.sala}\n\nResumen: ${item.resumen}`;
         FavoritesManager.shareContent(item.titulo, message, item.url_original);
-    };
+    }, []);
 
-    const renderItem = ({ item }) => (
-        <Card style={styles.card}>
-            <Card.Content>
-                <View style={styles.cardHeader}>
-                    <Text style={styles.expediente}>Exp: {item.expediente}</Text>
-                    <Chip compact textStyle={{ fontSize: 10 }}>{item.sala}</Chip>
-                </View>
-                <Title style={styles.title}>{item.titulo}</Title>
-                <View style={styles.metaRow}>
-                    <Text variant="labelSmall" style={styles.metaLabel}>Ponente:</Text>
-                    <Text variant="bodySmall" style={styles.metaValue}>{item.ponente}</Text>
-                </View>
-                <View style={styles.metaRow}>
-                    <Text variant="labelSmall" style={styles.metaLabel}>Fecha:</Text>
-                    <Text variant="bodySmall" style={styles.metaValue}>{item.fecha}</Text>
-                </View>
-                <Paragraph numberOfLines={3} style={styles.resumen}>
-                    {item.resumen || 'Sin resumen disponible.'}
-                </Paragraph>
-            </Card.Content>
-            <Card.Actions style={styles.cardActions}>
-                <View style={styles.leftActions}>
-                    <IconButton
-                        icon={favoriteIds.has(item.id) ? "star" : "star-outline"}
-                        iconColor={favoriteIds.has(item.id) ? "#FFD700" : COLORS.primary}
-                        size={24}
-                        onPress={() => toggleFavorite(item)}
-                    />
-                    <IconButton
-                        icon="share-variant"
-                        iconColor={COLORS.primary}
-                        size={24}
-                        onPress={() => handleShare(item)}
-                    />
-                </View>
-                <Button
-                    mode="contained"
-                    onPress={() => openOriginal(item)}
-                    buttonColor={COLORS.secondary}
-                    labelStyle={{ fontSize: 12 }}
-                >
-                    Leer Sentencia
-                </Button>
-            </Card.Actions>
-        </Card>
-    );
+    const renderItem = useCallback(({ item }) => (
+        <JurisprudenceCard
+            item={item}
+            isFavorite={favoriteIds.has(item.id)}
+            onToggleFavorite={toggleFavorite}
+            onShare={handleShare}
+            onOpenOriginal={openOriginal}
+        />
+    ), [favoriteIds, toggleFavorite, handleShare, openOriginal]);
 
     // Lógica para determinar qué vista principal mostrar
     let MainView;
@@ -277,6 +339,11 @@ const JurisprudenceScreen = ({ navigation }) => {
                 onEndReachedThreshold={0.5}
                 onRefresh={() => fetchJurisprudence(true)}
                 refreshing={refreshing}
+                // Optimizaciones de rendimiento para listas largas
+                initialNumToRender={7}
+                maxToRenderPerBatch={10}
+                windowSize={10}
+                removeClippedSubviews={true}
                 ListEmptyComponent={
                     !loading ? (
                         <View style={styles.center}>

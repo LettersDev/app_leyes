@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Card, Title, Paragraph, Chip } from 'react-native-paper';
-import { getLawsByCategory } from '../services/lawService';
-import { COLORS, CATEGORY_NAMES } from '../utils/constants';
+import { getLawsByCategory, getLawsByParentCategory } from '../services/lawService';
+import { COLORS, LAW_CATEGORIES } from '../utils/constants';
 
 const LawsListScreen = ({ route, navigation }) => {
     const { category, categoryName } = route.params;
@@ -18,7 +18,15 @@ const LawsListScreen = ({ route, navigation }) => {
         try {
             setLoading(true);
             setError(null);
-            const data = await getLawsByCategory(category);
+
+            let data;
+            if (category === LAW_CATEGORIES.LEYES || category === LAW_CATEGORIES.LEYES_ORGANICAS) {
+                console.log(`📂 Cargando leyes por parent_category: ${category}`);
+                data = await getLawsByParentCategory(category);
+            } else {
+                data = await getLawsByCategory(category);
+            }
+
             setLaws(data);
         } catch (err) {
             setError('Error al cargar las leyes. Por favor, intenta de nuevo.');
@@ -157,12 +165,20 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     chip: {
-        height: 28,
-        backgroundColor: COLORS.background,
+        paddingHorizontal: 0,
+        backgroundColor: COLORS.secondary + '20',
+        borderColor: COLORS.secondary,
+        borderWidth: 0.5,
+        borderRadius: 4,
+        alignSelf: 'flex-start',
     },
     chipText: {
-        fontSize: 11,
-        color: COLORS.textSecondary,
+        fontSize: 8,
+        fontWeight: 'bold',
+        color: COLORS.secondary,
+        textTransform: 'uppercase',
+        paddingHorizontal: 4,
+        paddingVertical: 1,
     },
     date: {
         fontSize: 14,

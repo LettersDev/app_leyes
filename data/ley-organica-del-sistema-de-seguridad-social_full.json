@@ -1,0 +1,1002 @@
+[
+  {
+    "title": "Ley-Organica-Del-Sistema-De-Seguridad-Social",
+    "category": "ley-organica-del-sistema-de-seguridad-social",
+    "parent_category": "leyes_organicas",
+    "type": "ley_organica",
+    "date": "2026-01-24",
+    "description": "Extraído automáticamente de ley-organica-del-sistema-de-seguridad-social.pdf",
+    "content": {
+      "articles": [
+        {
+          "type": "header",
+          "text": "TÍTULO I"
+        },
+        {
+          "type": "article",
+          "number": "1",
+          "title": "Artículo 1",
+          "text": "La presente Ley tiene por objeto crear el Sistema de Seguridad Social, establecer y regular su rectoría, organización, funcionamiento y financiamiento, la gestión de sus regímenes prestacionales y la forma de hacer efectivo el derecho a la seguridad social por parte de las personas sujetas a su ámbito de aplicación, como servicio público de carácter no lucrativo, de conformidad con lo dispuesto en la Constitución de la República Bolivariana de Venezuela y en los tratados, pactos y convenciones sobre la materia, suscritos y ratificados por Venezuela. Fines de la Seguridad Social"
+        },
+        {
+          "type": "article",
+          "number": "2",
+          "title": "Artículo 2",
+          "text": "El Estado, por medio del Sistema de Seguridad Social, garantiza a las personas comprendidas en el campo de aplicación de esta Ley, la protección adecuada frente a las contingencias y en las situaciones que se contemplan en la misma. Relación jurídica regulada"
+        },
+        {
+          "type": "article",
+          "number": "3",
+          "title": "Artículo 3",
+          "text": "La presente Ley rige las relaciones jurídicas entre las personas, y los órganos y entes del Sistema de Seguridad Social por el acaecimiento de las contingencias objeto de protección por dicho sistema, a los fines de promover el mejoramiento de la calidad de vida de las personas y su bienestar, como elemento fundamental de política social. Ámbito de Aplicación"
+        },
+        {
+          "type": "article",
+          "number": "4",
+          "title": "Artículo 4",
+          "text": "La seguridad social es un derecho humano y social fundamental e irrenunciable, garantizado por el Estado a todos los venezolanos residentes en el territorio de la República, y a los extranjeros residenciados legalmente en él, independientemente de su capacidad contributiva, condición social, actividad laboral, medio de desenvolvimiento, salarios, ingresos y renta, conforme al principio de progresividad y a los términos establecidos en la Constitución de la República Bolivariana de Venezuela y en las diferentes leyes nacionales, tratados, pactos y convenciones suscritos y ratificados por Venezuela. Definición de Sistema de Seguridad Social"
+        },
+        {
+          "type": "article",
+          "number": "5",
+          "title": "Artículo 5",
+          "text": "A los fines de esta Ley, se entiende por Sistema de Seguridad Social el conjunto integrado de sistemas y regímenes prestacionales, complementarios entre sí e interdependientes, destinados a atender las contingencias objeto de la protección de dicho Sistema. Definición de Sistema Prestacional"
+        },
+        {
+          "type": "article",
+          "number": "6",
+          "title": "Artículo 6",
+          "text": "A los fines de esta Ley, se entiende por Sistema Prestacional el componente del Sistema de Seguridad Social que agrupa uno o más regímenes prestacionales. Definición de Régimen Prestacional"
+        },
+        {
+          "type": "article",
+          "number": "7",
+          "title": "Artículo 7",
+          "text": "A los fines de esta Ley, se entiende por Régimen Prestacional el conjunto de normas que regulan las prestaciones con las cuales se atenderán las contingencias, carácter, cuantía, duración y requisitos de acceso; las instituciones que las otorgarán y gestionarán, así como su financiamiento y funcionamiento. Principios y características"
+        },
+        {
+          "type": "article",
+          "number": "8",
+          "title": "Artículo 8",
+          "text": "El Sistema de Seguridad Social, de conformidad con lo establecido en la Constitución de la República Bolivariana de Venezuela, será universal, integral, eficiente, de financiamiento solidario, unitario y participativo, de contribuciones directas e indirectas. Su gestión será eficaz, oportuna y en equilibrio financiero y actuarial. Carácter público del Sistema"
+        },
+        {
+          "type": "article",
+          "number": "9",
+          "title": "Artículo 9",
+          "text": "El Sistema de Seguridad Social es de carácter público y las normas que lo regulan son de orden público. Administración de las cotizaciones obligatorias"
+        },
+        {
+          "type": "article",
+          "number": "10",
+          "title": "Artículo 10",
+          "text": "Las cotizaciones obligatorias que establece la presente Ley a los empleadores y trabajadores u otros afiliados para financiar los regímenes prestacionales del Sistema de Seguridad Social, sólo podrán ser administrados con fines sociales y bajo la rectoría y gestión de los órganos y entes del Estado. Convenios de asesoría"
+        },
+        {
+          "type": "article",
+          "number": "11",
+          "title": "Artículo 11",
+          "text": "Los convenios con el sector privado a los que se refiere esta Ley para la recaudación e inversión de los recursos financieros del Sistema de Seguridad Social, en ningún caso implicarán la transferencia a este sector de la propiedad de dichos recursos, ni su administración. Estos convenios se otorgarán mediante concursos públicos y estarán dirigidos al asesoramiento de las operaciones financieras y sobre la cartera de inversiones con la finalidad de alcanzar óptimos rendimientos del mercado monetario y de capitales tanto domésticos como externos, para acrecentar los fondos, en beneficio de la población afiliada, con el propósito de mantener el equilibrio financiero y actuarial del Sistema de Seguridad Social. La Tesorería de la Seguridad Social y el Banco Nacional de Vivienda y Hábitat fijarán los pagos por servicios prestados derivados de los convenios en referencia. Valuaciones"
+        },
+        {
+          "type": "article",
+          "number": "12",
+          "title": "Artículo 12",
+          "text": "La Tesorería de Seguridad Social realizará bienalmente valuaciones económico-actuariales del Sistema de Seguridad Social, las cuales podrán ser sometidas a auditoria de organismos internacionales especializados. Certificación actuarial"
+        },
+        {
+          "type": "article",
+          "number": "13",
+          "title": "Artículo 13",
+          "text": "Las reservas técnicas, los márgenes de solvencia y la calidad de riesgo de las inversiones de los fondos que manejen la Tesorería de Seguridad Social y el Banco Nacional de Vivienda y Hábitat, deberán ser certificadas anualmente por actuarios en el libre ejercicio de su profesión debidamente acreditados por la Superintendencia de Seguridad Social. Participación de los actores sociales y cultura de la Seguridad Social"
+        },
+        {
+          "type": "article",
+          "number": "14",
+          "title": "Artículo 14",
+          "text": "El Sistema de Seguridad Social garantizará, en todos sus niveles, la participación protagónica de los ciudadanos, en particular de los afiliados, trabajadores, empleadores, pensionados, jubilados y organizaciones de la sociedad civil, en la formulación de la gestión, de las políticas, planes y programas de los distintos regímenes prestacionales del Sistema de Seguridad Social, así como en el seguimiento, evaluación y control de sus beneficios y promoverá activamente el desarrollo de una cultura de la seguridad social fundamentada en una conducta previsiva, y en los principios de solidaridad, justicia social y equidad. Las leyes de los regímenes prestacionales del Sistema de Seguridad Social y sus reglamentos, fijarán las modalidades en las que participarán los ciudadanos amparados por esta Ley. Defensoría del derecho a la seguridad social"
+        },
+        {
+          "type": "article",
+          "number": "15",
+          "title": "Artículo 15",
+          "text": "El Defensor del Pueblo creará la Defensoría de la Seguridad Social, establecerá sus atribuciones y velará por su correcto funcionamiento. Registro y afiliación en el Sistema"
+        },
+        {
+          "type": "article",
+          "number": "16",
+          "title": "Artículo 16",
+          "text": "El Ejecutivo Nacional establecerá el Sistema de Información de Seguridad Social para el registro único obligatorio e identificación de todas las personas y para la afiliación de aquellas que deban cotizar obligatoriamente al financiamiento del Sistema de Seguridad Social, el cual será regulado por el reglamento de esta Ley. Los empleadores afiliarán a sus trabajadores dentro de los primeros tres (3) días hábiles siguientes al inicio de la relación laboral. Igualmente, deberán mantener actualizada la información sobre la nómina de los trabajadores de la institución, empresa, establecimiento, explotación o faena. Quedan comprendidos en el cumplimiento de esta obligación todos los trabajadores, sean funcionarios, empleados u obreros del sector público y del sector privado. En el sector público se incluyen los empleados, cualquiera sea su naturaleza, y obreros al servicio de la Administración Pública correspondiente a todos los órganos y entes de las diferentes ramas de los poderes públicos nacional, estadal y municipal, tanto de los órganos centralizados como de los entes descentralizados, cualquiera sea su naturaleza jurídica. Contingencias amparadas por el Sistema"
+        },
+        {
+          "type": "article",
+          "number": "17",
+          "title": "Artículo 17",
+          "text": "El Sistema de Seguridad Social garantiza el derecho a la salud y las prestaciones por: maternidad, paternidad, enfermedades y accidentes cualquiera sea su origen, magnitud y duración, discapacidad, necesidades especiales, pérdida involuntaria del empleo, desempleo, vejez, viudedad, orfandad, vivienda y hábitat, recreación, cargas derivadas de la vida familiar y cualquier otra circunstancia susceptible de previsión social que determine la ley. El alcance y desarrollo progresivo de los regímenes prestacionales contemplados en esta Ley se regulará por las leyes específicas relativas a dichos regímenes. En dichas leyes se establecerán las condiciones bajo las cuales los sistemas y regímenes prestacionales otorgarán protección especial a las personas discapacitadas, indígenas, y a cualquier otra categoría de personas que por su situación particular así lo ameriten y a las amas de casa que carezcan de protección económica personal, familiar o social en general. Prestaciones"
+        },
+        {
+          "type": "article",
+          "number": "18",
+          "title": "Artículo 18",
+          "text": "El Sistema de Seguridad Social garantizará las prestaciones siguientes:\n\n1. Promoción de la salud de toda la población de forma universal y equitativa, que incluye la protección y la educación para la salud y la calidad de vida, la prevención de enfermedades y accidentes, la restitución de la salud y la rehabilitación oportuna, adecuada y de calidad.\n\n2. Programas de recreación, utilización del tiempo libre, descanso y turismo social.\n\n3. Promoción de la salud de los trabajadores y de un ambiente de trabajo seguro y saludable, la recreación, la prevención, atención integral, rehabilitación, reentrenamiento y reinserción de los trabajadores enfermos o accidentados por causas del trabajo, así como las prestaciones en dinero que de ellos se deriven.\n\n4. Atención integral en caso de enfermedades catastróficas.\n\n5. Atención y protección en caso de maternidad y paternidad.\n\n6. Protección integral a la vejez.\n\n7. Pensiones por vejez, sobrevivencia y discapacidad.\n\n8. Indemnización por la pérdida involuntaria del empleo.\n\n9. Prestaciones en dinero por discapacidad temporal debido a enfermedades, accidentes, maternidad y paternidad.\n\n10. Subsidios para la vivienda y el hábitat, para las personas de bajos recursos y para una parte de las cotizaciones al Régimen Prestacional de Pensiones y otras asignaciones económicas en el caso de los trabajadores no dependiente de bajos ingresos.\n\n11. Asignaciones para las necesidades especiales y cargas derivadas de la vida familiar.\n\n12. Atención integral al desempleo a través de los servicios de información, orientación, asesoría, intermediación laboral, y la capacitación para la inserción al mercado de trabajo; así como la coordinación con organismos públicos y privados para el fomento del empleo.\n\n13. Atención a las necesidades de vivienda y hábitat mediante créditos, incentivos y otras modalidades.\n\n14. Cualquier otra prestación derivada de contingencias no previstas en esta Ley y que sea objeto de previsión social. La organización y el disfrute de las prestaciones previstas en este artículo serán desarrolladas de manera progresiva hasta alcanzar la cobertura total y consolidación del Sistema de Seguridad Social creado en la Constitución de la República Bolivariana de Venezuela."
+        },
+        {
+          "type": "header",
+          "text": "TÍTULO II"
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I"
+        },
+        {
+          "type": "article",
+          "number": "19",
+          "title": "Artículo 19",
+          "text": "El Sistema de Seguridad Social, sólo a los fines organizativos, estará integrado por los sistemas prestacionales siguientes: Salud, Previsión Social y Vivienda y Hábitat. Cada uno de los sistemas prestacionales tendrá a su cargo los regímenes prestacionales mediante los cuales se brindará protección ante las contingencias amparadas por el Sistema de Seguridad Social. La organización de los regímenes prestacionales procurará, en atención a su complejidad y cobertura, la aplicación de esquemas descentralizados, desconcentrados, de coordinación e intersectorialidad. Sistema Prestacional de Salud"
+        },
+        {
+          "type": "article",
+          "number": "20",
+          "title": "Artículo 20",
+          "text": "El Sistema Prestacional de Salud tendrá a su cargo el Régimen Prestacional de Salud mediante el desarrollo del Sistema Público Nacional de Salud. Sistema Prestacional de Previsión Social"
+        },
+        {
+          "type": "article",
+          "number": "21",
+          "title": "Artículo 21",
+          "text": "El Sistema Prestacional de Previsión Social tendrá a su cargo los regímenes prestacionales siguientes: Servicios Sociales al Adulto Mayor y Otras Categorías de Personas; Empleo, Pensiones y Otras Asignaciones Económicas; y Seguridad y Salud en el trabajo. Sistema Prestacional de Vivienda y Hábitat"
+        },
+        {
+          "type": "article",
+          "number": "22",
+          "title": "Artículo 22",
+          "text": "El Sistema Prestacional de Vivienda y Hábitat tendrá a su cargo el Régimen Prestacional de Vivienda y Hábitat. Órganos de consulta, participación ciudadana y control social"
+        },
+        {
+          "type": "article",
+          "number": "23",
+          "title": "Artículo 23",
+          "text": "Corresponde al Ejecutivo Nacional la creación de los órganos de consulta, seguimiento y control para la participación ciudadana en las instituciones del Sistema de Seguridad Social. Estos órganos deberán estar integrados por los actores sociales vinculados a la seguridad social y por otros, cuya participación contribuya a hacer efectivo el derecho de las personas a la seguridad social."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II"
+        },
+        {
+          "type": "article",
+          "number": "24",
+          "title": "Artículo 24",
+          "text": "Corresponde al Presidente de la República, en Consejo de Ministros, establecer el órgano rector del Sistema de Seguridad Social, responsable de la formulación, seguimiento y evaluación de las políticas y estrategias en materia de seguridad social, así como establecer la instancia de coordinación con los órganos y entes públicos vinculados directa o indirectamente con los diferentes regímenes prestacionales, a fin de preservar la interacción operativa y financiera del Sistema, de conformidad con lo dispuesto en la Constitución de la República Bolivariana de Venezuela, la Ley Orgánica de la Administración Pública, esta Ley y su reglamento. Competencias del órgano rector"
+        },
+        {
+          "type": "article",
+          "number": "25",
+          "title": "Artículo 25",
+          "text": "Sin perjuicio de las competencias específicas que le corresponden a otros órganos del ámbito de seguridad social, el órgano rector del Sistema de Seguridad Social tendrá las siguientes competencias:\n\n1. Definir y proponer al Ejecutivo Nacional, en Consejo de Ministros, los lineamientos, políticas, planes y estrategias del Sistema de Seguridad Social.\n\n2. Efectuar el seguimiento y la evaluación de las políticas y el desempeño del Sistema de Seguridad Social, y proponer los correctivos que considere necesarios.\n\n3. Revisar y proponer las modificaciones a la normativa legal aplicable a la seguridad social, a los fines de garantizar la operatividad del Sistema.\n\n4. Establecer formas de interacción y coordinación conjunta entre órganos e instituciones públicas estatales, las públicas no estatales y las privadas, a los fines de garantizar la integralidad del Sistema.\n\n5. Realizar cada dos (2) años valuaciones económico-actuariales del Sistema de Seguridad Social, las cuales podrán ser sometidas a auditoría de organismos internacionales especializados.\n\n6. Proponer las reformas jurídicas a los fines de la modificación de los requisitos, condiciones y términos para el otorgamiento de los beneficios, así como las modificaciones de las bases, porcentajes y montos de las cotizaciones y aportes para los regímenes prestacionales previstos en esta Ley, así como la incorporación de otras prestaciones, previos estudios actuariales, políticos, sociales y económicos que lo justifiquen.\n\n7. Garantizar el cumplimiento de las obligaciones del Sistema de Seguridad Social en las materias de su competencia, así como de las obligaciones bajo la potestad de sus entes u órganos adscritos.\n\n8. Autorizar, previos los estudios técnicos y jurídicos que así lo justifiquen, la celebración de Convenios de Reciprocidad Internacional para el reconocimiento de los derechos inherentes a los regímenes prestacionales del Sistema de Seguridad Social.\n\n9. Ejercer los mecanismos de tutela que se deriven de la ejecución de la administración y gestión de los entes u organismos bajo su adscripción.\n\n10. Aprobar el Plan Anual de Inversión que presente el Directorio de la Tesorería de la Seguridad Social.\n\n11. Consignar anualmente, ante la Asamblea Nacional, un informe sobre la ejecución y evaluación de su plan plurianual.\n\n12. Proponer el reglamento de la presente Ley.\n\n13. Las demás que le sean asignadas por esta Ley, por otras leyes que regulen la materia y por el Ejecutivo Nacional. Unidades de Apoyo"
+        },
+        {
+          "type": "article",
+          "number": "26",
+          "title": "Artículo 26",
+          "text": "El órgano rector del Sistema de Seguridad Social tendrá entre sus unidades de apoyo técnico y logístico, una Oficina de Estudios Actuariales y Económicos, y una Oficina de Asuntos Educativos y Comunicacionales, cuyos fines específicos serán establecidos en el reglamento de esta Ley. Cada Régimen Prestacional creará una Oficina de Asuntos Educativos y Comunicacionales, cuyos fines y funciones serán establecidos en las leyes de los regímenes prestacionales."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo III"
+        },
+        {
+          "type": "article",
+          "number": "27",
+          "title": "Artículo 27",
+          "text": "Se crea la Superintendencia del Sistema de Seguridad Social, instituto autónomo con personalidad jurídica y patrimonio propio, el cual se denominará Superintendencia de Seguridad Social adscrito al ministerio con competencia en finanzas públicas, a los solos efectos de la tutela administrativa y gozará de las prerrogativas de orden fiscal y tributario que le otorga la presente Ley, como órgano de control del Sistema de Seguridad Social. Los aspectos relacionados con la estructura organizativa de la Superintendencia serán desarrollados en el reglamento de la presente Ley. Finalidad"
+        },
+        {
+          "type": "article",
+          "number": "28",
+          "title": "Artículo 28",
+          "text": "La Superintendencia de Seguridad Social tiene como finalidad fiscalizar, supervisar y controlar los recursos financieros de los regímenes prestacionales que integran el Sistema de Seguridad Social. Designación del Superintendente"
+        },
+        {
+          "type": "article",
+          "number": "29",
+          "title": "Artículo 29",
+          "text": "La Superintendencia de Seguridad Social estará bajo la dirección de un Superintendente. A efecto de su designación, la Asamblea Nacional nombrará un comité de evaluación de postulaciones que se regirá por el reglamento respectivo. De la preselección de los postulados, la Asamblea Nacional, con el voto favorable de las dos terceras partes, integrará una terna que será presentada al Presidente de la República, quien en un lapso no mayor de diez (10) días hábiles, contados desde la fecha de la presentación, designará y juramentará al Superintendente de Seguridad Social. Para ejercer el cargo de Superintendente, se requiere ser venezolano, de comprobada solvencia moral y experiencia profesional no menor de diez (10) años en materia financiera, económica, actuarial, contable, gerencial, administrativa o previsional. El Superintendente ejercerá sus funciones por un período de cinco (5) años, prorrogable por un período adicional. Incompatibilidades"
+        },
+        {
+          "type": "article",
+          "number": "30",
+          "title": "Artículo 30",
+          "text": "No podrán ejercer el cargo de Superintendente de Seguridad Social:\n\n1. Las personas sujetas a interdicción por condena penal mediante sentencia definitivamente firme, las personas sometidas a beneficio de atraso y los fallidos no rehabilitados, y los declarados civilmente responsables mediante sentencia definitivamente firme, por actuaciones u omisiones en la actividad profesional en la cual se fundamenta su acreditación para ser elegible al cargo.\n\n2. Quienes hayan sido declarados penal, administrativa o civilmente responsables con ocasión de la administración de fondos de carácter público o privado, mediante sentencia definitivamente firme.\n\n3. Quienes hayan sido sujetos a auto de responsabilidad administrativa dictado por la Contraloría General de la República, que haya quedado definitivamente firme.\n\n4. Quienes sean accionistas de sociedades privadas que presten servicios a cualquiera de los regímenes prestacionales de seguridad social, de compañías de seguros o reaseguros, de las instituciones regidas por la normativa legal que regula a los bancos y otras instituciones financieras, y a las empresas de seguros y reaseguros, y quienes ejerzan cargos directivos, gerenciales o administrativos en dichos entes.\n\n5. Quienes tengan vínculo conyugal o de parentesco hasta el cuarto grado de consanguinidad o segundo de afinidad con el Presidente de la República, con los integrantes del Consejo de Ministros, con el Presidente del Banco Central de Venezuela, con el Presidente del Fondo de Garantía de Depósitos y Protección Bancaria, con el Directorio de la Tesorería de Seguridad Social, con los integrantes de las juntas directivas o accionistas de las entidades financieras y fiduciarias, y del Banco Nacional de Vivienda y Hábitat, y con los miembros de los directorios de los órganos y entes que ejerzan la gestión de los regímenes prestacionales del Sistema Seguridad Social. Remoción"
+        },
+        {
+          "type": "article",
+          "number": "31",
+          "title": "Artículo 31",
+          "text": "La remoción del Superintendente de Seguridad Social deberá ser motivada y realizada por el Presidente de la República e informada a la Asamblea Nacional, y procederá por las causas siguientes:\n\n1. Falta de probidad, vías de hecho, injuria, conducta inmoral o actos lesivos al buen nombre o intereses de la Superintendencia de Seguridad Social o a los fines que persigue esta Ley.\n\n2. Perjuicio material, causado intencionalmente o por negligencia manifiesta, al patrimonio y a los recursos de la seguridad social que administre la Superintendencia.\n\n3. Incapacidad comprobada o falta a las obligaciones inherentes al cargo.\n\n4. Uso de la información privilegiada del Sistema de la Seguridad Social para obtener provecho personal para sí o para\n\ntercero.\n\n5. La adopción de resoluciones o decisiones declarados manifiestamente ilegales por el órgano jurisdiccional competente, o que causen graves daños al interés público, al patrimonio del Sistema de Seguridad Social o al de sus beneficiarios.\n\n6. Solicitar o recibir dinero o cualquier otro beneficio, valiéndose de su condición de funcionario público.\n\n7. Revelación de asuntos reservados, confidenciales o secretos de los cuales el Superintendente de Seguridad Social tenga conocimientos por su condición de funcionario.\n\n8. Tener participación por sí o por interpuestas personas en firmas o sociedades que tengan interés en el Sistema de Seguridad Social.\n\n9. Incurrir en alguna de las incompatibilidades contempladas en el artículo anterior. Competencias"
+        },
+        {
+          "type": "article",
+          "number": "32",
+          "title": "Artículo 32",
+          "text": "Es competencia de la Superintendencia de Seguridad Social:\n\n1. Dictar la normativa y establecer un sistema de regulación, inspección, vigilancia, supervisión, control y fiscalización que permita detectar oportunamente los problemas de la recaudación y la gestión de los recursos financieros en cualesquiera de los órganos, entes y fondos integrantes del Sistema de Seguridad Social, bajo los criterios de una supervisión preventiva, así como adoptar las medidas tendentes a corregir la situación. A tales fines, la Superintendencia de Seguridad Social contará con las más amplias facultades, pudiendo solicitar a los órganos, entes y fondos controlados los datos, documentos, informes, libros, normas y cualquier información que considere conveniente. Asimismo, la Superintendencia de Seguridad Social tendrá derecho a revisar los archivos, expedientes y oficinas de los sujetos controlados, incluyendo sus sistemas de información y equipos de computación, tanto en el sitio como a través de sistemas remotos.\n\n2. Inspeccionar a los órganos, entes y fondos regidos por esta Ley, por lo menos una vez cada año.\n\n3. Dictar las normas e instrucciones tendentes a: a) Velar porque los sujetos controlados le proporcionen información financiera, técnico-actuarial y estadística confiable, transparente y uniforme. b) Velar porque las reservas técnicas se encuentren debidamente estimadas y que los activos que las representen se encuentren invertidos en bienes que ofrezcan garantías de seguridad, rentabilidad y liquidez. c) Ordenar la suspensión o revertir operaciones determinadas cuando fueren ilegales, se hubieren ejecutado en fraude a la ley, no hubieren sido debidamente autorizadas, o pudieren afectar el funcionamiento de los órganos y entes sujetos a esta Ley y las demás leyes que regulan el Sistema de Seguridad Social.\n\n4. Revisar la constitución, mantenimiento y representación de las reservas técnicas, así como la razonabilidad de los estados financieros. En los casos necesarios, ordenar la sustitución, rectificación o constitución de las reservas o provisiones, y ordenar las modificaciones que fuere menester incorporar en los estados financieros e informes respectivos.\n\n5. Ordenar la adopción de medidas necesarias para evitar o corregir irregularidades o faltas que advierta en las operaciones sometidas a su control que a su juicio puedan poner en peligro los objetivos y fines del Sistema de Seguridad Social, debiendo informar de ello inmediatamente al ministerio con competencia en finanzas públicas y a los ministerios del Sistema de Seguridad Social.\n\n6. Supervisar que la Tesorería de Seguridad Social publique semestralmente los balances y estados financieros de los respectivos fondos; asimismo, que informe en detalle sobre estos aspectos a las personas, las instituciones, comunidad organizada y órganos de control social que así lo requieran por sí mismos o por intermedio de terceros.\n\n7. Coordinar con la Superintendencia de Bancos, el Fondo de Garantía de Depósitos y Protección Bancaria, la Superintendencia de Seguros, el Banco Central de Venezuela y la Comisión Nacional de Valores, los mecanismos de control de los recursos colocados en el sistema financiero, en el mercado monetario y de capitales.\n\n8. Supervisar la normativa y el cumplimiento de la misma en relación a cuantía, otorgamiento y duración de las prestaciones en dinero que brinda el Sistema de Previsión Social.\n\n9. Ejercer las acciones administrativas, legales, judiciales y extrajudiciales a que hubiere lugar, con ocasión de incompetencia, negligencia, impericia, dolo, culpa, por parte de los órganos y entes involucrados en la gestión administrativa y financiera de los fondos y recursos del Sistema de Seguridad Social.\n\n10. Informar a los efectos del control posterior a los órganos y entes tutelares de gestión.\n\n11. Elaborar y publicar un informe en el curso del primer semestre de cada año sobre las actividades de la Superintendencia en el año civil precedente, y acompañarlo de los datos demostrativos que juzgue necesarios para el mejor estudio de la situación del Sistema de Seguridad Social. Igualmente se indicará en este informe el número de denuncias y multas impuestas para cada uno de sus supervisados.\n\n12. Establecer vínculos de cooperación con organismos de regulación y supervisión venezolanos y de otros países para fortalecer los mecanismos de control, actualizar las regulaciones preventivas e intercambiar informaciones de utilidad para el ejercicio de la función supervisora.\n\n13. Promover la participación ciudadana y tomar las medidas administrativas en defensa de los derechos de las personas, en los casos en que dichos derechos sean vulnerados.\n\n14. Evacuar las consultas que formulen los interesados en relación con esta Ley.\n\n15. Las demás que le otorgue esta Ley o las leyes y sus respectivos reglamentos, que regularán los regímenes prestacionales del Sistema de Seguridad Social. Atribuciones del Superintendente de Seguridad Social"
+        },
+        {
+          "type": "article",
+          "number": "33",
+          "title": "Artículo 33",
+          "text": "Son atribuciones del Superintendente de Seguridad Social:\n\n1. Planificar, organizar, dirigir, coordinar y controlar el financiamiento de la Superintendencia de Seguridad Social.\n\n2. Informar a la máxima autoridad del organismo de adscripción acerca de las irregularidades detectadas en los órganos y entes administradores de los recursos financieros de la Superintendencia de Seguridad Social.\n\n3. Ejercer la representación de la Superintendencia.\n\n4. Nombrar y remover al personal de la Superintendencia.\n\n5. Orientar las acciones de la Superintendencia de Seguridad Social, así como los planes y programas a cumplir en cada ejercicio fiscal.\n\n6. Velar por la supervisión y control de los recursos financieros de los regímenes prestacionales que integran la Superintendencia de Seguridad Social.\n\n7. Mantener canales de comunicación con el organismo de adscripción mediante puntos de cuenta, informes y reuniones.\n\n8. Conformar y aprobar información administrativa, financiera y contable, requerido a los administradores de fondos y recursos del Sistema de Seguridad Social.\n\n9. Ejercer las demás atribuciones que señale la ley o le sean delegadas por el organismo de adscripción. Patrimonio y fuentes de ingreso"
+        },
+        {
+          "type": "article",
+          "number": "34",
+          "title": "Artículo 34",
+          "text": "Los recursos para el funcionamiento de la Superintendencia de Seguridad Social provendrán de las fuentes siguientes: aportes fiscales que se asignen del presupuesto del ministerio con competencia en materia de finanzas públicas, donaciones, legados, aportes, subvenciones y demás liberalidades que reciba de personas naturales o jurídicas, públicas o privadas, nacionales o extranjeras, y por los demás bienes o ingresos que obtenga por cualquier título. La administración de estos recursos estará regido por una regla de severidad del gasto. Control Tutelar"
+        },
+        {
+          "type": "article",
+          "number": "35",
+          "title": "Artículo 35",
+          "text": "La Superintendencia de Seguridad Social estará sometida a mecanismos de control tutelar administrativo, sin coartar su imprescindible autonomía, por parte del ministerio con competencia en materia de finanzas públicas, en la evaluación del plan operativo anual en relación con los recursos asignados y en la ejecución de auditorías administrativas y financieras de conformidad con lo previsto en la Ley Orgánica de la Administración Pública, Ley Orgánica de Procedimientos Administrativos y en las disposiciones reglamentarias aplicables."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo IV"
+        },
+        {
+          "type": "article",
+          "number": "36",
+          "title": "Artículo 36",
+          "text": "Se crea la Tesorería del Sistema de Seguridad Social como instituto autónomo, con personalidad jurídica y patrimonio propio, distinto e independiente del Fisco Nacional, el cual se denominará Tesorería de Seguridad Social, adscrito al órgano rector del Sistema de Seguridad Social a los solos efectos de la tutela administrativa. La Tesorería de Seguridad Social, como ente de recaudación, inversión y distribución de los recursos fiscales y parafiscales de la seguridad social, está exenta de todo impuesto, tasa, arancel o contribución nacional. Asimismo, goza de inmunidad fiscal con respecto a los tributos que establezcan los estados, los distritos metropolitanos y los municipios. Finalidad"
+        },
+        {
+          "type": "article",
+          "number": "37",
+          "title": "Artículo 37",
+          "text": "La Tesorería de Seguridad Social tiene como finalidad la recaudación, distribución e inversión de los recursos financieros del Sistema de Seguridad Social, con el objeto de garantizar la sustentación parafiscal y la operatividad del mismo, así como la gestión del Sistema de Información de Seguridad Social para el registro, afiliación e identificación de las personas, sujetas al ámbito de aplicación de esta Ley. Cualquier otro aspecto relacionado con esta institución será desarrollado y regulado por la presente Ley y su reglamento. Funciones"
+        },
+        {
+          "type": "article",
+          "number": "38",
+          "title": "Artículo 38",
+          "text": "Las funciones de liquidación, recaudación, distribución e inversión de los recursos que provengan de cualquier fuente, administrados por la Tesorería de Seguridad Social, así como el registro, afiliación e identificación de las personas, y cualquier otro aspecto relacionado con dicha institución, serán desarrollado y regulado por la presente Ley y su Reglamento. Designación del Tesorero"
+        },
+        {
+          "type": "article",
+          "number": "39",
+          "title": "Artículo 39",
+          "text": "La Tesorería de Seguridad Social estará bajo la dirección de un Tesorero. A efecto de su designación, la Asamblea Nacional nombrará un comité de evaluación de postulaciones que se regirá por el reglamento respectivo. De la preselección de los postulados, la Asamblea Nacional, con el voto favorable de las dos terceras partes, integrará una terna que será presentada al Presidente de la República, quien en un lapso no mayor de diez (10) días hábiles, contados desde la fecha de la presentación, designará y juramentará al Tesorero de Seguridad Social. Para ejercer el cargo de Tesorero se requiere ser venezolano, de comprobada solvencia moral y experiencia profesional no menor de diez (10) años en materia financiera, económica, contable, gerencial, administrativa o previsional. El Tesorero ejercerá sus funciones por un período de cuatro (4) años, y podrá ser reelegible por un período adicional. Directorio"
+        },
+        {
+          "type": "article",
+          "number": "40",
+          "title": "Artículo 40",
+          "text": "La Tesorería de Seguridad Social tendrá un Directorio, integrado por nueve (9) miembros, a saber: el Tesorero de Seguridad Social, quien lo presidirá; un representante del ministerio con competencia en materia de trabajo, un representante del ministerio con competencia en materia de planificación y desarrollo, un representante del ministerio con competencia en materia de finanzas públicas, un representante del Banco Central de Venezuela, un representante de la Superintendencia de Bancos, un representante de la organización laboral más representativa, un representante de la organización empresarial más representativa, un representante de la organización de los jubilados y pensionados más representativa. Los miembros del Directorio de la Tesorería de Seguridad Social ejercerán sus funciones a dedicación exclusiva, por un período de cuatro (4) años. Los miembros principales y suplentes del Directorio de la Tesorería de Seguridad Social deberán ser venezolanos, de comprobada solvencia moral y con experiencia profesional o técnica en materia previsional, administrativa, gerencial, económica, actuarial, financiera y contable. En el caso de los representantes de las organizaciones de los trabajadores y de los pensionados y jubilados, estos requisitos profesionales se ajustarán en consonancia a su experiencia laboral y trayectoria. Incompatibilidades"
+        },
+        {
+          "type": "article",
+          "number": "41",
+          "title": "Artículo 41",
+          "text": "No podrán ejercer los cargos de Tesorero, miembro principal o suplente del Directorio de la Tesorería de Seguridad Social:\n\n1. Las personas sujetas a interdicción por condena penal mediante sentencia definitivamente firme, las personas sometidas a beneficio de atraso y los fallidos no rehabilitados, y los declarados civilmente responsables mediante sentencia definitivamente firme, por actuaciones u omisiones en la actividad profesional en la cual se fundamenta su acreditación para ser elegible al cargo.\n\n2. Quienes hayan sido declarados penal, administrativa o civilmente responsables con ocasión de la administración de fondos de carácter público o privado, mediante sentencia definitivamente firme.\n\n3. Quienes hayan sido sujetos a auto de responsabilidad administrativa dictado por la Contraloría General de la República, que haya quedado definitivamente firme.\n\n4. Quienes sean accionistas de sociedades privadas que presten servicios a cualquiera de los regímenes prestacionales de seguridad social, de compañías de seguros o reaseguros, de las instituciones regidas por la normativa legal que regula a los bancos y otras instituciones financieras, y a las empresas de seguros y reaseguros y quienes ejerzan cargos directivos, gerenciales o administrativos en dichos entes.\n\n5. Quienes tengan vínculo conyugal o de parentesco hasta el cuarto grado de consanguinidad o segundo de afinidad con el Presidente de la República, con los integrantes del Consejo de Ministros, con el Presidente del Banco Central de Venezuela, con el Presidente del Fondo de Garantía de Depósitos y Protección Bancaria, con el Superintendente de la Seguridad Social, con los integrantes de las juntas directivas o accionistas de las entidades financieras y fiduciarias, y del Banco Nacional de Vivienda y Hábitat, y con los miembros de los directorios de los órganos y entes que ejerzan la gestión de los regímenes prestacionales del Sistema de Seguridad Social. Remoción del Tesorero"
+        },
+        {
+          "type": "article",
+          "number": "42",
+          "title": "Artículo 42",
+          "text": "La remoción del Tesorero de la Seguridad Social deberá ser motivada y corresponde al Presidente de la República; esta será informada a la Asamblea Nacional, y procederá por las causas siguientes:\n\n1. Falta de probidad, vías de hecho, injuria, conducta inmoral o actos lesivos al buen nombre o intereses de la Tesorería de Seguridad Social o a los fines que persigue esta Ley.\n\n2. Perjuicio material, causado intencionalmente o por negligencia manifiesta, al patrimonio y a los recursos del Sistema Seguridad Social que administre la Tesorería.\n\n3. Incapacidad comprobada o falta a las obligaciones inherentes al cargo.\n\n4. Uso de la información privilegiada del Sistema de la Seguridad Social para obtener provecho personal para sí o para terceros.\n\n5. La adopción de resoluciones o decisiones declarados manifiestamente ilegales por el órgano jurisdiccional competente, o que causen graves daños al interés público, al patrimonio del Sistema de Seguridad Social o al de sus beneficiarios.\n\n6. Solicitar o recibir dinero o cualquier otro beneficio, valiéndose de su condición de funcionario público.\n\n7. Revelación de asuntos reservados, confidenciales o secretos de los cuales el Tesorero de la Seguridad Social tenga conocimientos por su condición de funcionario.\n\n8. Tener participación por sí o por interpuestas personas, en firmas o sociedades que tengan interés en el Sistema de Seguridad Social.\n\n9. Incurrir en alguna de las restricciones contempladas en el artículo anterior. Competencias de la Tesorería"
+        },
+        {
+          "type": "article",
+          "number": "43",
+          "title": "Artículo 43",
+          "text": "Son competencias de la Tesorería de Seguridad Social:\n\n1. Crear y mantener actualizado el Sistema de Información de Seguridad Social.\n\n2. Efectuar el registro, afiliación e identificación de las personas naturales y jurídicas sometidas al campo de aplicación del Sistema de Seguridad Social.\n\n3. Vigilar la afiliación de las personas naturales y jurídicas, efectuar los ajustes de los datos de afiliación y de las cotizaciones que causen créditos y débitos al Sistema de Seguridad Social.\n\n4. Mantener actualizada la historia previsional de las personas naturales y el registro de las personas jurídicas que deban contribuir obligatoriamente al financiamiento del Sistema de Seguridad Social.\n\n5. Emitir la identificación de las personas del Sistema de Seguridad Social.\n\n6. Garantizar la actualización del sistema de información del Sistema de Seguridad Social y establecer su interconexión con los distintos órganos y entes que lo integran y con los sistemas de información existentes o por crearse.\n\n7. Crear una unidad de apoyo técnico y logístico en materia de estudios actuariales y económicos.\n\n8. Liquidar y recaudar las cotizaciones del Sistema de Seguridad Social, intereses de mora y el producto de las sanciones pecuniarias.\n\n9. Designar los administradores de los fondos de los regímenes prestacionales del Sistema Prestacional de Previsión Social que administra la Tesorería de Seguridad Social, de conformidad con los requisitos que a tales efectos establezca la presente Ley y las leyes de los regímenes prestacionales del Sistema Prestacional de Previsión Social.\n\n10. Constituir las reservas técnicas y custodiar los fondos de los regímenes prestacionales del Sistema Prestacional de Previsión Social para garantizar el pago de las prestaciones.\n\n11. Realizar la transferencia inmediata de los recursos recaudados con destino a los diferentes fondos de los regímenes prestacionales del Sistema de Seguridad Social.\n\n12. Celebrar convenios con las instituciones financieras públicas o privadas regidas por la normativa legal que regula a los bancos y otras instituciones financieras, debidamente calificadas, de demostrada solvencia, liquidez y eficiencia, así como con instituciones públicas de recaudación que contribuyan a mejorar la eficiencia en la recaudación de las cotizaciones.\n\n13. Ejercer las acciones administrativas, legales, judiciales y extrajudiciales necesarias para garantizar que se enteren las cotizaciones al Sistema de Seguridad Social.\n\n14. Inspeccionar y realizar las indagaciones que sean necesarias para detectar cualquier evasión o falsedad en la declaración del empleador o del trabajador, pudiendo examinar cualquier documento o archivo del empleador.\n\n15. Emitir certificado de solvencia a favor de los afiliados.\n\n16. Liquidar y recaudar los recursos financieros que integran los remanentes netos de capital pertenecientes a la salud y a la seguridad social, y distribuirlos entre los diferentes fondos correspondientes de los regímenes prestacionales.\n\n17. Diseñar, dentro de los parámetros fijados por la ley y su reglamento, el Plan Anual de Inversión de los recursos de los fondos de los regímenes prestacionales del Sistema Prestacional de Previsión Social.\n\n18. Invertir, mediante colocaciones en el mercado de capitales, los recursos de los fondos de los regímenes prestacionales del Sistema Prestacional de Previsión Social con criterios balanceados de seguridad, rentabilidad y liquidez, a los fines de acrecentar, en beneficio de los contribuyentes, los fondos que la tesorería administre y mantener el equilibrio financiero y actuarial del Sistema.\n\n19. Celebrar convenios con las instituciones financieras públicas o privadas, reguladas por las normativas legales que rigen a los bancos y otras instituciones financieras, debidamente calificadas, de demostrada solvencia, liquidez y eficiencia para la asesoría en la inversión de los recursos los fondos de los regímenes prestacionales del Sistema Prestacional de Previsión Social. En ningún caso, estos convenios implicarán la transferencia a dichas instituciones de la propiedad de dichos recursos o de su administración.\n\n20. Efectuar los pagos, a través de los fondos correspondientes, de las obligaciones derivadas de la aplicación de los regímenes comprendidos en el Sistema Prestacional de Previsión Social.\n\n21. Colocar las reservas técnicas de los fondos de los regímenes prestacionales del Sistema Prestacional de Previsión Social que administre la Tesorería de Seguridad Social en títulos de crédito, que garanticen la mayor rentabilidad y seguridad, en los términos y condiciones que determine la presente Ley y sus reglamentos. En ningún caso las reservas técnicas podrán ser invertidas en cuentas o depósitos que no produzcan intereses a tasa de mercado.\n\n22. Requerir de las instituciones financieras con las cuales mantenga convenios la información financiera que juzgue necesaria para garantizar la operatividad del sistema.\n\n23. Informar a la Superintendencia del Sistema de Seguridad Social, a la Contraloría General de la República y al Banco Central de Venezuela sobre el movimiento diario de los fondos bajo la administración de la Tesorería.\n\n24. Publicar semestralmente los balances y estados financieros de los fondos bajo la administración de la Tesorería, igualmente informar en detalle sobre estos aspectos a las personas, las instituciones y a los órganos de control social que así lo requieran por sí mismos o por intermedio de terceros.\n\n25. Las demás que le sean asignadas por esta Ley y su reglamento, las leyes y los reglamentos de los regímenes prestacionales del Sistema de Seguridad Social. Atribuciones del Tesorero"
+        },
+        {
+          "type": "article",
+          "number": "44",
+          "title": "Artículo 44",
+          "text": "Son atribuciones del Tesorero de Seguridad Social:\n\n1. Convocar y presidir el Directorio de la Tesorería de Seguridad Social.\n\n2. Presentar los planes y presupuestos de la Tesorería para su funcionamiento y someterlos a la aprobación del Directorio y ratificación del ministerio de adscripción.\n\n3. Planificar, organizar, dirigir, coordinar y controlar el financiamiento de la Tesorería de Seguridad Social.\n\n4. Proponer al Directorio las directrices bajo las cuales se regirá la Tesorería en concordancia con los lineamientos de políticas que recibe de la rectoría del Sistema de Seguridad Social.\n\n5. Dirigir la administración del Instituto, nombrar y remover al personal del mismo.\n\n6. Velar por la recaudación, distribución, inversión o liquidación de los recursos provenientes de los fondos administrados por la Tesorería de Seguridad Social.\n\n7. Aprobar la transferencia de los recursos recaudados a los fondos de los regímenes prestacionales.\n\n8. Firmar y publicar los balances semestrales y estados financieros de los fondos bajo su administración.\n\n9. Representar legalmente a la Tesorería.\n\n10. Dirigir las relaciones del Instituto con los órganos y entes públicos.\n\n11. Presentar la memoria y cuenta y el informe semestral o anual de actividades de la Tesorería de Seguridad Social.\n\n12. Mantener canales de comunicación con el organismo de adscripción a través de puntos de cuenta, informes y reuniones periódicas.\n\n13. Difundir la gestión y logros de la Tesorería de Seguridad Social.\n\n14. Orientar las acciones de la Tesorería de Seguridad Social, así como los planes y programas a cumplir en cada ejercicio fiscal.\n\n15. Ejercer las demás atribuciones que señale la presente Ley y su Reglamento o le sean delegadas por la rectoría del Sistema de Seguridad Social. Control tutelar"
+        },
+        {
+          "type": "article",
+          "number": "45",
+          "title": "Artículo 45",
+          "text": "La Tesorería de Seguridad Social estará sometida a mecanismos de control tutelar administrativo, sin coartar su imprescindible autonomía, por parte del órgano rector del Sistema de Seguridad Social, en la evaluación del plan operativo anual en relación con los recursos asignados para su operatividad y en la ejecución de auditorías administrativas y financieras en la oportunidad que su funcionamiento genere el incumplimiento de atribuciones, funciones, derechos y obligaciones, de conformidad con la Ley Orgánica de la Administración Pública, Ley Orgánica de Procedimientos Administrativos y las disposiciones reglamentarias aplicables. Información financiera y de gestión"
+        },
+        {
+          "type": "article",
+          "number": "46",
+          "title": "Artículo 46",
+          "text": "La información financiera y el Informe Anual de los resultados de la gestión de la Tesorería de Seguridad Social, una vez aprobados por el ministerio con competencia en materia de previsión social, serán publicados en la Gaceta Oficial de la República Bolivariana de Venezuela y, por lo menos, en uno de los diarios de mayor circulación en el territorio nacional, así como por cualquier otro medio electrónico, informático o telemático. De ello se informará al Presidente de la República, en Consejo de Ministros, a la Asamblea Nacional, a la Contraloría General de la República y a los órganos de control social. Control de las operaciones"
+        },
+        {
+          "type": "article",
+          "number": "47",
+          "title": "Artículo 47",
+          "text": "Las operaciones de la Tesorería de Seguridad Social estarán sometidas, además del control de la Superintendencia del Sistema de Seguridad Social, al de la Contraloría General de la República, al de los órganos de control social y al resto de los controles que el ordenamiento jurídico establece para los institutos autónomos nacionales. Auditoría externa"
+        },
+        {
+          "type": "article",
+          "number": "48",
+          "title": "Artículo 48",
+          "text": "La Tesorería de Seguridad Social contratará auditores externos sin relación de dependencia con el organismo y de reconocida solvencia moral y profesional para el análisis y certificación de sus estados financieros. Dichos auditores serán seleccionados entre aquéllos inscritos en el Registro de Contadores Públicos en ejercicio independiente de su profesión que lleva la Comisión Nacional de Valores. Patrimonio y fuentes de ingreso"
+        },
+        {
+          "type": "article",
+          "number": "49",
+          "title": "Artículo 49",
+          "text": "Los recursos para el funcionamiento de Tesorería de Seguridad Social provendrán de las fuentes siguientes: aportes fiscales que se asignen con cargo al presupuesto del ministerio con competencia en materia de previsión social, donaciones, legados, aportes, subvenciones y demás liberalidades que reciba de personas naturales o jurídicas, públicas o privadas, nacionales o extranjeras y, por los demás bienes o ingresos que obtenga por cualquier título. La administración de estos recursos estará regida por una regla de severidad del gasto."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo V"
+        },
+        {
+          "type": "article",
+          "number": "50",
+          "title": "Artículo 50",
+          "text": "El Banco Nacional de Vivienda y Hábitat asumirá las competencias del Banco Nacional de Ahorro y Préstamo y las funciones que viene desempeñando éste conforme a la ley que lo rige, sin perjuicio de las que le corresponderán de acuerdo con la presente Ley y la Ley del Régimen Prestacional de Vivienda y Hábitat. Administración, distribución e inversión de los recursos"
+        },
+        {
+          "type": "article",
+          "number": "51",
+          "title": "Artículo 51",
+          "text": "El Banco Nacional de Vivienda y Hábitat tendrá a su cargo las funciones de administración, distribución e inversión de los recursos que provengan de cualquier fuente, para ser aplicados en la consecución de los objetivos establecidos en la Ley del Régimen Prestacional de Vivienda y Hábitat y será su único administrador, de conformidad con la ley que rija la materia."
+        },
+        {
+          "type": "header",
+          "text": "TÍTULO III"
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I"
+        },
+        {
+          "type": "article",
+          "number": "52",
+          "title": "Artículo 52",
+          "text": "Se crea el Régimen Prestacional de Salud en consonancia con los principios del Sistema Público Nacional de Salud que tiene por objeto garantizar el derecho a la salud como parte del derecho a la vida en función del interés público, en todos los ámbitos de la acción sanitaria dentro del territorio nacional. El Régimen Prestacional de Salud y el componente de restitución de la salud del Régimen Prestacional de Seguridad y Salud en el Trabajo, se gestionarán a través del Sistema Público Nacional de Salud, desarrollando una acción intergubernamental, intersectorial y participativa, mediante políticas, estructuras y acciones dirigidas hacia la universalidad, la equidad y la promoción de la salud y la calidad de vida, abarcando la protección de la salud desde sus determinantes sociales, la rehabilitación, la educación y prevención de enfermedades y accidentes y la oportunidad, integralidad y calidad de las prestaciones. Las diversas tecnologías y modalidades terapéuticas serán económica, científica y socialmente sustentables, y estarán reguladas por el órgano de adscripción al ministerio con competencia en salud. Ámbito de aplicación"
+        },
+        {
+          "type": "article",
+          "number": "53",
+          "title": "Artículo 53",
+          "text": "El Sistema Público Nacional de Salud garantiza la protección a la salud para todas las personas, dentro del territorio nacional, sin discriminación alguna. La ausencia de registro e identificación en el Sistema de Información de la Seguridad Social no será motivo para impedir el acceso al Sistema Público Nacional de Salud. Tal situación no exime a los contribuyentes al Sistema de Seguridad Social de cumplir con el requisito de afiliación contemplado en la presente Ley. Integración y estructura"
+        },
+        {
+          "type": "article",
+          "number": "54",
+          "title": "Artículo 54",
+          "text": "El Sistema Público Nacional de Salud integra todas las estructuras, órganos, programas y servicios que se sostengan total o parcialmente con recursos fiscales o parafiscales, de manera descentralizada, intergubernamental, intersectorial y participativa en lo que respecta a la dirección y ejecución de la política de salud, bajo la rectoría del ministerio con competencia en materia de salud en el marco de competencias concurrentes entre las instancias nacional, estadal y municipal que fije la ley que regula el Régimen Prestacional de Salud, con capacidad de actuación en todos los ámbitos de la acción sanitaria pública o privada dentro del territorio nacional. Derecho a la salud y la participación"
+        },
+        {
+          "type": "article",
+          "number": "55",
+          "title": "Artículo 55",
+          "text": "Es obligación de todos los poderes públicos, de los diferentes entes prestadores de salud públicos y privados, y de la sociedad, garantizar el derecho a la salud, su protección y cumplimiento. En virtud de su relevancia pública, las comunidades organizadas tienen el derecho y el deber de participar en la toma de decisiones sobre la planificación, ejecución y control de políticas específicas en las instituciones públicas de salud. Financiamiento"
+        },
+        {
+          "type": "article",
+          "number": "56",
+          "title": "Artículo 56",
+          "text": "El Sistema Público Nacional de Salud integrará a través del órgano o ente que determine la ley que regula el Régimen Prestacional de Salud, los recursos fiscales y parafiscales representados por las cotizaciones obligatorias del Sistema de Seguridad Social correspondientes a salud, los remanentes netos de capital destinados a salud y cualquier otra fuente de financiamiento que determine la ley. Rectoría, gestión y base legal"
+        },
+        {
+          "type": "article",
+          "number": "57",
+          "title": "Artículo 57",
+          "text": "El Régimen Prestacional de Salud estará bajo la rectoría del ministerio con competencia en materia de salud; su gestión se realizará a través del Sistema Público Nacional de Salud. El Régimen Prestacional de Salud se regirá por las disposiciones de la presente Ley y por la ley que regula el Régimen Prestacional de Salud."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II"
+        },
+        {
+          "type": "article",
+          "number": "58",
+          "title": "Artículo 58",
+          "text": "Se crea el Régimen Prestacional de Servicios Sociales al Adulto Mayor y Otras Categorías de Personas, que tiene por objeto garantizarles atención integral, a fin de mejorar y mantener su calidad de vida y bienestar social bajo el principio de respeto a la dignidad humana. Prestaciones"
+        },
+        {
+          "type": "article",
+          "number": "59",
+          "title": "Artículo 59",
+          "text": "El Régimen Prestacional de Servicios Sociales al Adulto Mayor y Otras Categorías de Personas comprenderá las siguientes prestaciones, programas y servicios:\n\n1. Asignaciones económicas permanentes o no, para los adultos mayores con ausencia de capacidad contributiva.\n\n2. Participación en actividades laborales acordes con la edad y estado de salud.\n\n3. Atención domiciliaria de apoyo y colaboración a los adultos mayores que así lo requieran.\n\n4. Turismo y recreación al adulto mayor.\n\n5. Atención institucional que garantice alojamiento, vestido, cuidados médicos y alimentación a los adultos mayores.\n\n6. Asignaciones para personas con necesidades especiales y cargas derivadas de la vida familiar.\n\n7. Cualquier otro tipo de programa o servicio social que resulte pertinente de acuerdo con la ley respectiva. Integración y coordinación institucional"
+        },
+        {
+          "type": "article",
+          "number": "60",
+          "title": "Artículo 60",
+          "text": "Las instituciones públicas nacionales, estadales y municipales que ejecuten programas de atención a los adultos mayores y otras categorías de personas, coordinarán progresivamente sus actividades a los fines de estructurar un régimen prestacional uniforme. Financiamiento"
+        },
+        {
+          "type": "article",
+          "number": "61",
+          "title": "Artículo 61",
+          "text": "El Régimen Prestacional de Servicios Sociales al Adulto Mayor y Otras Categorías de Personas será financiado con recursos fiscales y los remanentes netos del capital, mediante la progresiva unificación de las asignaciones presupuestarias existentes en los diversos órganos y entes, y el diseño de mecanismos impositivos para este fin. Rectoría, gestión y base legal"
+        },
+        {
+          "type": "article",
+          "number": "62",
+          "title": "Artículo 62",
+          "text": "El Régimen Prestacional de Servicios Sociales al Adulto Mayor y Otras Categorías de Personas estará bajo la rectoría del ministerio con competencia en servicios sociales al adulto mayor y otras categorías de personas; su gestión se realizará a través del Instituto Nacional de Geriatría y Gerontología (INAGER). El Régimen Prestacional de Servicios Sociales al Adulto Mayor y Otras Categorías de Personas se regirá por las disposiciones de la presente Ley y por la ley que regula el Régimen Prestacional de Servicios Sociales al Adulto Mayor y Otras Categorías de Personas."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo III"
+        },
+        {
+          "type": "article",
+          "number": "63",
+          "title": "Artículo 63",
+          "text": "Se crea el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas que tiene por objeto garantizar a las personas contribuyentes, las prestaciones dinerarias que les correspondan, de acuerdo con las contingencias amparadas por este Régimen y conforme a los términos, condiciones y alcances previstos en esta Ley y las demás leyes que las regulan. Prestaciones"
+        },
+        {
+          "type": "article",
+          "number": "64",
+          "title": "Artículo 64",
+          "text": "El Régimen Prestacional de Pensiones y Otras Asignaciones Económicas comprenderá las siguientes prestaciones:\n\n1. Pensiones de vejez o jubilación, discapacidad parcial permanente, discapacidad total permanente, gran discapacidad, viudedad y orfandad.\n\n2. Indemnizaciones por ausencia laboral debido a enfermedades o accidentes de origen común, maternidad y paternidad.\n\n3. Asignaciones por cargas derivadas de la vida familiar.\n\n4. Los subsidios que establezca la ley que regula este Régimen Prestacional. Cobertura de las pensiones de vejez o jubilación"
+        },
+        {
+          "type": "article",
+          "number": "65",
+          "title": "Artículo 65",
+          "text": "La pensión de vejez o jubilación garantizada por este régimen será de financiamiento solidario y de cotizaciones obligatorias, para las personas con o sin relación laboral de dependencia, compuesto por una pensión de beneficios definidos, de aseguramiento colectivo bajo el régimen financiero de prima media general y sobre una base contributiva de uno (1) a diez (10) salarios mínimos urbanos. La administración del fondo de pensiones de vejez corresponderá al Estado a través de la Tesorería de la Seguridad Social. Sin perjuicio y previa afiliación al Sistema de Seguridad Social, cualquier persona podrá afiliarse voluntariamente a planes complementarios de pensiones de vejez bajo administración del sector privado, público o mixto regulado por el Estado. Financiamiento de las pensiones de vejez o jubilaciones"
+        },
+        {
+          "type": "article",
+          "number": "66",
+          "title": "Artículo 66",
+          "text": "La pensión de vejez o jubilación será financiada con las contribuciones de los empleadores y trabajadores y, de los trabajadores no dependientes con ayuda eventual del Estado en los casos en que sea procedente, conforme a lo establecido en la ley que regule este Régimen Prestacional. Aquellas personas que no estén vinculadas a alguna actividad laboral, con capacidad contributiva, podrán afiliarse al Sistema de Seguridad Social y cotizarán los aportes correspondientes al patrono y al trabajador y, en consecuencia, serán beneficiarios a la pensión de vejez. Pensiones e indemnizaciones por discapacidad, viudedad, orfandad y por accidentes y enfermedades de origen común"
+        },
+        {
+          "type": "article",
+          "number": "67",
+          "title": "Artículo 67",
+          "text": "Las pensiones por discapacidad parcial o total permanente y gran discapacidad, las pensiones por viudedad y orfandad causadas con ocasión del fallecimiento de un afiliado o pensionado, y las indemnizaciones por ausencia laboral causadas por discapacidad temporal, todas ellas debido a enfermedad o accidente de origen común, además de las causadas por maternidad y paternidad, serán financiadas con las cotizaciones de empleadores y trabajadores en los términos, condiciones y alcances que establezca la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas. A los efectos de las pensiones por discapacidad parcial o total y gran discapacidad, las pensiones de viudedad y orfandad causadas con ocasión del fallecimiento de un afiliado o pensionado, y las indemnizaciones por ausencia causadas por discapacidad temporal de los trabajadores no dependientes, no se hará diferencia entre las enfermedades y accidentes de origen común y las de origen ocupacional. En el caso de los trabajadores no dependientes que reciban subsidios para el pago de cotizaciones, indemnizaciones y prestaciones en dinero previstas en este artículo, serán financiadas con cotizaciones del afiliado y aportes eventuales del Estado, en los casos que lo ameriten, conforme a los términos, condiciones y alcances que establezca la Ley que regule el Régimen Prestacional de Pensiones y otras Asignaciones Económicas. A los solos efectos de las cotizaciones y de las indemnizaciones correspondientes a los trabajadores no dependientes, no se hará distinción entre las enfermedades y accidentes de origen común u ocupacional. Requisitos y ajustes de pensiones de vejez o jubilaciones"
+        },
+        {
+          "type": "article",
+          "number": "68",
+          "title": "Artículo 68",
+          "text": "Los requisitos para acceder a cada tipo de pensión, la cuantía y el monto de las cotizaciones, se establecerán en la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas, atendiendo a los estudios actuariales y financieros pertinentes. Asimismo, en dicha ley se fijarán los requisitos y procedimientos necesarios para establecer las cotizaciones distintas para grupos de población con necesidades especiales y de trabajadores con jornadas de trabajo a tiempo parcial o características especiales que así lo ameriten para su incorporación progresiva al Sistema de Seguridad Social. Las pensiones mantendrán su poder adquisitivo constante. A tal efecto, la ley que rija la materia contendrá el procedimiento respectivo. Cambio progresivo de requisitos"
+        },
+        {
+          "type": "article",
+          "number": "69",
+          "title": "Artículo 69",
+          "text": "La ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas establecerá los cambios progresivos en los requisitos de edad y número de cotizaciones necesarias para acceder al beneficio de pensión de vejez, atendiendo a los cambios en la estructura demográfica del país y a los patrones del mercado laboral. Prohibición de disfrute de más de una pensión o jubilación"
+        },
+        {
+          "type": "article",
+          "number": "70",
+          "title": "Artículo 70",
+          "text": "Nadie podrá disfrutar más de una jubilación o pensión, salvo en casos expresamente determinados en la ley. Rectoría, gestión y base legal"
+        },
+        {
+          "type": "article",
+          "number": "71",
+          "title": "Artículo 71",
+          "text": "El Régimen Prestacional de Pensiones y Otras Asignaciones Económicas estará bajo la rectoría del ministerio con competencia en materia de previsión social; su gestión se realizará a través del Instituto Nacional de Pensiones y Otras Asignaciones Económicas. El Régimen Prestacional de Pensiones y otras Asignaciones Económicas se regirá por las disposiciones de la presente Ley y por la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas. Sección Segunda Instituto Nacional de Pensiones y Otras Asignaciones Económicas Creación del Instituto"
+        },
+        {
+          "type": "article",
+          "number": "72",
+          "title": "Artículo 72",
+          "text": "Se crea el Instituto Nacional de Pensiones y Otras Asignaciones Económicas, instituto autónomo con personalidad jurídica y patrimonio propio, distinto e independiente del Fisco Nacional, adscrito al ministerio con competencia en materia de previsión social. Todo lo relacionado con el Instituto Nacional de Pensiones y Otras Asignaciones Económicas, no señalado explícitamente en la presente Ley, será desarrollado y regulado por la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas y su reglamento. Finalidad"
+        },
+        {
+          "type": "article",
+          "number": "73",
+          "title": "Artículo 73",
+          "text": "El Instituto Nacional de Pensiones y Otras Asignaciones Económicas tendrá como finalidad garantizar a la población sujeta al campo de aplicación del Régimen Prestacional de Pensiones y Otras Asignaciones Económicas las prestaciones en dinero establecidas en la presente Ley, y en la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas y su reglamento. Directorio"
+        },
+        {
+          "type": "article",
+          "number": "74",
+          "title": "Artículo 74",
+          "text": "El Instituto Nacional de Pensiones y Otras Asignaciones Económicas tendrá un Directorio, integrado por siete (7) miembros a saber: el Presidente, designado por el Presidente de la República; un representante del ministerio con competencia en Previsión Social, un representante del Instituto Nacional de Empleo, un representante del Instituto Nacional de Prevención, Salud y Seguridad Laboral, un representante de la organización sindical más representativa, un representante de la organización empresarial más representativa; y un representante de la organización de los jubilados y pensionados más representativa. Cada uno de los representantes del Directorio tendrá su respectivo suplente. El Presidente del Instituto Nacional de Pensiones y Otras Asignaciones Económicas ejercerá sus funciones por un período de tres (3) años, prorrogable por un período adicional. Los miembros principales y suplentes del Directorio del Instituto Nacional de Pensiones y Otras Asignaciones Económicas, deberán ser venezolanos, de comprobada solvencia moral y experiencia profesional en materia previsional, administrativa, gerencial, económica, financiera, contable, estadística o actuarial; se aplicarán estos requisitos profesionales adecuándolos a sus experiencias laborales. Incompatibilidades"
+        },
+        {
+          "type": "article",
+          "number": "75",
+          "title": "Artículo 75",
+          "text": "No podrán ejercer los cargos de Presidente, miembro principal o suplente del Directorio del Instituto Nacional de Pensiones y Otras Asignaciones Económicas:\n\n1. Las personas sujetas a interdicción por condena penal mediante sentencia definitivamente firme, las personas sometidas al beneficio de atraso y los fallidos no rehabilitados, y los declarados civilmente responsables mediante sentencia definitivamente firme, por actuaciones u omisiones en la actividad profesional en la cual se fundamenta su acreditación para ser elegible al cargo.\n\n2. Quienes hayan sido declarados penal, administrativa o civilmente responsables con ocasión de la administración de fondos de carácter público o privado, mediante sentencia definitivamente firme.\n\n3. Quienes hayan sido sujetos a auto de responsabilidad administrativa dictado por la Contraloría General de la República, que haya quedado definitivamente firme.\n\n4. Quienes sean accionistas de sociedades privadas que presten servicios a cualquiera de los regímenes prestacionales de seguridad social, de compañías de seguros o reaseguros, de las instituciones regidas por la normativa legal que regula a los bancos y otras instituciones financieras, y a las empresas de seguros y reaseguros y quienes ejerzan cargos directivos, gerenciales o administrativos en dichos entes.\n\n5. Quienes tengan vínculo conyugal o de parentesco hasta el cuarto grado de consanguinidad o segundo de afinidad con el Presidente de la República, con los integrantes del Consejo de Ministros, con el Presidente del Banco Central de Venezuela, con el Presidente del Fondo de Garantía de Depósitos y Protección Bancaria, con el Superintendente de la Seguridad Social, con los integrantes de las juntas directivas o accionistas de las entidades financieras y fiduciarias y del Banco Nacional de Vivienda y Hábitat y con los miembros de los directorios de los órganos y entes que ejerzan la gestión de los regímenes prestacionales del Sistema de Seguridad Social. Remoción"
+        },
+        {
+          "type": "article",
+          "number": "76",
+          "title": "Artículo 76",
+          "text": "La remoción del Presidente del Instituto Nacional de Pensiones y Otras Asignaciones Económicas deberá ser motivada y realizada por el Presidente de la República y procederá por las causas siguientes:\n\n1. Falta de probidad, vías de hecho, injuria, conducta inmoral o actos lesivos al buen nombre o intereses del Instituto Nacional de Pensiones y otras Asignaciones Económicas o a los fines que persigue esta Ley.\n\n2. Perjuicio material, causado intencionalmente o por negligencia manifiesta, al patrimonio y a los recursos de la Seguridad Social que administre el Instituto.\n\n3. Incapacidad comprobada o falta a las obligaciones inherentes al cargo.\n\n4. Uso de la información privilegiada del Sistema de la Seguridad Social para obtener provecho personal para sí o para terceros.\n\n5. La adopción de resoluciones o decisiones declarados manifiestamente ilegales por el órgano jurisdiccional competente, o que causen graves daños al interés público, al patrimonio del Sistema de Seguridad Social o al de sus beneficiarios.\n\n6. Solicitar o recibir dinero o cualquier otro beneficio, valiéndose de su condición de funcionario público.\n\n7. Revelación de asuntos reservados, confidenciales o secretos de los cuales el Presidente del Instituto Nacional de Pensiones y otras Asignaciones Económicas tenga conocimientos por su condición de funcionario.\n\n8. Tener participación por sí o por interpuestas personas, en firmas o sociedades que tengan interés en el Sistema de Seguridad Social.\n\n9. Incurrir en alguna de las incompatibilidades contempladas en el artículo anterior. Competencias"
+        },
+        {
+          "type": "article",
+          "number": "77",
+          "title": "Artículo 77",
+          "text": "Son competencias del Instituto Nacional de Pensiones y Otras Asignaciones Económicas las actividades siguientes:\n\n1. Certificar, conforme a los términos, condiciones y alcances previstos en la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas, la calificación de los beneficiarios de prestaciones en dinero.\n\n2. Liquidar y Ordenar a la Tesorería de Seguridad Social, el pago de las prestaciones en dinero causadas, según la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas.\n\n3. Conciliar la información de los pagos de las prestaciones en dinero y sus remanentes, a los efectos de garantizar la transparencia financiera del Régimen Prestacional de Pensiones y Otras Asignaciones Económicas.\n\n4. Solicitar la autorización respectiva para celebrar Convenios de Reciprocidad Internacional, para el pago y reconocimiento de los derechos inherentes al Régimen Prestacional de Pensiones y Otras Asignaciones Económicas.\n\n5. Conocer y tramitar los recaudos presentados por los afiliados y beneficiarios, necesarios para la exigibilidad de las prestaciones causadas con ocasión de las contingencias contempladas en la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas.\n\n6. Conocer y decidir los recursos administrativos ejercidos por los solicitantes, en caso de rechazo de la solicitud, o de cesación en el pago de las prestaciones en dinero, o de su reintegro.\n\n7. Conocer y decidir en los casos de prescripción y caducidad de las prestaciones en dinero.\n\n8. Suministrar información a todo interesado sobre cualquier aspecto atinente al Régimen Prestacional de Pensiones y Otras Asignaciones Económicas, con las excepciones que establezca la ley.\n\n9. Las demás que le otorgue esta Ley o las leyes y sus respectivos reglamentos, que regularán los regímenes prestacionales del Sistema de Seguridad Social. Atribuciones del Presidente del Instituto Nacional de Pensiones y Otras Asignaciones Económicas"
+        },
+        {
+          "type": "article",
+          "number": "78",
+          "title": "Artículo 78",
+          "text": "Son atribuciones del Presidente del Instituto Nacional de Pensiones y Otras Asignaciones Económicas:\n\n1. Convocar y presidir el Directorio del Instituto.\n\n2. Ejercer la representación del Instituto.\n\n3. Proponer al Directorio las directrices bajo las cuales se regirá el Instituto en concordancia con los lineamientos de políticas que reciba del organismo de adscripción.\n\n4. Representar legalmente al instituto ante el organismo de adscripción.\n\n5. Elaborar planes y presupuestos del Instituto para someterlo a la aprobación del Directorio y ratificación del ministerio de adscripción.\n\n6. Dirigir las relaciones del Instituto con los organismos públicos.\n\n7. Presentar la memoria y cuenta y el informe semestral o anual de actividades del Instituto.\n\n8. Mantener canales de comunicación con el organismo de adscripción a través de puntos de cuenta, informes y reuniones periódicas.\n\n9. Dirigir la administración del Instituto y nombrar y remover al personal del mismo.\n\n10. Difundir la gestión y logros del Instituto.\n\n11. Firmar la correspondencia del Instituto dirigida a las máximas autoridades de otros organismos.\n\n12. Ejercer las demás atribuciones que señale la ley o sean delegadas por el organismo de adscripción. Control tutelar"
+        },
+        {
+          "type": "article",
+          "number": "79",
+          "title": "Artículo 79",
+          "text": "El Instituto Nacional de Pensiones y Otras Asignaciones Económicas estará sometido a mecanismos de control tutelar por parte del ministerio con competencia en previsión social, en el ámbito de control de gestión de las políticas desarrolladas y ejecutadas, en la evaluación de la información obtenida y generada por el Instituto en la materia específica de su competencia, en la evaluación del plan operativo anual en relación con los recursos asignados para su operatividad y en la ejecución de auditorías administrativas y financieras en la oportunidad que su funcionamiento genere el incumplimiento de atribuciones, funciones, derechos y obligaciones, de conformidad con la Ley Orgánica de la Administración Pública, Ley Orgánica de Procedimientos Administrativos y las disposiciones reglamentarias aplicables. Estos mecanismos de control tutelar no excluyen cualquier otro que sea necesario por parte del ministerio de adscripción Patrimonio y Fuentes de Ingresos"
+        },
+        {
+          "type": "article",
+          "number": "80",
+          "title": "Artículo 80",
+          "text": "Los recursos para el funcionamiento del Instituto Nacional de Pensiones y Otras Asignaciones Económicas, provendrán de las fuentes siguientes: aportes fiscales que se asignen con cargo al presupuesto del ministerio con competencia de Previsión Social, donaciones, legados, aportes, subvenciones y demás liberalidades que reciba de personas naturales y jurídicas, públicas o privadas, nacionales o extranjeras y por los demás bienes o ingresos que obtenga por cualquier título. La administración de estos recursos estará regida por una regla de severidad del gasto."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo IV"
+        },
+        {
+          "type": "article",
+          "number": "81",
+          "title": "Artículo 81",
+          "text": "Se crea el Régimen Prestacional de Empleo que tiene por objeto garantizar la atención integral a la fuerza de trabajo ante las contingencias de la pérdida involuntaria del empleo y de desempleo, mediante prestaciones dinerarias y no dinerarias y también a través de políticas, programas y servicios de intermediación, asesoría, información y orientación laboral y la facilitación de la capacitación para la inserción al mercado de trabajo, así como la coordinación de políticas y programas de capacitación y generación de empleo con órganos y entes nacionales, regionales y locales de carácter público y privado, conforme a los términos, condiciones y alcances establecidos en la ley que regule el Régimen Prestacional de Empleo. La ley que regule el Régimen Prestacional de Empleo establecerá los mecanismos, modalidades, condiciones, términos, cobertura y demás requisitos para la prestación de los servicios. Ámbito de aplicación"
+        },
+        {
+          "type": "article",
+          "number": "82",
+          "title": "Artículo 82",
+          "text": "El Régimen Prestacional de Empleo tendrá como ámbito de aplicación la fuerza de trabajo ante la pérdida involuntaria del empleo, en situación de desempleo, y con discapacidad como consecuencia de accidente de trabajo o enfermedad ocupacional. Indemnización por pérdida involuntaria del empleo"
+        },
+        {
+          "type": "article",
+          "number": "83",
+          "title": "Artículo 83",
+          "text": "Las prestaciones de corto plazo, correspondientes a indemnizaciones por pérdida involuntaria del empleo, serán financiadas por el empleador y el trabajador, mediante el régimen financiero de reparto simple. Financiamiento"
+        },
+        {
+          "type": "article",
+          "number": "84",
+          "title": "Artículo 84",
+          "text": "El financiamiento del Régimen Prestacional de Empleo estará integrado por los recursos fiscales, las cotizaciones obligatorias del Sistema de Seguridad Social, los remanentes netos de capital de la Seguridad Social y cualquier otra fuente de financiamiento que determine la ley que regule el Régimen Prestacional de Empleo. En el caso de los accidentes o enfermedades ocupacionales se financiará la capacitación y reinserción laboral de la persona con discapacidad con las cotizaciones patronales previstos para tal fin, en el Régimen Prestacional de Seguridad y Salud en el Trabajo. Las indemnizaciones en dinero previstas en esta Ley y en la ley que regule el Régimen Prestacional de Empleo serán pagadas por la Tesorería de Seguridad Social, a cargo de los fondos de este Régimen. Rectoría, gestión y base legal"
+        },
+        {
+          "type": "article",
+          "number": "85",
+          "title": "Artículo 85",
+          "text": "El Régimen Prestacional de Empleo estará bajo la rectoría del ministerio con competencia en empleo. Su gestión se realizará a través del Instituto Nacional de Empleo. El Régimen Prestacional de Empleo se regirá por las disposiciones de la presente Ley y por la ley que regule el Régimen Prestacional de Empleo. Sección Segunda Instituto Nacional de Empleo Creación del Instituto"
+        },
+        {
+          "type": "article",
+          "number": "86",
+          "title": "Artículo 86",
+          "text": "Se crea el Instituto Nacional de Empleo, instituto autónomo con personalidad jurídica y patrimonio propio distinto e independiente del Fisco Nacional, adscrito al ministerio con competencia en empleo, que tendrá como objeto la gestión del Régimen Prestacional de Empleo y el componente de capacitación e inserción laboral de las personas con discapacidad amparadas por el Régimen Prestacional de Seguridad y Salud en el Trabajo, así como establecer la coordinación funcional intergubernamental, descentralizada y sistémica con órganos y entes públicos, e instituciones privadas, empresariales, laborales y de la comunidad organizada para la prestación de los servicios de atención al desempleado. La ley que regule el Régimen Prestacional de Empleo desarrollará aquellos aspectos del Instituto Nacional de Empleo no señalados en la presente Ley. Directorio"
+        },
+        {
+          "type": "article",
+          "number": "87",
+          "title": "Artículo 87",
+          "text": "El Instituto Nacional de Empleo tendrá un Directorio integrado por cinco (5) miembros: un Presidente designado por el Presidente de la República y cuatro (4) directores con sus respectivos suplentes, un representante del ministerio con competencia en materia de trabajo, un representante del ministerio con competencia en materia de planificación y desarrollo, un representante de la organización laboral más representativa y un representante de la organización empresarial más representativa. El Presidente del Instituto Nacional de Empleo ejercerá sus funciones por un período de tres (3) años, prorrogable por un período adicional. Los miembros principales y suplentes del Directorio del Instituto Nacional de Empleo, deberán ser venezolanos, de comprobada solvencia moral y experiencia en materias vinculadas con el área de empleo. Incompatibilidades"
+        },
+        {
+          "type": "article",
+          "number": "88",
+          "title": "Artículo 88",
+          "text": "No podrán ejercer el cargo de Presidente, miembro principal o suplente del Directorio del Instituto Nacional de Empleo:\n\n1. Las personas sujetas a interdicción por condena penal mediante sentencia definitivamente firme, las personas sometidas a beneficio de atraso y los fallidos no rehabilitados, y los declarados civilmente responsables mediante sentencia definitivamente firme, por actuaciones u omisiones en la actividad profesional en la cual se fundamenta su acreditación para ser elegible al cargo.\n\n2. Quienes hayan sido declarados penal, administrativa o civilmente responsables con ocasión de la administración de fondos de carácter público o privado, mediante sentencia definitivamente firme.\n\n3. Quienes hayan sido sujetos a auto de responsabilidad administrativa dictado por la Contraloría General de la República que haya quedado definitivamente firme.\n\n4. Quienes sean accionistas, de sociedades privadas que presten servicios a cualquiera de los regímenes prestacionales de seguridad social, de compañías de seguros o reaseguros, de las instituciones regidas por la normativa legal que regula a los bancos y otras instituciones financieras, y a las empresas de seguros y reaseguros y quienes ejerzan cargos directivos, gerenciales o administrativos en dichos entes.\n\n5. Quienes tengan vínculo conyugal o de parentesco hasta el cuarto grado de consanguinidad o segundo de afinidad con el Presidente de la República; con los integrantes del Consejo de Ministros; con el Presidente del Banco Central de Venezuela; con el Presidente del Fondo de Garantía de Depósitos y Protección Bancaria; con los integrantes de las juntas directivas o accionistas de las entidades financieras y fiduciarias; y con los miembros de los directorios de los órganos y entes que ejerzan la gestión de los regímenes prestacionales del Sistema de Seguridad Social. Remoción"
+        },
+        {
+          "type": "article",
+          "number": "89",
+          "title": "Artículo 89",
+          "text": "La remoción del Presidente del Instituto Nacional de Empleo deberá ser motivada y realizada por el Presidente de la República y procederá por las causas siguientes:\n\n1. Incurrir durante el ejercicio del cargo en algunas de las restricciones señalas en el artículo anterior.\n\n2. Perjuicio material, causado intencionalmente o por negligencia manifiesta, al patrimonio del Instituto Nacional de Empleo.\n\n3. Uso de la información privilegiada del Sistema de Seguridad Social para obtener provecho personal para sí o para terceros.\n\n4. La adopción de resoluciones o decisiones declarados manifiestamente ilegales por el órgano competente, o que causen graves daños al interés publico, al patrimonio del Sistema de Seguridad Social o al de sus beneficiarios.\n\n5. Solicitar o recibir dinero o cualquier otro beneficio, valiéndose de su condición de funcionario público.\n\n6. Revelación de asuntos reservados, confidenciales o secretos de los cuales el Presidente del Instituto Nacional de Empleo tenga conocimientos por su condición de funcionario.\n\n7. Tener participación por si o por interpuesta persona en firmas o sociedades que tengan interés en el Sistema de Seguridad Social. Competencias"
+        },
+        {
+          "type": "article",
+          "number": "90",
+          "title": "Artículo 90",
+          "text": "El Instituto Nacional de Empleo tiene las siguientes competencias:\n\n1. Calificar a los beneficiarios y liquidar las prestaciones en dinero previstas en el Régimen Prestacional de Empleo.\n\n2. Solicitar a la Tesorería de Seguridad Social el pago de los beneficios ya calificados y liquidados por este Instituto.\n\n3. Recomendar y ejecutar las estrategias, políticas y programas para la inserción, reconversión e intermediación laboral ante la pérdida involuntaria del empleo y desempleo.\n\n4. Constituir, coordinar y promover el funcionamiento de las redes de servicios de atención a la fuerza laboral en situación de desempleo y subempleo en el ámbito de información profesional del mercado de trabajo, orientación, recapacitación, intermediación laboral y de asesoría para la formulación de proyectos productivos y asistencia técnica al emprendedor.\n\n5. Recomendar y establecer convenios con órganos y entes del sector público e instituciones del sector privado para el desarrollo de programas de capacitación.\n\n6. Mantener actualizado el Sistema de Información de la Seguridad Social en lo atinente a las variables estadísticas aplicables al Régimen Prestacional de Empleo.\n\n7. Recomendar, promover y coordinar con los organismos públicos las políticas y programas de mejoramiento de la calidad del empleo, la promoción del empleo y programas de economía social.\n\n8. Capacitar y facilitar la reinserción de los trabajadores discapacitados que hayan sufrido accidentes, enfermedades ocupacionales o de cualquier origen.\n\n9. Recomendar convenios de cooperación con los gobiernos estadales, municipales, organizaciones empresariales, laborales y comunitarias con el objeto de garantizar el funcionamiento de las redes de servicio contemplados en el Régimen Prestacional de Empleo.\n\n10. Realizar, apoyar y fomentar análisis situacionales del mercado de trabajo para el desarrollo de programas y políticas de atención al desempleado.\n\n11. Las demás que le otorgue esta Ley o las leyes y sus respectivos reglamentos, que regularán los regímenes prestacionales del Sistema de Seguridad Social. Atribuciones del Presidente del Instituto Nacional de Empleo"
+        },
+        {
+          "type": "article",
+          "number": "91",
+          "title": "Artículo 91",
+          "text": "Son atribuciones del Presidente del Instituto Nacional de Empleo:\n\n1. Ejercer la presidencia del Instituto.\n\n2. Convocar y presidir el Directorio del Instituto.\n\n3. Proponer al Directorio las directrices bajo las cuales se regirá el Instituto en concordancia con los lineamientos de políticas que recibe del organismo de adscripción.\n\n4. Representar legalmente al Instituto ante los organismos de adscripción.\n\n5. Elaborar planes y presupuestos del Instituto para someterlo a la aprobación del Directorio del Instituto por el ministerio de adscripción.\n\n6. Dirigir las relaciones del Instituto con los organismos públicos y otros entes representativos del sector.\n\n7. Presentar la memoria y cuenta y el informe semestral o anual de las actividades del Instituto.\n\n8. Mantener canales de comunicación con el organismo de adscripción a través de puntos de cuenta, informes y reuniones periódicas.\n\n9. Dirigir la administración del Instituto y nombrar y remover al personal del mismo.\n\n10. Difundir la gestión y logros del Instituto.\n\n11. Firmar la correspondencia del Instituto dirigida a las máximas autoridades de otros organismos.\n\n12. Ejercer las demás atribuciones que señale la ley o sean delegadas por el organismo de adscripción. Control Tutelar"
+        },
+        {
+          "type": "article",
+          "number": "92",
+          "title": "Artículo 92",
+          "text": "El Instituto Nacional de Empleo estará sometido a mecanismos de control tutelar, por parte del ministerio con competencia en materia de empleo, en el ámbito de control de gestión de las políticas desarrolladas y ejecutadas, en la evaluación de la información obtenida y generada por el instituto en la materia específica de su competencia; en la evaluación del plan operativo anual en relación con los recursos asignados para su operatividad y en la ejecución de auditorias administrativas y financieras en la oportunidad que su funcionamiento genere el incumplimiento de atribuciones, funciones, derechos y obligaciones; de conformidad con la Ley Orgánica de la Administración Pública, la Ley Orgánica de Procedimientos Administrativos y las disposiciones reglamentarias aplicables. Estos mecanismos de control tutelar no excluyen cualquier otro que sea necesario por parte del ministerio de adscripción. Patrimonio y fuentes de ingresos"
+        },
+        {
+          "type": "article",
+          "number": "93",
+          "title": "Artículo 93",
+          "text": "Los recursos para el funcionamiento del Instituto Nacional de Empleo provendrán de las fuentes siguientes: aportes fiscales que se asignen con cargo al presupuesto del ministerio de adscripción, donaciones, legados, aportes, subvenciones y demás liberalidades que reciba de personas naturales o jurídicas, públicas o privadas, nacionales o extranjeras y, por los demás bienes o ingresos que obtenga por cualquier título. La administración de estos recursos estará regida por una regla de severidad del gasto."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo V"
+        },
+        {
+          "type": "article",
+          "number": "94",
+          "title": "Artículo 94",
+          "text": "Se crea el Régimen Prestacional de Seguridad y Salud en el Trabajo responsable, en concordancia con los principios del sistema público nacional de salud, de la promoción del trabajo seguro y saludable; del control de las condiciones y medio ambiente de trabajo, de la prevención de los accidentes de trabajo y enfermedades ocupacionales, de la promoción e incentivo del desarrollo de programas de recreación, utilización del tiempo libre, descanso y turismo social, y el fomento de la construcción, dotación, mantenimiento y protección de la infraestructura recreativa de las áreas naturales destinadas a sus efectos y de la atención integral de los trabajadores ante la ocurrencia de un accidente de trabajo o enfermedad ocupacional y de sus descendientes cuando por causas relacionadas con el trabajo nacieren con patologías que generen necesidades especiales; mediante prestaciones dinerarias y no dinerarias, políticas, programas, servicios de intermediación, asesoría, información y orientación laboral y la capacitación para inserción y reinserción al mercado de trabajo; desarrollados por este régimen o por aquellos que establezca esta Ley y la Ley Orgánica de Prevención, Condiciones y Medio Ambiente de Trabajo. Ámbito de Aplicación"
+        },
+        {
+          "type": "article",
+          "number": "95",
+          "title": "Artículo 95",
+          "text": "El Régimen Prestacional de Seguridad y Salud en el Trabajo garantiza a los trabajadores dependientes afiliados al Sistema de Seguridad Social, las prestaciones contempladas en este Régimen. A los efectos de la promoción de la salud y la seguridad en el trabajo, la prevención de las enfermedades y accidentes ocupacionales y otras materias compatibles, así como en la promoción e incentivo del desarrollo de programas de recreación, utilización del tiempo libre, descanso y turismo social, ampara a todos los trabajadores. Pensiones e indemnizaciones por accidentes y enfermedades de origen ocupacional"
+        },
+        {
+          "type": "article",
+          "number": "96",
+          "title": "Artículo 96",
+          "text": "Las pensiones por discapacidad parcial o total permanente y gran discapacidad, las pensiones de viudedad y orfandad, así como los gastos funerarios causados por el fallecimiento del trabajador o pensionado y las indemnizaciones por ausencia laboral causada por discapacidad temporal, todas ellas debido a enfermedad ocupacional o accidente de trabajo, serán financiadas con cotizaciones del empleador en los términos, condiciones y alcances que establezca la Ley Orgánica de Prevención, Condiciones y Medio Ambiente de Trabajo. Las prestaciones en dinero prevista en esta Ley y en la Ley Orgánica de Prevención, Condiciones y Medio Ambiente de Trabajo serán pagadas por la Tesorería de Seguridad Social, a cargo de los fondos de este Régimen, y administrados por la misma. Las prestaciones de atención médica integral, incluyendo la rehabilitación del trabajador, y las prestaciones de capacitación y reinserción laboral serán financiados por el Régimen Prestacional de Seguridad y Salud en el Trabajo a los Regímenes Prestacionales de Salud y Empleo, respectivamente. Recreación de los Trabajadores"
+        },
+        {
+          "type": "article",
+          "number": "97",
+          "title": "Artículo 97",
+          "text": "El Régimen Prestacional de Seguridad y Salud en el Trabajo promocionará e incentivará el desarrollo de programas de recreación, utilización del tiempo libre, descanso y turismo social. Financiamiento"
+        },
+        {
+          "type": "article",
+          "number": "98",
+          "title": "Artículo 98",
+          "text": "El Régimen Prestacional de Seguridad y Salud en el Trabajo será financiado mediante cotizaciones obligatorias a cargo del empleador que serán determinadas en función de los niveles de peligrosidad de los procesos productivos de conformidad con lo previsto en la Ley Orgánica de Prevención, Condiciones y Medio Ambiente de Trabajo y de financiamiento fiscal para cubrir lo concerniente a los programas de recreación, utilización del tiempo libre, descanso y turismo social. Rectoría, gestión y base legal"
+        },
+        {
+          "type": "article",
+          "number": "99",
+          "title": "Artículo 99",
+          "text": "El Régimen Prestacional de Seguridad y Salud en el Trabajo estará bajo la rectoría del ministerio con competencia en materia de seguridad y salud en el trabajo. Su gestión se realizará a través del Instituto Nacional de Prevención, Salud y Seguridad Laboral y el Instituto Nacional de Capacitación y Recreación de los Trabajadores, en coordinación con los órganos de la administración pública correspondientes. El Régimen Prestacional de Seguridad y Salud en el Trabajo se regirá por las disposiciones de la presente Ley, la Ley Orgánica de Prevención, Condiciones y Medio Ambiente de Trabajo y sus reglamentos."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo VI"
+        },
+        {
+          "type": "article",
+          "number": "100",
+          "title": "Artículo 100",
+          "text": "Se crea el Régimen Prestacional de Vivienda y Hábitat, el cual tendrá carácter intersectorial y descentralizado para garantizar el derecho a la vivienda y hábitat dignos, y estará orientado a la satisfacción progresiva del derecho humano a la vivienda, que privilegie el acceso y seguridad de la tenencia de la tierra, así como la adquisición, construcción, liberación, sustitución, restitución, reparación y remodelación de la vivienda, servicios básicos esenciales, urbanismo, habitabilidad, medios que permitan la propiedad de una vivienda para las familias de escasos recursos, en correspondencia con la cultura de las comunidades y crear las condiciones para garantizar los derechos contemplados sobre esta materia en la Constitución de la República Bolivariana de Venezuela. Ámbito de aplicación"
+        },
+        {
+          "type": "article",
+          "number": "101",
+          "title": "Artículo 101",
+          "text": "El Régimen Prestacional de Vivienda y Hábitat garantiza el derecho a las personas dentro del territorio nacional, a acceder a las políticas, planes, programas, proyectos y acciones que el Estado desarrolle en materia de vivienda y hábitat, dando prioridad a las familias de escasos recursos y otros sujetos de atención especial definidos en la ley que regule el Régimen Prestacional de Vivienda y Hábitat. Naturaleza y regulación jurídica"
+        },
+        {
+          "type": "article",
+          "number": "102",
+          "title": "Artículo 102",
+          "text": "El Régimen Prestacional de Vivienda y Hábitat definirá el conjunto orgánico de políticas, normas operativas e instrumentos que en conjunto con la participación protagónica de las personas y las comunidades organizadas, instituciones públicas, privadas o mixtas, garanticen la unidad de acción del Estado a través de una política integral de vivienda y hábitat en la que concurran los órganos, entes y organizaciones que se definan en la ley que regule el Régimen Prestacional de Vivienda y Hábitat, en el uso apropiado y en la gestión de los recursos asignados al régimen, provenientes tanto del sector público como del sector privado. El Régimen Prestacional de Vivienda y Hábitat estará regido por la presente Ley y por la ley que regule el Régimen Prestacional de Vivienda y Hábitat, la cual deberá contemplar la conformación de los diferentes fondos, así como los incentivos, subsidios, aportes fiscales y cotizaciones. Administración de fondos"
+        },
+        {
+          "type": "article",
+          "number": "103",
+          "title": "Artículo 103",
+          "text": "Los fondos públicos y privados para el financiamiento de Vivienda y Hábitat, a que se refiere el artículo anterior, serán administrados por el Banco Nacional de Vivienda y Hábitat, adscrito al ministerio con competencia en materia de vivienda y hábitat. Financiamiento"
+        },
+        {
+          "type": "article",
+          "number": "104",
+          "title": "Artículo 104",
+          "text": "El Régimen Prestacional de Vivienda y Hábitat será financiado con los aportes fiscales, los remanentes netos de capital destinados a la seguridad social y los aportes parafiscales de empleadores, trabajadores dependientes y demás afiliados, para garantizar el acceso a una vivienda a las personas de escasos recursos y a quienes tengan capacidad de amortizar créditos con o sin garantía hipotecaria. Queda expresamente prohibido el financiamiento de vivienda bajo la modalidad del refinanciamiento de intereses dobles indexados con los recursos previstos en esta Ley y la ley que regule el Régimen Prestacional de Vivienda y Hábitat. Rectoría y gestión"
+        },
+        {
+          "type": "article",
+          "number": "105",
+          "title": "Artículo 105",
+          "text": "La rectoría del Régimen Prestacional de Vivienda y Hábitat, estará a cargo del ministerio con competencia en materia de vivienda y hábitat. La ley que regule el Régimen Prestacional de Vivienda y Hábitat definirá un Sistema Nacional de Vivienda y Hábitat que establecerá los órganos y entes encargados de diseñar, coordinar, planificar, seguir, investigar, supervisar, controlar y evaluar la formulación y ejecución de las políticas públicas, planes y programas integrales en vivienda y hábitat, en concordancia con los órganos y entes nacionales, estadales y municipales en el contexto del Plan de Desarrollo Económico y Social de la Nación."
+        },
+        {
+          "type": "header",
+          "text": "TÍTULO IV"
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I"
+        },
+        {
+          "type": "article",
+          "number": "106",
+          "title": "Artículo 106",
+          "text": "Los recursos para el financiamiento del Sistema de Seguridad Social estarán constituidos por:\n\n1. Las cotizaciones de los afiliados.\n\n2. Los aportes fiscales del Estado a la seguridad social.\n\n3. Los remanentes netos de capital, destinados a la salud y la seguridad social, que se acumularán a los fines de su distribución y contribución en estos servicios, en las condiciones y modalidades que establezcan las leyes de los respectivos regímenes prestacionales.\n\n4. Las cantidades recaudadas por concepto de créditos originados por el retraso del pago de las cotizaciones.\n\n5. Las cantidades recaudadas por sanciones, multas y otras de naturaleza análoga.\n\n6. Los intereses, rentas, derechos y cualquier otro producto proveniente de su patrimonio e inversiones.\n\n7. Las contribuciones indirectas que se establezcan.\n\n8. Cualquier otro ingreso o fuente de financiamiento. Los recursos financieros se distribuirán directamente entre los fondos que integren los regímenes prestacionales de acuerdo a las condiciones y límites de las aportaciones correspondientes y en la forma que las respectivas leyes de los regímenes prestacionales indiquen. Fondos"
+        },
+        {
+          "type": "article",
+          "number": "107",
+          "title": "Artículo 107",
+          "text": "Cada Régimen Prestacional del Sistema de Seguridad Social, según corresponda, creará uno o varios fondos de recursos para su financiamiento. Dichos fondos están constituidos por patrimonios públicos sin personalidad jurídica que no darán lugar a estructuras organizativas ni burocráticas. Su administración queda sujeta a lo previsto en esta Ley, en las leyes de los regímenes prestacionales, y a las políticas y demás orientaciones que dicte la rectoría del sistema. Patrimonio"
+        },
+        {
+          "type": "article",
+          "number": "108",
+          "title": "Artículo 108",
+          "text": "Los recursos del Sistema de Seguridad Social constituyen un patrimonio único afecto a los fines que le son específicos y distintos del patrimonio de la República, y no podrán ser destinados a ningún otro fin diferente al previsto para el Sistema de Seguridad Social, conforme a lo establecido en la Constitución de la República Bolivariana de Venezuela y en esta Ley. No está permitida la transferencia de recursos entre los diferentes fondos, salvo para los fines y de acuerdo a las condiciones previstas en esta Ley y en las leyes de los regímenes prestacionales del Sistema de Seguridad Social. Los recursos financieros del Sistema de Seguridad Social no forman parte de la masa indivisa del Tesoro Nacional. Modalidades de financiamiento"
+        },
+        {
+          "type": "article",
+          "number": "109",
+          "title": "Artículo 109",
+          "text": "Las leyes de los regímenes prestacionales del Sistema de Seguridad Social establecerán las modalidades de financiamiento, salvo las definidas en esta Ley, que mejor se adapten a las particularidades de las prestaciones que concederán, basadas en lo que determinen los estudios demográficos, financieros y actuariales; asimismo, determinarán el monto y forma de las contribuciones, aportes y cotizaciones. Inembargabilidad"
+        },
+        {
+          "type": "article",
+          "number": "110",
+          "title": "Artículo 110",
+          "text": "Los recursos, bienes y patrimonio del Sistema de Seguridad Social son inembargables, así como sus correspondientes intereses, rentas o cualquier otro producto proveniente de sus inversiones."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II"
+        },
+        {
+          "type": "article",
+          "number": "111",
+          "title": "Artículo 111",
+          "text": "Toda persona, de acuerdo a sus ingresos, está obligada a cotizar para el financiamiento del Sistema de Seguridad Social, según lo establecido en esta Ley y en las leyes de los regímenes prestacionales. Parafiscalidad"
+        },
+        {
+          "type": "article",
+          "number": "112",
+          "title": "Artículo 112",
+          "text": "Las cotizaciones, constituyen contribuciones especiales obligatorias, cuyo régimen queda sujeto a la presente Ley y a la normativa del sistema tributario. Aportes de empleadores, cotización de los trabajadores y base del cálculo de las cotizaciones"
+        },
+        {
+          "type": "article",
+          "number": "113",
+          "title": "Artículo 113",
+          "text": "Sobre todo salario causado el empleador deberá calcular, y estará obligado a retener y enterar a la Tesorería de Seguridad Social, los porcentajes correspondientes a las cotizaciones al Sistema de Seguridad Social fijado en las leyes de los regímenes prestacionales. Todo salario causado a favor del trabajador, hace presumir la retención por parte del empleador, de la cotización del trabajador respectivo y, en consecuencia, éste tendrá derecho a recibir las prestaciones que le correspondan. El Estado podrá contribuir, en los casos que lo amerite, con una parte de la cotización correspondiente de los trabajadores no dependientes de bajos ingresos que soliciten su afiliación al Régimen Prestacional de Pensiones y Otras Asignaciones Económicas, la cual cubrirá parcialmente la ausencia de la cotización por parte del empleador. Los términos, condiciones y alcance de esta contribución se establecerán en la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas. Sustitución de patrono"
+        },
+        {
+          "type": "article",
+          "number": "114",
+          "title": "Artículo 114",
+          "text": "En caso de sustitución de patrono, el patrono sustituyente será solidariamente responsable con el patrono sustituido por las obligaciones derivadas de la presente Ley y de la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas. Certificado de solvencia"
+        },
+        {
+          "type": "article",
+          "number": "115",
+          "title": "Artículo 115",
+          "text": "Los registradores y notarios no darán curso a ninguna operación de venta, cesión, arrendamiento, donación o traspaso a cualquier título del dominio de una empresa o establecimiento si el interesado no presenta certificado de solvencia con el Sistema de Seguridad Social. El certificado de solvencia también se exigirá a todo patrono o empresa para participar en licitaciones de cualquier índole que promuevan los órganos y entes del sector público y para hacer efectivo cualquier crédito contra estos. Base contributiva"
+        },
+        {
+          "type": "article",
+          "number": "116",
+          "title": "Artículo 116",
+          "text": "La base contributiva para el cálculo de las cotizaciones, tendrá como límite inferior el monto del salario mínimo urbano y como límite superior diez (10) salarios mínimos urbanos, los cuales podrán ser modificados gradualmente conforme a lo establecido en las leyes de los regímenes prestacionales."
+        },
+        {
+          "type": "header",
+          "text": "TÍTULO V"
+        },
+        {
+          "type": "article",
+          "number": "117",
+          "title": "Artículo 117",
+          "text": "El Ejecutivo Nacional deberá desarrollar en un plazo no mayor de seis (6) meses, contados a partir de la promulgación de esta Ley, el plan de implantación de la nueva institucionalidad del Sistema de Seguridad Social, el cual deberá ser acatado y ejecutado por todas las organizaciones e instituciones que ejercen funciones establecidas en la presente Ley. Período de implantación"
+        },
+        {
+          "type": "article",
+          "number": "118",
+          "title": "Artículo 118",
+          "text": "El período de implantación del funcionamiento de la institucionalidad en las leyes del nuevo Sistema de Seguridad Social, no podrá exceder el lapso de cinco (5) años contados a partir de la promulgación de esta Ley. Parágrafo\n\nPrimero: El Ejecutivo Nacional tendrá las más amplias facultades para reglamentar las disposiciones legales en materia de transición hacia el nuevo Sistema de Seguridad Social a que se refiere este Título, y a tal efecto dictará y publicará en la Gaceta Oficial de la República Bolivariana de Venezuela, los instrumentos jurídicos y planes de trabajo que estime pertinentes, con indicación expresa de órganos y entes responsables de su cumplimiento. Parágrafo\n\nSegundo: El Ejecutivo Nacional deberá informar a la Asamblea Nacional, durante los primeros diez (10) días de cada semestre, sobre las medidas adoptadas, así como de los avances y obstáculos para la implantación del nuevo Sistema de Seguridad Social. Parágrafo\n\nTercero: Los órganos de control social, con base en los informes a que se refiere el\n\nParágrafo Segundo de este artículo, podrán recomendar al Ejecutivo Nacional la adopción de medidas especiales que faciliten la implantación del nuevo Sistema de Seguridad Social. Derechos Adquiridos"
+        },
+        {
+          "type": "article",
+          "number": "119",
+          "title": "Artículo 119",
+          "text": "El Estado garantiza la vigencia y el respeto a los derechos adquiridos a través del pago oportuno y completo de las pensiones y jubilaciones a los pensionados por el Instituto Venezolano de los Seguros Sociales y, por otros regímenes de jubilaciones y pensiones de los trabajadores al servicio del Estado, que hayan cumplido con los requisitos establecidos para obtener la jubilación o pensión antes de la entrada en vigencia de la presente Ley, en los términos y condiciones que fueron adquiridos, hasta la extinción de los derechos del último sobreviviente, a cargo del organismo que otorgó el beneficio y de los fondos, si los hubiere, y estén en capacidad financiera total o parcialmente, en caso contrario a cargo del Fisco Nacional a través del organismo otorgante. Las personas beneficiarias de jubilaciones y pensiones, cualquiera sea su régimen, quedan exceptuadas de contribución o cotización alguna, salvo que continúen desempeñando actividades remuneradas. Cotización Obligatoria de las personas afiliadas a regímenes preexistentes"
+        },
+        {
+          "type": "article",
+          "number": "120",
+          "title": "Artículo 120",
+          "text": "Todos los trabajadores activos afiliados al Instituto Venezolano de los Seguros Sociales o a los diferentes regímenes especiales preexistentes, de jubilaciones y pensiones del sector público, a partir de la entrada en vigencia de la presente Ley, cotizarán obligatoriamente al Sistema de Seguridad Social. Reconocimiento de cotizaciones y cuantía de pensiones"
+        },
+        {
+          "type": "article",
+          "number": "121",
+          "title": "Artículo 121",
+          "text": "El Sistema de Seguridad Social reconoce a todos los afiliados al Seguro Social Obligatorio las cotizaciones efectuadas hasta la fecha de entrada en vigencia de las leyes que regulen los Regímenes Prestacionales del Sistema. El Estado garantiza a las personas que prestan servicio al sector público, la cuantía de las pensiones y jubilaciones establecidas en sus respectivos regímenes especiales preexistentes a la fecha de entrada en vigencia de la presente Ley. Los cambios progresivos en los requisitos de edad y años de servicio necesarios para acceder a estas prestaciones serán establecidos por la Ley del Régimen Prestacional de Pensiones y Otras Asignaciones Económicas. Cómo se reconocen los derechos en formación"
+        },
+        {
+          "type": "article",
+          "number": "122",
+          "title": "Artículo 122",
+          "text": "La garantía del Estado de los derechos en formación consiste en el pago oportuno y completo del monto de la jubilación o pensión a partir del momento en que la persona obtiene el derecho a la jubilación o pensión de conformidad con lo establecido en su régimen, y durará hasta la extinción de los derechos para el último sobreviviente. El pago de la jubilación o pensión estará a cargo del organismo que otorgó el beneficio y de sus fondos para tal fin, si los hubiere, y estén en capacidad de hacerlo total o parcialmente; en caso contrario a cargo del Fisco Nacional a través del organismo otorgante. Regímenes complementarios del sector público"
+        },
+        {
+          "type": "article",
+          "number": "123",
+          "title": "Artículo 123",
+          "text": "Los regímenes especiales del sector público preexistentes a la entrada en vigencia de la presente Ley, podrán convertirse en Regímenes Complementarios Voluntarios siempre y cuando en su financiamiento participen sólo los afiliados. Comisión Técnica de Transición de los regímenes de pensiones y jubilaciones preexistentes"
+        },
+        {
+          "type": "article",
+          "number": "124",
+          "title": "Artículo 124",
+          "text": "El ministerio con competencia en materia de trabajo y previsión social, dentro de los ciento ochenta (180) días siguientes a la promulgación de la presente Ley, designará una Comisión Técnica de Transición a cuyo cargo estará la planificación y dirección del proceso de transición de los regímenes jubilatorios y pensionales preexistentes al nuevo Sistema. El ministerio con competencia en materia de trabajo y previsión social emitirá el correspondiente reglamento que establecerá la integración y funciones de la Comisión Técnica de Transición. Integración Progresiva de las Instituciones en Salud"
+        },
+        {
+          "type": "article",
+          "number": "125",
+          "title": "Artículo 125",
+          "text": "Todas las instituciones prestadoras de servicios públicos de salud, deberán integrarse progresivamente dentro de un lapso no mayor de diez (10) años en el Sistema Público Nacional de Salud en los términos y condiciones establecidos en la presente Ley y la Ley que Regula el Régimen Prestacional de Salud. Integración de los Regímenes en Salud"
+        },
+        {
+          "type": "article",
+          "number": "126",
+          "title": "Artículo 126",
+          "text": "La integración de los diversos regímenes especiales de salud al Sistema Público Nacional de Salud se realizará de manera progresiva en los términos que determine la Ley que Regula el Régimen Prestacional de Salud. Hasta tanto se integren los regímenes especiales de salud deberán registrarse en el Sistema Público Nacional de Salud e indicar el nivel de la red de atención que sustituye, concurre o complementa, la cobertura poblacional, el financiamiento y el tipo de servicio predeterminado; así como las implicaciones financieras para el Fisco. Se entiende por regímenes especiales de salud a todas las prestaciones, servicios y modelos de aseguramiento que las personas reciban a través de su entidad empleadora, organización sindical o gremial o cualquier otra modalidad organizativa, con fundamento en bases legales, o convencionales como un servicio propio de salud, bien sea a través de un instituto de previsión administrado por el propio organismo o contratado con una persona jurídica de derecho público o privado y que reciba financiamiento por parte del Fisco. Las personas afiliadas a los servicios de salud antes señalados, deberán contribuir a su financiamiento con un porcentaje de su salario, cuya cuantía deberá ser igual o superior a la que se fije para las personas que coticen obligatoriamente al nuevo Sistema de Seguridad Social. La contribución a estos regímenes no exime de la cotización al Sistema de Seguridad Social. No podrán crearse nuevos regímenes de salud para los trabajadores del sector público, a partir de la entrada en vigencia de la presente Ley. Vivienda"
+        },
+        {
+          "type": "article",
+          "number": "127",
+          "title": "Artículo 127",
+          "text": "Los trabajadores del sector público que hayan recibido financiamiento o facilidades para la adquisición, reparación o refacción de su vivienda, continuarán protegidos hasta la extinción del crédito o el beneficio, dentro de su propio organismo. A partir de la entrada en vigencia de la Ley del Régimen Prestacional de Vivienda y Hábitat, cesarán los regímenes especiales de vivienda en el sector público y no podrán crearse nuevos regímenes de vivienda, ni mejorar o ampliar el financiamiento o los beneficios otorgados. Fondo Especial de Jubilaciones y Pensiones"
+        },
+        {
+          "type": "article",
+          "number": "128",
+          "title": "Artículo 128",
+          "text": "A partir de la entrada en vigencia de esta Ley, se establece la prohibición expresa de enajenar, gravar, traspasar o disponer de los bienes muebles, así como los haberes de cualquier naturaleza del Fondo Especial de Jubilaciones y Pensiones creado de conformidad con la Ley del Estatuto sobre el Régimen de Jubilaciones y Pensiones de los Funcionarios o Empleados de la Administración Pública Nacional, de los Estados y de los Municipios, sin menoscabo del pago de jubilaciones y pensiones, hasta la entrada en funcionamiento de la Tesorería de Seguridad Social, momento en el cual el Fondo cesará en sus funciones y transferirá los recursos a dicha Tesorería, la cual asumirá en lo adelante el pago de las jubilaciones y pensiones, según lo establecido en esta Ley. Hasta entonces, el Fondo podrá recaudar las cotizaciones, gestionar el producto de las inversiones y el rescate del capital de las operaciones en curso, y continuará con la inversión de estos recursos, bajo la supervisión del ministerio con competencia en materia de finanzas, a los solos efectos de la supervisión financiera. Será nombrada una Junta Liquidadora integrada por tres profesionales de comprobada experiencia financiera o actuarial, designados por el Presidente de la República. La Contraloría General de la República realizará auditoria inmediata de los recursos acumulados en el Fondo, para preservar el patrimonio de los funcionarios y empleados que cotizaron al mismo. Los gastos inherentes al funcionamiento y administración del Fondo, hasta el cese de sus funciones, se regirán por lo previsto en el artículo 44 del Reglamento de la Ley del Estatuto sobre el Régimen de Jubilaciones y Pensiones de los Funcionarios o Empleados de la Administración Pública Nacional, de los Estados y de los Municipios, y no podrán exceder los límites previstos en la regla de severidad del gasto que esté en vigor a la fecha de la entrada en vigencia de esta Ley. Sustitución progresiva del Instituto Venezolano de los Seguros Sociales"
+        },
+        {
+          "type": "article",
+          "number": "129",
+          "title": "Artículo 129",
+          "text": "El Instituto Venezolano de los Seguros Sociales será sustituido progresivamente por la nueva institucionalidad del Sistema de Seguridad Social desarrollada en la presente Ley. A tales efectos, los órganos y entes del Sistema de Seguridad Social siguiendo las pautas del plan de implantación de la nueva institucionalidad dispuesto en el"
+        },
+        {
+          "type": "article",
+          "number": "117",
+          "title": "Artículo 117",
+          "text": "de esta Ley, asumirán las competencias y atribuciones que les correspondan de conformidad con lo establecido en la presente Ley y en las leyes de los Regímenes Prestacionales, garantizando la transferencia de competencias y recursos financieros. La rectoría del Sistema de Seguridad Social determinará la fecha de culminación del proceso de transferencia de dichas competencias y recursos financieros que dará lugar al cese de las funciones del Instituto Venezolano de los Seguros Sociales, la cual tendrá como límite máximo el lapso de cinco (5) años contados a partir de la promulgación de esta Ley, establecido en el artículo\n\n118. Para el momento en que el Instituto Venezolano de los Seguros Sociales cese en sus funciones, si existieren deudas pendientes con dicho Instituto por parte de órganos o entes del sector público o entidades privadas, por cualquier concepto, deberán ser canceladas, incluyendo los intereses por retardo en el pago, a la Tesorería Nacional. A partir de la fecha de publicación en la Gaceta Oficial de la República Bolivariana de Venezuela de la declaratoria del cese de funciones del Instituto Venezolano de los Seguros Sociales por parte de la rectoría del Sistema de Seguridad Social, su patrimonio será liquidado de conformidad con la ley. El Ejecutivo Nacional garantizará durante el período de transición a través del Instituto Venezolano de los Seguros Sociales el cumplimiento de las prestaciones establecidas en la Ley del Seguro Social, mientras la nueva institucionalidad contemplada en las leyes de los regímenes prestacionales, no esté en funcionamiento."
+        },
+        {
+          "type": "header",
+          "text": "TÍTULO VI"
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I"
+        },
+        {
+          "type": "article",
+          "number": "130",
+          "title": "Artículo 130",
+          "text": "Mientras dure la transición hacia la nueva institucionalidad del Sistema de Seguridad Social, se mantiene vigente la Ley del Seguro Social, en cuanto sus disposiciones no contraríen las normas establecidas en la presente Ley y en las leyes de los regímenes prestacionales. La rectoría del Sistema de Seguridad Social propondrá la derogatoria de la Ley del Seguro Social, una vez cumplidos los extremos establecidos en el artículo 129 de la presente Ley. Dirección y administración del Instituto Venezolano de los Seguros Sociales"
+        },
+        {
+          "type": "article",
+          "number": "131",
+          "title": "Artículo 131",
+          "text": "Mientras dure la transición hacia la nueva institucionalidad del Sistema de Seguridad Social, la dirección y administración del Instituto Venezolano de los Seguros Sociales continuará a cargo de una Junta Directiva, cuyo Presidente será su órgano de ejecución y ejercerá la representación jurídica del Instituto. La Junta Directiva del Instituto Venezolano de los Seguros Sociales estará integrada por tres miembros principales y sus respectivos suplentes, quienes serán designados y removidos por el Presidente de la República. La Junta Directiva queda facultada para cumplir con las atribuciones conferidas al Consejo Directivo por la Ley del Seguro Social. Cotizaciones"
+        },
+        {
+          "type": "article",
+          "number": "132",
+          "title": "Artículo 132",
+          "text": "Hasta tanto se aprueben las leyes de los regímenes prestacionales, el cálculo de las cotizaciones del Seguro Social Obligatorio se hará tomando como referencia los ingresos mensuales que devengue el afiliado, hasta un límite máximo equivalente a cinco (5) salarios mínimos urbanos vigentes, unidad de medida que se aplicará a las cotizaciones establecidas en la Ley del Seguro Social. Esta disposición deroga lo establecido en el artículo 674 de la Ley Orgánica del Trabajo en lo que al cálculo de las contribuciones y cotizaciones de la seguridad social se refiere. Vigencia del Decreto con Rango y Fuerza de Ley que regula el Subsistema de Vivienda y Política Habitacional."
+        },
+        {
+          "type": "article",
+          "number": "133",
+          "title": "Artículo 133",
+          "text": "Hasta tanto se promulgue la ley que regule el Régimen Prestacional de Vivienda y Hábitat, se mantiene vigente la Ley que regula el Subsistema de Vivienda y Política Habitacional, publicada en Gaceta Oficial de la República Bolivariana de Venezuela No. 37.066, de fecha 30 de octubre de 2000, en cuanto sus disposiciones no contraríen las normas establecidas en la presente Ley. Quedan derogadas expresamente las disposiciones de la Ley que regula el Subsistema de Vivienda y Política Habitacional que colidan con el artículo 104 de esta Ley. Vigencia de la Ley del Estatuto sobre el Régimen de Jubilaciones y Pensiones de los Funcionarios o Empleados de la Administración Pública Nacional de los Estados y de los Municipios"
+        },
+        {
+          "type": "article",
+          "number": "134",
+          "title": "Artículo 134",
+          "text": "Hasta tanto se promulgue la ley que regule el Régimen Prestacional de Pensiones y Otras Asignaciones Económicas, se mantiene vigente la Ley del Estatuto sobre el Régimen de Jubilaciones y Pensiones de los Funcionarios o Empleados de la Administración Pública Nacional, de los Estados y de los Municipios, publicada en la Gaceta Oficial de la República de Venezuela No. 3.850 Extraordinario, de fecha 18 de julio de 1986 y su reglamento, en cuanto sus disposiciones no contraríen las normas establecidas en la presente Ley."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II"
+        },
+        {
+          "type": "article",
+          "number": "135",
+          "title": "Artículo 135",
+          "text": "Se deroga la Ley Orgánica del Sistema de Seguridad Social Integral publicada en la Gaceta Oficial de la República de Venezuela No. 5.199, Extraordinario, de fecha 30 de diciembre de 1997, y cuya última publicación consta en la Gaceta Oficial de la República Bolivariana de Venezuela No. 37.472 de fecha 26 de junio de\n\n2002. Derogatoria del decreto con rango y fuerza de Ley que Regula el Subsistema de Pensiones"
+        },
+        {
+          "type": "article",
+          "number": "136",
+          "title": "Artículo 136",
+          "text": "Se deroga el Decreto con Rango y Fuerza de Ley que Regula el Subsistema de Pensiones publicado en la Gaceta Oficial de la República de Venezuela No. 37.472 de fecha 26 de junio de 2002, cuya última publicación consta en la Gaceta Oficial de la República Bolivariana de Venezuela No. 37.472 de fecha 26 de junio de 2002, así como su reglamento. Derogatoria del Decreto con Rango y Fuerza de Ley que Regula el Subsistema de Salud"
+        },
+        {
+          "type": "article",
+          "number": "137",
+          "title": "Artículo 137",
+          "text": "Se deroga la Ley que Regula el Subsistema de Salud publicada en la Gaceta Oficial de la República de Venezuela No. 37.473, de fecha 27 de junio de 2002, reformada posteriormente y cuya última publicación consta en la Gaceta Oficial de la República Bolivariana de Venezuela No. 37.473 de fecha 27 de junio de 2002, así como su reglamento. Derogatoria del Decreto con Rango y Fuerza de Ley que Regula el Subsistema de Paro Forzoso y Capacitación Laboral"
+        },
+        {
+          "type": "article",
+          "number": "138",
+          "title": "Artículo 138",
+          "text": "Se deroga el Decreto con Rango y Fuerza de Ley que Regula el Subsistema de Paro Forzoso y Capacitación Laboral, publicado en la Gaceta Oficial de la República de Venezuela No. 5.392, Extraordinario, de fecha 22 de octubre de 1999."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo III"
+        },
+        {
+          "type": "article",
+          "number": "139",
+          "title": "Artículo 139",
+          "text": "El ministerio con competencia en materia de planificación y desarrollo ordenará la realización de un censo integral de los funcionarios o empleados y de los obreros, jubilados o pensionados, de los órganos de la Administración Central y Descentralizada, de los Estados y de los Municipios, así como del Poder Judicial, de los Poderes Legislativos y demás ramas del Poder Público u órganos de rango constitucional que conforman la administración con autonomía funcional, y de todos los demás órganos y entes organizados bajo régimen de derecho público o privado, sean nacionales, estadales o municipales, que reciban pensiones a través de las nóminas y con cargo a recursos fiscales o presupuestarios y de aquellos regímenes de jubilaciones y pensiones que sean de carácter contributivo, para llevar el control anual del gasto y limitar la inclusión de nuevos beneficiarios. Información y registro"
+        },
+        {
+          "type": "article",
+          "number": "140",
+          "title": "Artículo 140",
+          "text": "El Estado garantiza la conservación de la documentación y registro de la historia previsional de cada asegurado en el Instituto Venezolano de los Seguros Sociales. Asimismo, los regímenes preexistentes de jubilaciones y pensiones de los trabajadores del Estado están obligados a remitir la información de sus afiliados a la Tesorería y a la Superintendencia de Seguridad Social. Jurisdicción Especial"
+        },
+        {
+          "type": "article",
+          "number": "141",
+          "title": "Artículo 141",
+          "text": "Se crea la jurisdicción especial del Sistema de Seguridad Social, para dirimir las controversias que se susciten con ocasión de las relaciones jurídicas que deriven de la aplicación de la presente Ley y demás leyes sobre la materia. Hasta tanto no se lleve a cabo la creación de la jurisdicción especial, todo lo relacionado con dudas y controversias en materia de seguridad social, serán decididas por ante la jurisdicción laboral ordinaria. Procedimientos administrativos"
+        },
+        {
+          "type": "article",
+          "number": "142",
+          "title": "Artículo 142",
+          "text": "Las leyes que regulen los regímenes prestacionales del Sistema de Seguridad Social establecerán procedimientos administrativos breves para hacer efectivo el derecho de las personas a la seguridad social. Prescripciones y caducidades de las prestaciones e incompatibilidades y prohibiciones"
+        },
+        {
+          "type": "article",
+          "number": "143",
+          "title": "Artículo 143",
+          "text": "Las leyes de los regímenes prestacionales, establecerán las disposiciones sobre las prescripciones, caducidades, incompatibilidades y prohibiciones aplicables a las prestaciones que en ellas se contemplan. Estatuto especial del funcionario"
+        },
+        {
+          "type": "article",
+          "number": "144",
+          "title": "Artículo 144",
+          "text": "Los funcionarios o empleados a cargo de los entes creados en la presente Ley, se regirán por un estatuto especial mediante el cual se creará y regulará la carrera del funcionario del Sistema de Seguridad Social a los fines de garantizar su desarrollo profesional, así como también sus deberes en la relación laboral que entraña el servicio público básico y esencial de la seguridad social. El Estado estimulará la formación de profesionales y técnicos en materia de seguridad social, para lo cual se fortalecerán las instituciones y los programas relacionados con esta materia y se procurará la optimización del desarrollo, selección y remuneración de los recursos humanos para el funcionamiento del Sistema de Seguridad Social. Afiliación al nuevo régimen"
+        },
+        {
+          "type": "article",
+          "number": "145",
+          "title": "Artículo 145",
+          "text": "A partir de la entrada en vigencia de la presente Ley, los trabajadores que ingresen al servicio del Estado no podrán afiliarse a regímenes especiales, preexistentes, de jubilaciones y pensiones del sector público financiados total o parcialmente por el Fisco Nacional distintos al Régimen Prestacional de Pensiones y Otras Asignaciones Económicas. Reforma de la Ley Orgánica de Prevención, Condiciones y Medio Ambiente de Trabajo"
+        },
+        {
+          "type": "article",
+          "number": "146",
+          "title": "Artículo 146",
+          "text": "La Asamblea Nacional reformará, en un plazo no mayor de seis (6) meses, contados a partir de la fecha de promulgación de esta Ley, la Ley Orgánica de Prevención, Condiciones y Medio Ambiente de Trabajo, para adaptarla a la presente Ley. Disposición de los haberes de los regímenes especiales"
+        },
+        {
+          "type": "article",
+          "number": "147",
+          "title": "Artículo 147",
+          "text": "Todos los haberes de los fondos de los regímenes especiales del sector público preexistentes a la entrada en vigencia de la presente Ley, responderán en primer lugar, por las obligaciones con los actuales pensionados hasta que se extinga el derecho del último sobreviviente. La Tesorería de la Seguridad Social realizará las correspondientes auditorias a cada uno de estos fondos. Derogatoria"
+        },
+        {
+          "type": "article",
+          "number": "148",
+          "title": "Artículo 148",
+          "text": "Queda derogada toda disposición normativa que en materia de seguridad social contradiga o resulte incompatible con lo dispuesto en la presente Ley. Vigencia"
+        },
+        {
+          "type": "article",
+          "number": "149",
+          "title": "Artículo 149",
+          "text": "La presente Ley entrará en vigencia a partir de la fecha de su publicación en la Gaceta Oficial de la República Bolivariana de Venezuela. Dada, firmada y sellada en el Palacio Federal Legislativo, sede de la Asamblea Nacional, en Caracas, a los seis días del mes de diciembre de dos mil dos. Año\n\n192º de la Independencia y\n\n143º de la Federación. WILLIAN LARA Presidente RAFAEL SIMÓN JIMÉNEZ NOELÍ POCATERRA Primer Vicepresidente Segunda Vicepresidenta EUSTOQUIO CONTRERAS ZULMA TORRES DE MELO Secretario Subsecretaria Palacio de Miraflores, en Caracas, a los treinta días del mes de diciembre de dos mil dos. Años\n\n192° de la independencia y\n\n143° de la Federación. Cúmplase (LS) HUGO CHAVEZ FRIAS"
+        }
+      ]
+    }
+  }
+]

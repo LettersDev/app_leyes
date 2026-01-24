@@ -1,0 +1,876 @@
+[
+  {
+    "title": "Ley-Organica-De-Ordenacion-Urbanistica",
+    "category": "ley-organica-de-ordenacion-urbanistica",
+    "parent_category": "leyes_organicas",
+    "type": "ley_organica",
+    "date": "2026-01-24",
+    "description": "Extraído automáticamente de ley-organica-de-ordenacion-urbanistica.pdf",
+    "content": {
+      "articles": [
+        {
+          "type": "header",
+          "text": "Título I"
+        },
+        {
+          "type": "article",
+          "number": "1",
+          "title": "Artículo 1",
+          "text": "° La presente ley tiene por objeto la ordenación del desarrollo urbanístico en todo el territorio nacional con el fin de procurar el crecimiento armónico de los centros poblados. El desarrollo urbanístico salvaguardara los recursos ambientales y la calidad de vida en los centros urbanos."
+        },
+        {
+          "type": "article",
+          "number": "2",
+          "title": "Artículo 2",
+          "text": "° La ordenación urbanística comprende el conjunto de acciones y regulaciones tendentes a la planificación, desarrollo, conservación y renovación de los centros poblados."
+        },
+        {
+          "type": "article",
+          "number": "3",
+          "title": "Artículo 3",
+          "text": "° Las actuaciones de las autoridades urbanísticas se compatibilizarán con las políticas de ordenación territorial y de desarrollo regional que defina el Ejecutivo Nacional. Estas actuaciones son actos administrativos, cuya legalidad se controlará conforme a la legislación de la materia."
+        },
+        {
+          "type": "article",
+          "number": "4",
+          "title": "Artículo 4",
+          "text": "° Se declara de interés nacional la ordenación urbanística y, en consecuencia, corresponde al poder nacional la tutela del interés general en materia urbanística."
+        },
+        {
+          "type": "article",
+          "number": "5",
+          "title": "Artículo 5",
+          "text": "° Se declara de utilidad pública y de interés social todo lo concerniente a la ejecución de los planes de ordenación urbanística."
+        },
+        {
+          "type": "header",
+          "text": "Título II"
+        },
+        {
+          "type": "article",
+          "number": "6",
+          "title": "Artículo 6",
+          "text": "° Las autoridades urbanísticas serán el Ejecutivo Nacional y los municipios, cada una dentro de las esferas de su competencia."
+        },
+        {
+          "type": "article",
+          "number": "7",
+          "title": "Artículo 7",
+          "text": "° La competencia urbanística del Ejecutivo Nacional y los municipios se ejercerá coordinadamente para el logro de los objetivos de la presente ley."
+        },
+        {
+          "type": "article",
+          "number": "8",
+          "title": "Artículo 8",
+          "text": "° Es de la competencia del Ejecutivo Nacional en materia urbanística:\n\n1. Formular y ejecutar la política de ordenación y desarrollo urbanístico.\n\n2. Establecer, coordinar y unificar normas y procedimientos técnicos para la realización, mantenimiento y control de la ejecución de obras de ingeniería, arquitectura y urbanismo.\n\n3. Establecer los instrumentos de la ordenación urbanística nacional.\n\n4. Dictar normas y procedimientos técnicos para la elaboración de los planes de ordenación urbanística nacional y local, así como para la aprobación de éstos últimos conforme a lo previsto en la presente ley y en la Ley Orgánica de Régimen Municipal y en la Ley Orgánica para la Ordenación del Territorio.\n\n5. Coordinar las actuaciones urbanísticas.\n\n6. Constituir patrimonios públicos de suelos a los fines de la ordenación urbanística.\n\n7. Establecer mecanismos financieros a los fines de la ordenación urbanística.\n\n8. Crear nuevas ciudades.\n\n9. Estimular la creación y fortalecimiento de organismos municipales e intermunicipales de planificación y gestión urbana y cooperar con éstos.\n\n10. Las demás atribuciones que al Ejecutivo Nacional le confieran las leyes en materia urbanística."
+        },
+        {
+          "type": "article",
+          "number": "9",
+          "title": "Artículo 9",
+          "text": "° Los organismos regionales y los estados cooperarán con el Ejecutivo Nacional y con los municipios en la ejecución de los planes de ordenación urbanística."
+        },
+        {
+          "type": "article",
+          "number": "10",
+          "title": "Artículo 10",
+          "text": "° Es de la competencia de los municipios en materia urbanística:\n\n1. Elaborar y aprobar los planes de desarrollo urbano local. A tal efecto los concejos crearan los organismos técnicos competentes y solicitarán la cooperación de los demás órganos con competencia urbanística.\n\n2. Velar para que los planes nacionales y regionales de ordenación del territorio y de ordenación urbanística se cumplan en su ámbito.\n\n3. Dictar las ordenanzas necesarias para la ejecución, control y gestión de los planes en materia de zonificación, régimen de arquitectura, ingeniería y construcciones, y, en general, sobre cualesquiera otras materias urbanísticas de carácter local, con sujeción a las leyes, reglamentos y planes nacionales.\n\n4. Elaborar los planes de ordenación urbanística cuando el Ejecutivo Nacional delegue en ellos esta atribución.\n\n5. Estimular la participación de las comunidades organizadas y de la ciudadanía en general en la elaboración y ejecución de los planes.\n\n6. Constituir patrimonios públicos de suelos a los fines de la ordenación urbanística.\n\n7. Ejercer todas las demás facultades urbanísticas propias del ámbito local que no estén expresamente atribuidas por la ley a otro organismo."
+        },
+        {
+          "type": "article",
+          "number": "11",
+          "title": "Artículo 11",
+          "text": "° Las correspondientes ordenanzas municipales determinaran los órganos de planeamiento, gestión y ejecución urbanística. Cuando en dos o más municipios que no constituyan distrito metropolitano existan intereses urbanísticos comunes, aquellos podrán mancomunarse para constituir órganos urbanísticos intermunicipales. Las autoridades urbanísticas nacionales podrán condicionar la concesión de asistencia técnica o de subvenciones, y la ejecución de programas a la constitución de mancomunidades."
+        },
+        {
+          "type": "header",
+          "text": "Título III"
+        },
+        {
+          "type": "article",
+          "number": "12",
+          "title": "Artículo 12",
+          "text": "° La administración urbanística nacional estará integrada por el Ministerio del Desarrollo Urbano, quien ejercerá la autoridad urbanística nacional, y por los demás organismos de la administración pública nacional que tengan atribuciones relacionadas con la ordenación y el desarrollo urbanísticos, los cuales serán coordinados por el citado ministerio."
+        },
+        {
+          "type": "article",
+          "number": "13",
+          "title": "Artículo 13",
+          "text": "° El Ejecutivo Nacional podrá celebrar convenios con los organismos municipales para procurar la adecuación de las actuaciones urbanísticas de éstos con las políticas y actuaciones nacionales."
+        },
+        {
+          "type": "article",
+          "number": "14",
+          "title": "Artículo 14",
+          "text": "° A los fines de la coordinación de las actividades de ordenación y desarrollo urbanísticos, el Ministerio del Desarrollo Urbano ejercerá las siguientes atribuciones:\n\n1. Elaborar y establecer los planes de ordenación urbanística.\n\n2. Armonizar, conjuntamente con los demás organismos competentes, las políticas y planes de ordenación urbanística.\n\n3. Velar por el cumplimiento de las políticas y los planes de ordenación urbanística, así como de los programas de actuaciones urbanísticas, y hacer las recomendaciones que juzgue pertinentes.\n\n4. Evaluar, conjuntamente con los demás organismos competentes, los resultados de la ejecución de las políticas, planes y programas de ordenación y desarrollo urbanísticos.\n\n5. Solicitar de los organismos nacionales, estadales y municipales información sobre actividades urbanísticas.\n\n6. Formular proposiciones y recomendaciones a los organismos competentes en materias urbanísticas.\n\n7. Asesorar a los organismos públicos en las materias urbanísticas.\n\n8. Llevar un registro nacional de información urbanística.\n\n9. Las demás funciones inherentes a la coordinación de las actividades de ordenación y desarrollo urbanísticos."
+        },
+        {
+          "type": "article",
+          "number": "15",
+          "title": "Artículo 15",
+          "text": "° Corresponde a otros organismos de la administración pública nacional que tengan atribuciones sobre el desarrollo urbanístico:\n\n1. Examinar, conjuntamente con el Ministerio del Desarrollo Urbano, las políticas y planes de carácter urbanístico para lograr su armonización.\n\n2. Considerar las recomendaciones que les formule el Ministerio del Desarrollo Urbano para la elaboración y ejecución de las políticas, planes, programas y actuaciones urbanísticas y, en especial, las relativas a las actividades de abastecimiento de agua, cloacas, drenajes, telecomunicaciones, vialidad, transporte urbano, suministro de energía y demás servicios conexos.\n\n3. Suministrar al Ministerio del Desarrollo Urbano la información que este requiera para el ejercicio de la coordinación de la administración urbanística.\n\n4. Cumplir con los mecanismos de coordinación que establezca el Ministerio del Desarrollo Urbano."
+        },
+        {
+          "type": "header",
+          "text": "Título IV"
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I"
+        },
+        {
+          "type": "article",
+          "number": "16",
+          "title": "Artículo 16",
+          "text": "° La planificación urbanística forma parte del proceso de ordenación del territorio, y se llevará a cabo mediante un sistema integrado y jerarquizado de planes, del cual forman parte: - El Plan Nacional de Ordenación del Territorio. - Los Planes Regionales de Ordenación del Territorio. - Los Planes de Ordenación Urbanística, y - Los Planes de Desarrollo Urbano Local. También formarán parte integrante del sistema de planes al cual se refiere este artículo los planes especiales y particulares que se formulen."
+        },
+        {
+          "type": "article",
+          "number": "17",
+          "title": "Artículo 17",
+          "text": "° Los planes de ordenación urbanística tendrán los siguientes objetivos fundamentales:\n\n1. Desarrollar las políticas urbanísticas establecidas en el Plan de la Nación o formuladas por el Ejecutivo Nacional.\n\n2. Concretar, en el correspondiente ámbito espacial urbano, el contenido del plan nacional de ordenación del territorio y de los planes regionales de ordenación del territorio.\n\n3. interrelacionar las acciones e inversiones públicas que incidan en la actividad urbanística.\n\n4. Determinar los usos del suelo urbano y sus intensidades, así como definir normas y estándares obligatorios de carácter urbanístico.\n\n5. Señalar los servicios públicos necesarios cuantitativa y cualitativamente.\n\n6. Determinar los estímulos para lograr la participación de los particulares en el desarrollo urbanístico.\n\n7. Armonizar los programas de desarrollo urbanístico de los organismos del sector público, entre sí y con los del sector privado."
+        },
+        {
+          "type": "article",
+          "number": "18",
+          "title": "Artículo 18",
+          "text": "° La ausencia de planes de ámbito territorial superior no será impedimento para la formulación y ejecución de planes de ordenación urbanística. En el caso de los planes de desarrollo urbano local, los mismos podrán igualmente ser formulados y puestos en vigencia aun en ausencia de los planes de ordenación urbanística, siempre y cuando se ajusten a las normas y procedimientos técnicos previstos por el Ejecutivo Nacional. En ambas circunstancias, una vez que los planes de ámbito territorial superior entren en vigencia, aquellos que estén jerárquicamente supeditados a los mismos, deberán revisarse y adaptarse a las previsiones correspondientes"
+        },
+        {
+          "type": "article",
+          "number": "19",
+          "title": "Artículo 19",
+          "text": "° Los planes de ordenación urbanística y de desarrollo urbano local se expresarán legalmente mediante una resolución del Ministerio del Desarrollo Urbano o una ordenanza, según el caso, en las cuales se establecerán las precisiones en cuanto a la determinación sobre usos y sus intensidades, así como sobre los demás aspectos que afecten el ejercicio de los derechos de los particulares."
+        },
+        {
+          "type": "article",
+          "number": "20",
+          "title": "Artículo 20",
+          "text": "° Las actuaciones urbanísticas públicas y privadas deberán sujetarse a las determinaciones contenidas en los planes nacionales, regionales y locales."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II"
+        },
+        {
+          "type": "article",
+          "number": "21",
+          "title": "Artículo 21",
+          "text": "° Los planes de ordenación urbanística representan la concreción espacial urbana del plan nacional de ordenación del territorio y del plan regional de ordenación del territorio correspondiente, y establecerán los lineamientos de la ordenación urbanística en el ámbito territorial local, pudiendo referirse a un municipio o distrito metropolitano, o municipio o distritos metropolitanos agrupados en mancomunidades."
+        },
+        {
+          "type": "article",
+          "number": "22",
+          "title": "Artículo 22",
+          "text": "° Los planes de ordenación urbanística establecerán los lineamientos de la inversión pública y de orientación de la inversión privada en el ámbito territorial del plan, todo en función de la política habitacional, de renovación urbana, de vialidad y demás servicios comunales y urbanos y de los demás aspectos de la política de desarrollo urbano formulada por el Ejecutivo Nacional."
+        },
+        {
+          "type": "article",
+          "number": "23",
+          "title": "Artículo 23",
+          "text": "° El Ejecutivo Nacional determinará el orden de prioridades según el cual el Ministerio del Desarrollo Urbano deberá elaborar los respectivos planes de ordenación urbanística así como los plazos para hacerlo."
+        },
+        {
+          "type": "article",
+          "number": "24",
+          "title": "Artículo 24",
+          "text": "° Los Planes de Ordenación Urbanística contendrán:\n\n1. Definición estratégica del desarrollo urbano, en términos de población, base económica, extensión del área urbana y control del medio ambiente.\n\n2. La delimitación de las áreas de posible expansión de las ciudades.\n\n3. La definición uso del suelo y sus intensidades.\n\n4. La determinación de los aspectos ambientales, tales como la definición del sistema de zonas verdes y espacios libres de protección y conservación ambiental y la definición de los parámetros de calidad ambiental.\n\n5. El sistema de vialidad urbana primaria.\n\n6. La red de abastecimiento de agua potable y cloacas.\n\n7. El sistema de drenaje primario.\n\n8. El señalamiento de las áreas donde están ubicadas instalaciones de otros servicios públicos y aquellas consideradas de alta peligrosidad, delimitando su respectiva franja de seguridad.\n\n9. Definición, en el tiempo, de las acciones que los organismos públicos realizarán en el ámbito determinado por el plan.\n\n10. La determinación de los equipamientos básicos de dotación de servicios comunales tales como educativos culturales, deportivos, recreacionales, religiosos y otros.\n\n11. Las medidas económico-financieras necesarias para la ejecución del plan.\n\n12. Los demás aspectos técnicos o administrativos que el Ejecutivo Nacional considere pertinentes."
+        },
+        {
+          "type": "article",
+          "number": "25",
+          "title": "Artículo 25",
+          "text": "° El reglamento establecerá los lineamientos, directrices, características generales y otros criterios o disposiciones aplicables a los nuevos centros poblados y ciudades que desarrollen organismos del sector público o los particulares. El Ejecutivo Nacional autorizará la creación de los mencionados nuevos centros poblados y ciudades, y seguirá el mismo procedimiento pautado para la aprobación de los planes de ordenación urbanística."
+        },
+        {
+          "type": "article",
+          "number": "26",
+          "title": "Artículo 26",
+          "text": "° La elaboración de los planes de ordenación urbanística se realizará mediante un proceso de coordinación interinstitucional, que permita al Ministerio del Desarrollo Urbano requerir de todos los organismos competentes informes técnicos y estudios pertinentes al plan. En especial, deberá consultar a los municipios respectivos sobre los lineamientos del plan en términos de sus proposiciones económicas, sociales y los de carácter físico-espacial."
+        },
+        {
+          "type": "article",
+          "number": "27",
+          "title": "Artículo 27",
+          "text": "° A los efectos de conocer la opinión de los municipios, el proyecto de plan elaborado por el Ministerio del Desarrollo Urbano será remitido al concejo municipal pertinente para que, en un plazo de sesenta (60) días continuos, formule las observaciones a que hubiere lugar, en cuanto al contenido y orientación del plan. El Concejo Municipal podrá solicitar prórroga de treinta (30) días continuos, por una sola vez, si requiere de mayor tiempo para formular sus observaciones. En ningún caso, el plan de ordenación urbanística será aprobado sin conocerse la opinión de la respectiva municipalidad, la cual podrá hacer uso de los recursos de ley, si considera que sus observaciones eran procedentes y fueron desestimadas sin justificación. Sin embargo, transcurrido el plazo indicado en este artículo sin que se hubieren producido las observaciones requeridas, procederá la aprobación del plan. El ministerio hará constar en la resolución aprobatoria que el plan no tuvo observaciones por parte de la respectiva municipalidad."
+        },
+        {
+          "type": "article",
+          "number": "28",
+          "title": "Artículo 28",
+          "text": "° Los planes de ordenación urbanística entraran en vigencia mediante resolución del Ministerio del Desarrollo Urbano, publicada en la Gaceta Oficial."
+        },
+        {
+          "type": "article",
+          "number": "29",
+          "title": "Artículo 29",
+          "text": "° Las actuaciones de la administración urbanística nacional previstas en los planes de ordenación urbanística se realizarán a través de los programas de actuaciones urbanísticas, en los cuales se precisarán las prioridades, los objetivos, los medios y las acciones necesarias para alcanzarlos, el plazo de ejecución y los organismos de la administración central y descentralizada que participarán en estos programas, con señalamientos de los gastos e inversiones que les corresponda realizar. Estos organismos incluirán en sus presupuestos las partidas presupuestarias necesarias para atender dichos gastos e inversiones. Los entes privados que tengan a su cargo la prestación de servicios estarán en la obligación de informar al Ministerio del Desarrollo Urbano y coordinar con éste sus actividades en materia urbanística."
+        },
+        {
+          "type": "article",
+          "number": "30",
+          "title": "Artículo 30",
+          "text": "° El Ministerio del Desarrollo Urbano, conjuntamente con los organismos a que se refiere el artículo anterior preparará los programas nacionales de actuaciones urbanísticas, los cuales serán sometidos a la consideración del Consejo de Ministros y, una vez aprobados por éste, serán vinculantes para los organismos mencionados. Si el Congreso, en la oportunidad de discutir la ley de presupuesto, modificare o no aprobare alguna de las partidas presupuestarias en el monto previsto para el financiamiento de las acciones de ejecución de los programas de actuaciones urbanísticas, se harán a éstos los correspondientes ajustes."
+        },
+        {
+          "type": "article",
+          "number": "31",
+          "title": "Artículo 31",
+          "text": "° Las Corporaciones de Desarrollo Regional podrán elaborar, a solicitud del Ministerio del Desarrollo Urbano, planes de ordenación urbanística, los cuales serán sometidos a la aprobación de dicho ministerio."
+        },
+        {
+          "type": "article",
+          "number": "32",
+          "title": "Artículo 32",
+          "text": "° La ejecución de los planes de ordenación urbanística se realizará mediante programas de actuaciones urbanísticas conforme a lo previsto en los artículos 29 y\n\n30. El Ministerio del Desarrollo Urbano podrá encomendar a las corporaciones de desarrollo regional la coordinación de la ejecución material de dichos programas."
+        },
+        {
+          "type": "article",
+          "number": "33",
+          "title": "Artículo 33",
+          "text": "° Cuando por razones de urgencia o seguridad pública, de seguridad o defensa nacional, o para darle prioridad a programas de descentralización fuere necesario proceder en forma distinta a lo establecido en los planes de ordenación urbanística, el organismo sectorial competente someterá el asunto a la consideración del Ministerio del Desarrollo Urbano, quien lo hará del conocimiento del Presidente de la República en consejo de ministros, el cual podrá autorizar la ejecución de las actuaciones urbanísticas pertinentes. En este caso, el citado ministerio realizara los ajustes correspondientes en los planes e informará a los municipios afectados con igual propósito."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo III"
+        },
+        {
+          "type": "article",
+          "number": "34",
+          "title": "Artículo 34",
+          "text": "° Los planes de desarrollo urbano local se elaborarán teniendo en cuenta las directrices y determinantes establecidas en los planes de ordenación urbanística, y contendrán:\n\n1. La definición detallada del desarrollo urbano, en términos de población, base económica, extensión del área urbana y control del medio ambiente.\n\n2. La clasificación del suelo, a los efectos de determinar el régimen urbanístico aplicable, y permitir la elaboración de planes especiales.\n\n3. La delimitación de espacios libres y áreas verdes destinadas a parques y jardines públicos, y a zonas recreacionales y de expansión.\n\n4. La localización para edificaciones y servicios públicos o colectivos.\n\n5. El trazado y características de la red vial arterial y colectora, definición del sistema de transporte urbano y organización de las rutas del mismo.\n\n6. El trazado y características de la red de dotación de agua potable, cloacas y drenajes urbanos en la secuencia de incorporación recomendada.\n\n7. El señalamiento preciso de las áreas para los equipamientos de orden general e intermedios requeridos por las normas correspondientes y para las instalaciones consideradas de alta peligrosidad, delimitando su respectiva franja de seguridad.\n\n8. La identificación de las áreas de desarrollo urbano no controlado, con indicación de las características a corregir con el fin de incorporarlas a la estructura urbana.\n\n9. El establecimiento de las áreas que deberán desarrollarse mediante la modalidad de urbanización progresiva.\n\n10. La regulación detallada de los usos del suelo y delimitación de las zonas en que se divide el área del plan en razón de aquellos y, si fuere el caso, la organización de la misma en perímetros o unidades de actuación.\n\n11. La programación por etapas de la ejecución del plan, con indicación precisa de las zonas de acción prioritaria, del costo de implantación de los servicios o de la realización de las obras urbanísticas, así como las fuentes de financiamiento.\n\n12. La identificación de los terrenos de propiedad privada que resultarán afectados por la ejecución del plan, indicando plazo para la expropiación y disponibilidad de recursos para implantar el servicio o realizar la obra.\n\n13. Los demás aspectos técnicos o administrativos que el concejo municipal considere pertinentes."
+        },
+        {
+          "type": "article",
+          "number": "35",
+          "title": "Artículo 35",
+          "text": "° En los casos de ciudades o núcleos urbanos con expectativa de crecimiento no mayor de 25 mil habitantes, en los cuales no se hubiere elaborado el plan de desarrollo urbano local, éste podrá sustituirse por un esquema de ordenamiento sumario que fije las condiciones básicas de desarrollo, incluyendo las áreas de expansión."
+        },
+        {
+          "type": "article",
+          "number": "36",
+          "title": "Artículo 36",
+          "text": "° La responsabilidad para la elaboración de los esquemas de ordenamiento sumario a que se refiere el artículo anterior corresponde al concejo municipal respectivo, y, en su defecto, el Ministerio del Desarrollo Urbano. En este último caso, el esquema resultante deberá ser aprobado por el concejo municipal y reflejar las características propias de la comunidad y los intereses peculiares de la vida local. La vigencia de este esquema se considerará provisoria, hasta tanto el concejo municipal elabore y apruebe el respectivo plan de desarrollo urbano local."
+        },
+        {
+          "type": "article",
+          "number": "37",
+          "title": "Artículo 37",
+          "text": "° Corresponde a los municipios establecer los procedimientos complementarios para la elaboración, aprobación, ejecución, control y modificación de los planes de desarrollo urbano local, sin perjuicio de las disposiciones de la presente ley."
+        },
+        {
+          "type": "article",
+          "number": "38",
+          "title": "Artículo 38",
+          "text": "° Los planes de desarrollo urbano local serán elaborados por el organismo municipal de planificación o, en su defecto, por quien designe el concejo municipal. Una vez elaborado el proyecto de plan, el mismo será sometido a la cámara municipal para que ésta autorice su publicación a los efectos de la información y consultas públicas necesarias. El proyecto de plan estará sometido al proceso de información y consultas públicas por un período de sesenta (60) días continuos, lapso durante el cual los interesados podrán hacer las observaciones que estimen oportunas o convenientes. Finalizado este plazo se abrirá otro de treinta (30) días continuos para recibir en audiencia a los representantes de los organismos públicos y privados con ingerencia en el plan, a fin de conocer su opinión con respecto al mismo."
+        },
+        {
+          "type": "article",
+          "number": "39",
+          "title": "Artículo 39",
+          "text": "° Los plazos para los procesos de consulta e información pública serán dados a conocer en un periódico de circulación local, en anuncios que precisarán el o los sitios de exposición del plan, las horas de audiencia y demás formalidades atinentes al caso."
+        },
+        {
+          "type": "article",
+          "number": "40",
+          "title": "Artículo 40",
+          "text": "° Las observaciones y alegatos que se formulen en relación con el plan de desarrollo urbano local, no tendrán carácter vinculante para el organismo urbanístico autor del mismo, ni su falta de aceptación dará lugar a recurso alguno, salvo que se trate de violaciones al orden urbanístico previsto en esta ley, caso en el cual la actuación de la autoridad municipal se controlará conforme a la legislación aplicable."
+        },
+        {
+          "type": "article",
+          "number": "41",
+          "title": "Artículo 41",
+          "text": "° Una vez recibidas las observaciones al plan, el concejo municipal decidirá sobre las mismas, aprobándolo inicialmente y remitiéndolo al Ministerio del Desarrollo Urbano, conjuntamente con las observaciones o alegatos que se hubieren formulado, a los efectos de dar cumplimiento a lo pautado en la Ley Orgánica de Régimen Municipal."
+        },
+        {
+          "type": "article",
+          "number": "42",
+          "title": "Artículo 42",
+          "text": "° El Ministerio del Desarrollo Urbano estudiará el proyecto de plan de desarrollo urbano local, y se pronunciará, en un plazo no mayor de sesenta (60) días continuos, sobre la conformidad del mismo con respecto al plan de ordenación urbanística correspondiente, formulando las observaciones que fueren procedentes. Parágrafo\n\nPrimero: El Concejo Municipal, devuelto como fuere el proyecto del plan de desarrollo urbano local, someterá el mismo a la aprobación definitiva de la cámara municipal, la cual deberá decidir al respecto en un término no mayor de dos (2) meses y procederá a la publicación del plan en la gaceta municipal. Durante este período señalado para la aprobación definitiva, el plan de desarrollo urbano local será hecho público a los efectos de garantizar a la ciudadanía en general, la información correspondiente. Parágrafo\n\nSegundo: Al concluir el plazo para la aprobación del plan, sin que el concejo municipal se hubiere pronunciado al respecto, el mismo podrá ser publicado por el Ministerio del Desarrollo Urbano, en la gaceta oficial, entendiéndose tal acto como la aprobación del referido plan de desarrollo urbano local."
+        },
+        {
+          "type": "article",
+          "number": "43",
+          "title": "Artículo 43",
+          "text": "° Si se presentaren discrepancias entre el proyecto del plan de desarrollo urbano local elaborado por el concejo municipal, y las observaciones formuladas por el Ministerio del Desarrollo Urbano, y las mismas no pudieran resolverse de mutuo acuerdo, se solicitará la intervención de una comisión ad-hoc, para que se pronuncie sobre el particular, la cual estará integrada por sendos representantes del ministerio y del municipio respectivo, y un tercer integrante designado por éstos de común acuerdo, en representación de los intereses de la comunidad, quien deberá ser miembro del colegio de profesionales que tenga competencia para resolver la discrepancia planteada.\n\nParágrafo Único: La intervención de la comisión y el fallo de la misma, no excluyen el ejercicio de las acciones legales procedentes, si hubiere lugar."
+        },
+        {
+          "type": "article",
+          "number": "44",
+          "title": "Artículo 44",
+          "text": "° En los casos en que las municipalidades no formulen sus planes de desarrollo urbano local, por no tener organismos o recursos necesarios para ello, el proyecto de plan podrá ser elaborado por el Ministerio del Desarrollo Urbano, directamente o por intermedio de otros organismos públicos en quienes se delegue esta competencia, pero siempre con la participación del municipio. Una vez elaborado el plan de desarrollo urbano local por alguno de los organismos antes mencionados, el mismo será sometido a la aprobación del concejo municipal, dentro del proceso de consulta e información pública previsto en esta ley."
+        },
+        {
+          "type": "article",
+          "number": "45",
+          "title": "Artículo 45",
+          "text": "° En cuanto a los planes de desarrollo urbano local, cualquier modificación o reforma queda sujeta a los mismos requisitos de consulta, información y aprobación, previstos para su sanción original en esta ley, pudiéndose establecer, por ordenanza, requerimientos adicionales."
+        },
+        {
+          "type": "article",
+          "number": "46",
+          "title": "Artículo 46",
+          "text": "° Si las modificaciones o reformas a las cuales se refiere el artículo anterior constituyen cambios de zonificación, deberán cumplirse las siguientes condiciones:\n\n1. En ningún caso se permitirán cambios de zonificación aislada o singularmente propuestos. Todo cambio de zonificación debe ser integral o formar parte de algún plan sectorial.\n\n2. En principio, ningún cambio de zonificación podrá hacerse antes de los diez (10) años de aprobada la zonificación original, o de la ultima rezonificación. Sin embargo, antes del plazo señalado, la oficina que tenga a su cargo la planificación urbana podrá proponer un cambio de zonificación que se considere justificadamente necesario. A tal efecto, la solicitud deberá incluir los estudios técnicos pertinentes y la constancia de la consulta realizada a la correspondiente asociación de vecinos, si la hubiere, o a la mayoría absoluta de los vecinos del área que determine la oficina municipal a cargo de las funciones de planificación urbana. Aprobado en primera discusión el proyecto de ordenanza sobre el cambio de zonificación, el concejo municipal determinará el día y la hora cuando la cámara oirá públicamente a los interesados, previa información al público del nuevo uso propuesto para la zona afectada. Parágrafo\n\nPrimero: el concejo municipal autorizará los cambios de zonificación cuando se cumpla alguna de las condiciones siguientes:\n\n1. Cuando sean suficientes los servicios públicos, tales como vialidad, cloacas, acueductos, electricidad y las áreas de servicios educacionales, deportivas, de recreación, y otros servicios que la nueva zonificación exija.\n\n2. Cuando la municipalidad cuente con los medios suficientes para el acondicionamiento de tales servicios a los nuevos requerimientos.\n\n3. Cuando los propietarios del área a rezonificarse depositen en la tesorería municipal el costo de los acondicionamientos mencionados o afiancen su realización a satisfacción del concejo. Parágrafo\n\nSegundo: los organismos nacionales que tengan a su cargo la prestación de servicios a que se refiere el número “1” del parágrafo anterior, deberán certificar si esos servicios son suficientes para atender las necesidades de la nueva zonificación. En los casos a que se refieren los números “2” y “3” del mismo parágrafo, el concejo municipal deberá constituir un fondo especial que asegure los recursos necesarios para cubrir el costo de las nuevas dotaciones. La constitución de este fondo es condición indispensable para autorizar los cambios de zonificación, debiendo establecerse en el estatuto correspondiente el destino obligatorio de los recursos para la finalidad que les dio origen. Los concejales serán responsables personal y solidariamente de los daños que resulten por el incumplimiento de esta disposición. Parágrafo\n\nTercero: también podrá hacerse un cambio de zonificación antes de los diez (10) años señalados en este artículo, cuando se requiera adecuar el sector a las políticas o programas de interés nacional, en cuyo caso no se requerirá la consulta de los vecinos del sector afectado, pero sí una evaluación de los efectos del citado cambio de zonificación sobre la vialidad y demás servicios existentes, así como la garantía de que estos últimos serán ampliados o mejorados si así lo determina el nuevo uso aprobado. A todo evento, sin embargo, el concejo municipal deberá hacer pública la proposición de cambio de zonificación, y establecerá día y hora para que la ciudadanía conozca el nuevo uso proyectado, y el impacto del mismo sobre el sector de influencia."
+        },
+        {
+          "type": "article",
+          "number": "47",
+          "title": "Artículo 47",
+          "text": "° Será nulo de pleno derecho el otorgamiento de patentes que vulneren el uso del suelo establecido en el respectivo plan de desarrollo urbano local, o en planes especiales.\n\nParágrafo Único: Las personas que se consideren perjudicadas por el o los funcionarios que otorgaren dicha patente, podrán ejercer contra los responsables todas las acciones legales que prescribe la legislación nacional."
+        },
+        {
+          "type": "article",
+          "number": "48",
+          "title": "Artículo 48",
+          "text": "° Los usos existentes para el momento de la zonificación o rezonificacion no conforme con los señalados por la nueva ordenanza se mantendrán en las condiciones que ésta señale. La ordenanza podrá disponer, por razones de interés público, el traslado de los establecimientos incompatibles con la nueva zonificación en un lapso que haga factible el traslado de la actividad. Dicho lapso no será mayor de cinco (5) años en ningún caso."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo IV"
+        },
+        {
+          "type": "article",
+          "number": "49",
+          "title": "Artículo 49",
+          "text": "° Son planes especiales aquellos cuyo objetivo fundamental es la ordenación, creación, defensa o mejoramiento de algún sector particular de la ciudad, en especial las áreas de conservación histórica, monumental, arquitectónica o ambiental, las zonas de interés turístico o paisajístico, los asentamientos no controlados, las áreas de urbanización progresiva o cualquier otra área cuyas condiciones específicas ameriten un tratamiento por separado, dentro del plan de desarrollo urbano local. La autoridad urbanística municipal dispondrá lo concerniente a la elaboración, aprobación y ejecución de estos planes."
+        },
+        {
+          "type": "article",
+          "number": "50",
+          "title": "Artículo 50",
+          "text": "° La elaboración de planes que contemplen la erradicación total o parcial de asentamientos no controlados localizados en zonas de interferencia con la infraestructura y equipamiento de servicios públicos y aquéllas que por razones geológicas o de otro tipo sean consideradas de alta peligrosidad se hará coordinadamente con las autoridades municipales respectivas."
+        },
+        {
+          "type": "article",
+          "number": "51",
+          "title": "Artículo 51",
+          "text": "° En los casos de invasión de las áreas a que se refiere el artículo anterior no procederá pago de indemnización alguna, sin perjuicio de la aplicación de otras sanciones que establezcan las leyes. La autoridad urbanística nacional y las autoridades municipales velarán por el cumplimiento de lo dispuesto en este artículo."
+        },
+        {
+          "type": "header",
+          "text": "Título V"
+        },
+        {
+          "type": "article",
+          "number": "52",
+          "title": "Artículo 52",
+          "text": "° La propiedad urbana tiene una función social, y en tal virtud estará sometida a las contribuciones, restricciones y obligaciones establecidas en esta ley y en cualesquiera otras que se refieran a la materia urbanística, y en los reglamentos, planes y normas complementarias que dicten las autoridades urbanísticas competentes."
+        },
+        {
+          "type": "article",
+          "number": "53",
+          "title": "Artículo 53",
+          "text": "° Los planes de ordenación urbanística y de desarrollo urbano local delimitan el contenido del derecho de propiedad, quedando éste vinculado al destino fijado por dichos planes. Las contribuciones, restricciones y obligaciones establecidas por leyes, reglamentos, planes y ordenanzas urbanísticas se consideran limitaciones legales al derecho de propiedad, y en consecuencia no dan, por sí solas, derecho a indemnización. Esta sólo podrá ser acordada en los casos de limitaciones que desnaturalicen el derecho de propiedad y produzcan un daño directo, cierto actual, individualizado, y cuantificable económicamente. En estos casos, a los efectos de determinar la indemnización, se seguirán los criterios establecidos en la presente ley y en la ley de expropiación por causa de utilidad pública o social."
+        },
+        {
+          "type": "article",
+          "number": "54",
+          "title": "Artículo 54",
+          "text": "° El Ministerio del Desarrollo Urbano y los Concejos Municipales respectivamente, determinarán mediante la normativa aplicable y referida a los planes para los cuales tienen competencia atribuida, las distintas calificaciones del suelo urbano, y las condiciones y características de los procesos de urbanización, parcelamiento y reparcelamiento, con especial referencia a los asentamientos no controlados. En este último caso, las determinaciones que se establezcan deberán precisar las condiciones de dichos asentamientos a los fines de señalar las características de desarrollo aplicables, y las etapas y modalidades del proceso de erradicación, si tal fuera el caso.\n\nParágrafo Único: Las ocupaciones del territorio fuera de las áreas urbanas con densidades superiores a cinco (5) habitantes por hectárea, serán objeto de regulación urbanística de conformidad con las normas que establezca el Ministerio del Ambiente y de los Recursos Naturales Renovables y el reglamento de la presente ley."
+        },
+        {
+          "type": "article",
+          "number": "55",
+          "title": "Artículo 55",
+          "text": "° Las autoridades urbanísticas deberán constituir reservas públicas de suelos urbanos con el fin de promover el desarrollo ordenado de los centros urbanos, de proveer a la creación de otros nuevos, de atender la expansión urbana y la provisión del equipamiento y la infraestructura, de facilitar la construcción de viviendas de interés social, y en general, para cualquier otro fin cónsono con el interés público urbanístico. A tal efecto, dichas autoridades constituirán reservas públicas de suelos urbanos, bien sea mediante terrenos baldíos, ejidos o propios, o a través de aquellos que adquieran de conformidad con la ley de expropiación por causa de utilidad pública o social. El reglamento establecerá las normas de organización y funcionamiento de las reservas públicas de suelos urbanos."
+        },
+        {
+          "type": "article",
+          "number": "56",
+          "title": "Artículo 56",
+          "text": "° Las adquisiciones para la reserva podrán realizarse por cualquiera de los procedimientos previstos en la ley, pero siempre sobre terrenos con real expectativa urbana. Cuando las adquisiciones se realicen por el sistema de expropiación bastará un plano delimitador de la zona a adquirir, una memoria razonada de la actuación y la justificación de la disponibilidad financiera para costear la expropiación en los términos y condiciones establecidos en la legislación correspondiente."
+        },
+        {
+          "type": "article",
+          "number": "57",
+          "title": "Artículo 57",
+          "text": "° Se establece un derecho de preferencia, en favor de las autoridades urbanísticas, para adquirir suelos urbanos que sean patrimonio de otros organismos públicos, siempre que no existan planes especiales de uso por dichos organismos. El reglamento determinará lo concerniente al modo de ejercicio por parte de las autoridades de este derecho de preferencia."
+        },
+        {
+          "type": "article",
+          "number": "58",
+          "title": "Artículo 58",
+          "text": "° En el caso de urbanización y posterior enajenación de terrenos incorporados a la reserva pública de suelos urbanos, la mitad, por lo menos, de la diferencia entre los costos de urbanización y el precio de venta deberá destinarse a la ampliación de las referidas reservas."
+        },
+        {
+          "type": "article",
+          "number": "59",
+          "title": "Artículo 59",
+          "text": "° El Ejecutivo Nacional y los Concejos Municipales determinarán, por vía reglamentaria u ordenanzas, respectivamente, el régimen de utilización de los terrenos afectados al uso de reservas públicas de suelos, indicando las áreas prioritarias para su desarrollo y las condiciones y modalidades para su disposición, cesión, permuta, enajenación, concesión, arrendamiento y demás contratos que estimen convenientes conforme a la ley."
+        },
+        {
+          "type": "header",
+          "text": "Título VI"
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I"
+        },
+        {
+          "type": "article",
+          "number": "60",
+          "title": "Artículo 60",
+          "text": "° La ejecución del desarrollo urbanístico se llevara a cabo por los órganos de la administración pública y por los particulares, en los términos establecidos en la presente ley."
+        },
+        {
+          "type": "article",
+          "number": "61",
+          "title": "Artículo 61",
+          "text": "° A los efectos de la ejecución del desarrollo urbanístico por parte de los organismos nacionales y locales, se podrán constituir asociaciones o sociedades entre ellos, así como celebrar entre sí convenios para afectar fondos al pago de los gastos necesarios para la realización de las actividades correspondientes, o utilizar cualquier otro medio que fuere procedente."
+        },
+        {
+          "type": "article",
+          "number": "62",
+          "title": "Artículo 62",
+          "text": "° Los organismos de la administración urbanística nacional y municipal podrán celebrar, conjunta o separadamente, convenios de concertación con los particulares con el objeto de fijar su forma de participación en la ejecución de proyectos específicos de desarrollo urbanístico."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II"
+        },
+        {
+          "type": "article",
+          "number": "63",
+          "title": "Artículo 63",
+          "text": "° La ejecución del desarrollo urbanístico incluye, entre otras, las siguientes formas:\n\n1. La ejecución directa o indirecta por los organismos de la administración pública.\n\n2. La ejecución mediante la constitución de empresas mixtas.\n\n3. La ejecución mediante la constitución de asociaciones de propietarios.\n\n4. La ejecución por parte del sector privado en cooperación con las autoridades urbanísticas.\n\n5. La ejecución por personas o entes particulares.\n\nParágrafo Único: La autoridad urbanística podrá promover la utilización de la modalidad de ejecución del desarrollo urbanístico que a su juicio fuere más conveniente, según las necesidades de la colectividad y otras circunstancias que concurran."
+        },
+        {
+          "type": "article",
+          "number": "64",
+          "title": "Artículo 64",
+          "text": "° En las áreas urbanas los propietarios pueden constituir asociaciones, por iniciativa propia o a solicitud de la autoridad urbanística, con el objeto de urbanizar a sus expensas los terrenos de su propiedad. Los propietarios podrán escoger la modalidad asociativa más conveniente a sus intereses, sin perjuicio del cumplimiento de las previsiones del plan."
+        },
+        {
+          "type": "article",
+          "number": "65",
+          "title": "Artículo 65",
+          "text": "° Los organismos de la administración urbanística podrán constituir, con la participación mayoritaria o minoritaria de los particulares, empresas para la ejecución de planes y programas de desarrollo urbano."
+        },
+        {
+          "type": "article",
+          "number": "66",
+          "title": "Artículo 66",
+          "text": "° Los organismos de la administración urbanística podrán encomendar a personas naturales o jurídicas constituidas para ese único fin la ejecución de los programas de desarrollo urbano."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo III"
+        },
+        {
+          "type": "article",
+          "number": "67",
+          "title": "Artículo 67",
+          "text": "° A los efectos de la presente ley, constituye urbanización la división de un terreno en parcelas, y la realización de los demás trabajos y obras necesarios para que el terreno sea utilizado cabalmente, según el uso de suelo y el tipo de urbanización establecido en los planes de ordenación urbanística, en los planes de desarrollo urbano local y en las ordenanzas correspondientes. Constituyen reparcelamientos urbanísticos las subdivisiones o modificaciones de parcelamientos existentes. Las parcelas integradas serán consideradas como una unidad a los efectos urbanísticos y en ningún caso podrán subdividirse nuevamente a los fines de su utilización."
+        },
+        {
+          "type": "article",
+          "number": "68",
+          "title": "Artículo 68",
+          "text": "° Todo proyecto de urbanización debe prever las reservas de terrenos para la localización de edificaciones, instalaciones y servicios colectivos que se requieran de acuerdo con los planes de ordenación urbanística y normas urbanísticas aplicables, en función del tamaño, destino, densidad de población, ubicación y demás características del desarrollo. La autoridad competente exigirá del propietario o su representante, en la oportunidad y en los términos que establezcan las correspondientes ordenanzas, el compromiso formal de cesión de terrenos y las garantías que sean necesarias para asegurar el cumplimiento de lo establecido en este artículo."
+        },
+        {
+          "type": "article",
+          "number": "69",
+          "title": "Artículo 69",
+          "text": "° Las zonas de parques y recreación no podrán ser destinadas a ningún otro uso; las destinadas a servicios comunales o de infraestructura, sólo podrán afectarse a otro uso cuando fueren sustituidas por otras de igual uso y, por lo menos, igual dimensión y similares características. Cualquier otro uso o acto contrario será nulo de nulidad absoluta y el organismo competente, local o nacional, podrá ordenar, por cuenta del infractor, la demolición de las construcciones o instalaciones realizadas en contravención de lo dispuesto en el presente artículo. Las áreas verdes de protección podrán servir para la prestación de determinados servicios o vías conforme lo establezca el reglamento."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo IV"
+        },
+        {
+          "type": "article",
+          "number": "70",
+          "title": "Artículo 70",
+          "text": "° Los desarrollos de urbanismo progresivo tienen por objetivo ofrecer soluciones de habitación para la población de menores recursos, acordes con su poder adquisitivo y dentro del régimen legal vigente, a fin de canalizar las iniciativas individuales o colectivas de los usuarios para el mejoramiento progresivo de la urbanización y de las unidades de vivienda, a medida que lo permita la situación económica de los grupos familiares."
+        },
+        {
+          "type": "article",
+          "number": "71",
+          "title": "Artículo 71",
+          "text": "° Se entiende por urbanismo progresivo la urbanización de terrenos con el propósito de ofrecer parcelas para viviendas dotadas de servicios básicos iniciales, de acuerdo a las modalidades de ejecución, normas técnicas y niveles de construcción, mecanismos para el financiamiento y venta, y cualesquiera otras condiciones y características que el Ejecutivo Nacional establezca en el reglamento correspondiente de esta ley. En los urbanismos progresivos se seguirá un proceso continuo de construcción hasta completar la infraestructura y los equipamientos que establezcan las normas."
+        },
+        {
+          "type": "article",
+          "number": "72",
+          "title": "Artículo 72",
+          "text": "° Los desarrollos de urbanismo progresivo estarán orientados a:\n\n1. Garantizar condiciones de salubridad y habitabilidad.\n\n2. Reorientar la expansión anárquica de los centros urbanos.\n\n3. Controlar las invasiones de población a los centros urbanos."
+        },
+        {
+          "type": "article",
+          "number": "73",
+          "title": "Artículo 73",
+          "text": "° La promoción, construcción y venta de desarrollos de urbanismo progresivo podrá ser ejecutada por el sector público o privado."
+        },
+        {
+          "type": "article",
+          "number": "74",
+          "title": "Artículo 74",
+          "text": "° En los desarrollos de urbanismo progresivo la enajenación o venta de inmuebles por parcelas y por oferta pública, así como las condiciones generales de urbanización exigibles para la protocolización del documento de urbanización o parcelamiento, serán determinadas por el reglamento de esta ley sin perjuicio de las leyes u ordenanzas aplicables."
+        },
+        {
+          "type": "article",
+          "number": "75",
+          "title": "Artículo 75",
+          "text": "° En la selección de las áreas previstas para programas de urbanización progresiva se deberán tomar en cuenta variables tales como: valor de la tierra, posibilidad de dotación de servicios públicos, accesibilidad a fuentes de transporte y factibilidad física del terreno para aceptar el desarrollo con una baja incidencia de los costos de urbanización."
+        },
+        {
+          "type": "article",
+          "number": "76",
+          "title": "Artículo 76",
+          "text": "° Los desarrollos de urbanismo progresivo preverán por etapas, de acuerdo a niveles de construcción, la ejecución de las obras viales, de infraestructura y la dotación de los equipamientos. El nivel mínimo inicial y las etapas de construcción de las obras serán establecidos en el reglamento correspondiente de esta ley. Los propietarios de las parcelas objeto de urbanismo progresivo, actuando como copropietarios de las áreas e instalaciones comunes, entregarán al municipio la urbanización una vez terminadas totalmente las obras."
+        },
+        {
+          "type": "header",
+          "text": "Título VII"
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I"
+        },
+        {
+          "type": "article",
+          "number": "77",
+          "title": "Artículo 77",
+          "text": "° La ejecución de urbanizaciones y edificaciones se regirá por las disposiciones de esta ley y su reglamento; por lo dispuesto en leyes especiales en materias distintas a los permisos o autorizaciones administrativas; por las normas y procedimientos técnicos que dicte el Ejecutivo Nacional y por las disposiciones de las ordenanzas municipales."
+        },
+        {
+          "type": "article",
+          "number": "78",
+          "title": "Artículo 78",
+          "text": "° Las normas y procedimientos técnicos para la ejecución de urbanizaciones y edificaciones serán establecidos mediante resolución del Ministerio del Desarrollo Urbano en las materias técnicas de su exclusiva competencia y, en las demás materias técnicas, mediante resolución conjunta de dicho ministerio y de los otros ministerios que, directamente o a través de sus organismos adscritos, tengan atribuciones urbanísticas. Las normas y procedimientos técnicos a que se refiere este artículo deberán ser publicadas conforme a la ley de publicaciones oficiales."
+        },
+        {
+          "type": "article",
+          "number": "79",
+          "title": "Artículo 79",
+          "text": "° Los empresarios, propietarios o promotores y los profesionales responsables de la ejecución de las obras están obligados a suministrar la información y documentación que le requieran las autoridades administrativas para el ejercicio de sus facultades de control conforme a las normas establecidas al efecto, así como permitirles el acceso a la construcción."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II"
+        },
+        {
+          "type": "article",
+          "number": "80",
+          "title": "Artículo 80",
+          "text": "° La realización de urbanizaciones y edificaciones requerirá la existencia de un proyecto, elaborado por profesionales competentes según la ley de la materia, quienes responderán por la correspondencia del proyecto con las normas y procedimientos técnicos aplicables y con las variables urbanas fundamentales y demás prescripciones establecidas en el correspondiente plan de desarrollo urbano local o en la ordenanza de zonificación. Un profesional residente responderá de que la obra se ejecute con sujeción a los planos y demás documentos y especificaciones del proyecto. El municipio podrá eximir del cumplimiento del requisito del profesional residente a las edificaciones de vivienda unifamiliar de una planta construida por su propietario para su habitación."
+        },
+        {
+          "type": "article",
+          "number": "81",
+          "title": "Artículo 81",
+          "text": "° Toda persona interesada en construir una edificación o una urbanización podrá hacer una consulta preliminar, por escrito, al organismo competente del concejo municipal en la cual se solicite:\n\n1. Las variables urbanas fundamentales.\n\n2. Adicionalmente, para las urbanizaciones, las condiciones generales de urbanización o parcelamiento y el nivel de dotación de las obras de servicio público. El interesado debe acompañar a la consulta lo siguiente:\n\n1. Una copia de los documentos de propiedad del terreno.\n\n2. Un croquis del terreno, cuando se trate de una parcela para vivienda unifamiliar o un levantamiento topográfico, cuando se trate de una parcela multifamiliar o para desarrollo de urbanizaciones.\n\nParágrafo Único: Cuando no exista plan de desarrollo urbano local u ordenanza de zonificación se aplicará lo dispuesto en el Artículo 125."
+        },
+        {
+          "type": "article",
+          "number": "82",
+          "title": "Artículo 82",
+          "text": "° El funcionario municipal competente deberá contestar la consulta preliminar para edificaciones dentro de los quince (15) días hábiles contados a partir de la fecha de la recepción de la misma. Para urbanizaciones el plazo máximo será de sesenta (60) días hábiles."
+        },
+        {
+          "type": "article",
+          "number": "83",
+          "title": "Artículo 83",
+          "text": "° De las decisiones adoptadas conforme a lo dispuesto en el artículo anterior, podrá pedirse reconsideración ante la misma autoridad, quien tendrá un plazo de quince (15) días hábiles para responderla. A esta respuesta él propietario podrá apelar al concejo municipal, quien deberá responderla en un plazo máximo de treinta (30) días hábiles. Se acompañará a esta apelación las pruebas y argumentos que el interesado considere necesario para apoyar su petición. La decisión del concejo municipal será de obligatorio cumplimiento. Sin embargo, el interesado podrá hacer uso de los recursos jurisdiccionales procedentes."
+        },
+        {
+          "type": "article",
+          "number": "84",
+          "title": "Artículo 84",
+          "text": "° Para iniciar la construcción de una edificación bastará que el propietario o su representante se dirija por escrito al respectivo municipio a fin de notificar su intención de comenzar la obra. Se acompañará a esta notificación el proyecto correspondiente, la certificación de la capacidad de suministro de los correspondientes servicios públicos provistos por el ente respectivo, los comprobantes de pago de impuestos municipales y los demás documentos que señalen las ordenanzas. El órgano municipal competente acusará recibo de la notificación y documentación a que se refiere este artículo, devolverá al interesado, en el mismo acto, un comprobante de recepción fechado, firmado y sellado. Para la construcción de una urbanización, se seguirá el mismo procedimiento establecido para las edificaciones, pero, en ningún caso, podrá iniciarse la construcción de las obras sin haberse obtenido previamente la constancia a que se refiere el artículo\n\n85. A los efectos de este artículo se entiende por inicio de la construcción cualesquiera actividades que persigan modificar el medio físico existente tales como la deforestación, movimiento de tierra, demolición, construcción y refacción.\n\nParágrafo Único: Los organismos de servicios públicos deberán responder por escrito al propietario en un plazo no mayor de treinta (30) días continuos la consulta sobre la capacidad de suministro del servicio. En caso de incapacidad de prestación del mismo por el organismo respectivo, el propietario podrá proponer soluciones o alternativas de suministro incluyendo la prestación privada del servicio en los términos y condiciones que señale el organismo competente. El organismo correspondiente responderá por escrito sobre las alternativas propuestas en un plazo no mayor de treinta (30) días continuos."
+        },
+        {
+          "type": "article",
+          "number": "85",
+          "title": "Artículo 85",
+          "text": "° Los organismos municipales dispondrán de un plazo de treinta (30) días continuos, en el caso de edificaciones o de noventa (90) días continuos, en el caso de urbanizaciones, para constatar únicamente que el proyecto presentado se ajusta a las variables urbanas fundamentales establecidas en esta ley. cumplida la constatación, el organismo municipal, visto el informe del inspector asignado o contratado para la obra, expedirá al interesado la constancia respectiva dentro del plazo previsto en este artículo. Dentro de los cinco (5) días siguientes a la expedición de la constancia, el interesado presentará a los organismos de la administración urbanística nacional que corresponda, duplicados del expediente y de la referida constancia. Estos expedirán al interesado un recibo de la citada copia."
+        },
+        {
+          "type": "article",
+          "number": "86",
+          "title": "Artículo 86",
+          "text": "° A los efectos de esta ley se consideran variables urbanas fundamentales, en el caso de las urbanizaciones:\n\n1. El uso correspondiente.\n\n2. El espacio requerido para la trama vial arterial y colectora.\n\n3. La incorporación a la trama vial arterial y colectora.\n\n4. Las restricciones por seguridad o por protección ambiental.\n\n5. La densidad bruta de la población prevista en el plan.\n\n6. La dotación, localización y accesibilidad de los equipamientos de acuerdo con las respectivas normas.\n\n7. Las restricciones volumétricas."
+        },
+        {
+          "type": "article",
+          "number": "87",
+          "title": "Artículo 87",
+          "text": "° A los efectos de esta ley se consideran variables urbanas fundamentales en el caso de las edificaciones.\n\n1. El uso previsto en la zonificación.\n\n2. El retiro de frente y el acceso según lo previsto en el plan para las vías que colindan con el terreno.\n\n3. Densidad bruta de población prevista en la zonificación.\n\n4. El porcentaje de ubicación y el porcentaje de construcción previstos en la zonificación.\n\n5. Los retiros laterales y de fondo previstos en la zonificación.\n\n6. La altura prevista en la zonificación.\n\n7. Las restricciones por seguridad o por protección ambiental.\n\n8. Cualesquiera otras variables que los planes respectivos impongan a un determinado lote de terreno."
+        },
+        {
+          "type": "article",
+          "number": "88",
+          "title": "Artículo 88",
+          "text": "° Cuando el organismo municipal competente considerase que el proyecto no se ajusta a las variables urbanas fundamentales lo notificará al interesado mediante oficio motivado, en el cual se ordenará, además, la paralización de la obra, dentro de los ocho (8) días siguientes, si la obra hubiere comenzado. Recibido el proyecto modificado o las observaciones del interesado, el organismo municipal dispondrá de quince (15) días continuos para expedir la constancia a que se refiere el artículo 85 o resolver que el proyecto no se ajusta a las variables urbanas fundamentales."
+        },
+        {
+          "type": "article",
+          "number": "89",
+          "title": "Artículo 89",
+          "text": "° Cuando el órgano municipal competente resolviere que el proyecto no se ajusta a las variables urbanas fundamentales, previstas en esta ley, el interesado podrá interponer recurso de reconsideración ante el órgano municipal que hubiese dictado el acto. Dicho órgano tendrá un plazo de treinta (30) días para decidir el recurso. De esta decisión podrá interponerse recurso jerárquico ante el concejo municipal dentro de los treinta (30) días siguientes."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo III"
+        },
+        {
+          "type": "article",
+          "number": "90",
+          "title": "Artículo 90",
+          "text": "° Los organismos municipales competentes inspeccionarán, directamente o mediante contrato de servicios profesionales, la construcción de las urbanizaciones y edificaciones a fin de verificar el cumplimiento de las variables urbanas fundamentales y de las normas técnicas nacionales en cuanto a urbanismo y edificación. El propietario de la obra contribuirá a costear la fiscalización por contrato de servicio mediante el pago de una tasa de inspección, que fijará el concejo municipal a través de la ordenanza correspondiente. Los municipios establecerán las dependencias y procedimientos de inspección que correspondan a sus necesidades, recursos y demás particulares circunstancias. El personal de inspección estará integrado por profesionales competentes según la ley de la materia."
+        },
+        {
+          "type": "article",
+          "number": "91",
+          "title": "Artículo 91",
+          "text": "° Los organismos nacionales podrán inspeccionar la construcción de urbanizaciones y edificaciones de conformidad con las respectivas leyes especiales."
+        },
+        {
+          "type": "article",
+          "number": "92",
+          "title": "Artículo 92",
+          "text": "° De toda inspección se elaborará un acta en el mismo sitio de la obra y se le entregará copia al profesional residente o al propietario, quien deberá firmar el original como constancia de haberla recibido."
+        },
+        {
+          "type": "article",
+          "number": "93",
+          "title": "Artículo 93",
+          "text": "° En caso de infracción de normas técnicas de arquitectura, ingeniería o urbanismo, la autoridad municipal, dentro de los cinco (5) días siguientes al conocimiento de la infracción, lo participará por escrito al organismo competente según la materia a los fines de la aplicación de la sanción que fuere pertinente."
+        },
+        {
+          "type": "article",
+          "number": "94",
+          "title": "Artículo 94",
+          "text": "° Cuando el propietario de la obra recurra a la vía jurisdiccional, el juez o tribunal que conozca de las acciones de nulidad de la orden administrativa de corrección, modificación, paralización o demolición, podrá suspender los efectos del acto mediante caución suficiente para garantizar el costo de la ejecución del acto y el de los daños y perjuicios a terceros."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo IV"
+        },
+        {
+          "type": "article",
+          "number": "95",
+          "title": "Artículo 95",
+          "text": "° A la terminación de las obras sin que hubiere pendiente objeciones del municipio, el profesional responsable de su ejecución firmará una certificación en la que hará constar que la misma se ejecutó en un todo de conformidad con las variables urbanas fundamentales y con las normas técnicas correspondientes. La certificación será también firmada por el propietario y será consignada, junto con los planos definitivos de la obra, a la autoridad municipal encargada del control urbanístico, quien dará constancia de la recepción respectiva dentro de un plazo de diez (10) días hábiles. La constancia de recepción emitida por la dependencia municipal autorizada, será suficiente a los fines de la habitabilidad de la obra. Cuando hubiere algún reparo pendiente sobre violaciones de las variables urbanas o de las normas técnicas, se incorporará a la copia de la mencionada certificación y la obra no podrá habitarse, hasta tanto no sea subsanado el mismo. Después de subsanarse las objeciones pendientes la autoridad urbanística lo hará constar en la certificación antes mencionada a los fines de la habitabilidad de la obra. Los reparos, una vez terminada la obra, sólo podrán hacerse una sola vez y la autoridad urbanística emitirá la constancia dentro de los diez (10) días subsiguientes, después de subsanarse los mismos."
+        },
+        {
+          "type": "article",
+          "number": "96",
+          "title": "Artículo 96",
+          "text": "° Para la protocolización del documento de parcelamiento conforme a la ley de venta de parcelas se presentará ante la oficina subalterna de registro correspondiente, junto con el mencionado documento y con destino al cuaderno de comprobantes, una copia de la constancia a que se refiere el artículo 85, sin perjuicio de los demás documentos que fija dicha ley con excepción del permiso de construcción el cual será sustituido por la constancia mencionada."
+        },
+        {
+          "type": "article",
+          "number": "97",
+          "title": "Artículo 97",
+          "text": "° Para la protocolización de documentos de condominio de acuerdo con la ley de propiedad horizontal, se presentará ante la oficina subalterna de registro competente, junto con el mencionado documento y con destino al cuaderno de comprobantes, los planos de la obra y la constancia a que se refiere el artículo\n\n85. Para las ventas primarias conforme a la citada ley se requerirá, además, copia de la constancia prevista en el artículo 95, la cual sustituirá al permiso de habitabilidad."
+        },
+        {
+          "type": "article",
+          "number": "98",
+          "title": "Artículo 98",
+          "text": "° Todas las obras y servicios destinadas al dominio público serán recibidas por el municipio en un plazo no mayor de seis (6) meses, a contar de su terminación, conforme a los procedimientos que establezca el reglamento de esta ley y las respectivas ordenanzas municipales. Cuando el interesado haya dado cumplimiento a las observaciones del municipio y éste no hubiese recibido las obras y servicios en el plazo señalado, éstas se considerarán recibidas y pasarán a administrarse bajo la responsabilidad del municipio. La autoridad urbanística podrá convenir con los interesados en que la conservación y mantenimiento de las obras y servicios, quede a cargo temporalmente de los copropietarios de la urbanización, sin perjuicio de la competencia pública en materia de seguridad y salubridad. Capítulo V De las Responsabilidades"
+        },
+        {
+          "type": "article",
+          "number": "99",
+          "title": "Artículo 99",
+          "text": "° La responsabilidad del ingeniero, del arquitecto, del urbanista y del empresario constructor frente al contratante de una obra, prevista en el artículo 1.637 del código civil y demás disposiciones sobre la materia, se mantiene de pleno derecho frente a los adquirientes del inmueble construido."
+        },
+        {
+          "type": "article",
+          "number": "100",
+          "title": "Artículo 100",
+          "text": "° Responden en los términos del artículo 1.637 del código civil y del artículo anterior:\n\n1. Los profesionales según la actuación que hayan tenido como proyectistas o directores de la obra o certificantes de su calidad.\n\n2. El promotor y toda persona que venda, después de terminada, una obra que haya construido o hecho construir.\n\n3. Los bancos, los demás institutos de créditos y las entidades de ahorro y préstamo, que financien cualquier obra de desarrollo urbanístico y de vivienda, de acuerdo a los términos del respectivo contrato.\n\n4. Toda persona vinculada por relación de servicios o mandato al comitente de la obra, que haya actuado en forma económica o técnicamente asimilable a un contratista de obra."
+        },
+        {
+          "type": "article",
+          "number": "101",
+          "title": "Artículo 101",
+          "text": "° No es válida la cláusula que tenga por objeto excluir o limitar la responsabilidad, salvo lo dispuesto en el numeral 3 del artículo anterior. Sin embargo, la duración de la garantía será menor frente al dueño de la obra, cuando se haya indicado que se trata de una construcción provisional o de corta duración. La convención sólo será oponible a terceros adquirentes cuando conste en el documento de adquisición."
+        },
+        {
+          "type": "header",
+          "text": "Título VIII"
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I"
+        },
+        {
+          "type": "article",
+          "number": "102",
+          "title": "Artículo 102",
+          "text": "° Si un inmueble se destinare presuntamente a un uso contrario al que le corresponda conforme al plan o a la ordenanza de zonificación o si en dicho inmueble se realizaren construcciones ilegales, la asociación de vecinos o cualquier persona con interés legitimo, personal y directo podrá solicitar de un juez de distrito, departamento o de equivalente jerarquía, según el caso, de la respectiva circunscripción judicial la paralización de las actividades y el cierre o clausura del establecimiento. El interesado motivará suficientemente su solicitud y acompañará las evidencias que fueren pertinentes al caso. La Fiscalía General de la República podrá intervenir en el procedimiento a solicitud de la asociación de vecinos afectada."
+        },
+        {
+          "type": "article",
+          "number": "103",
+          "title": "Artículo 103",
+          "text": "° Recibida la solicitud a que se refiere el artículo anterior, el juez citará al ocupante del inmueble a objeto de que éste presente, dentro de los tres (3) días hábiles siguientes, original o copia certificada de los documentos o actas que evidencien la legalidad del uso dado al inmueble. Si no se evidenciare dicha legalidad y el juez considerase que el destino dado al inmueble es contrario al plan o a la ordenanza de zonificación, deberá ordenar la paralización de las actividades o el cierre o clausura del establecimiento. De esta decisión podrá apelarse libremente ante el juez de primera instancia en lo civil quien deberá resolver en un plazo de diez (10) días hábiles. El juez revocará la medida dictada cuando el interesado presentare original o copia certificada del documento o acto que evidencie la legalidad del uso dado al inmueble, sin perjuicio de los recursos administrativos o contencioso administrativos que puedan interponerse contra los actos relativos al caso."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II"
+        },
+        {
+          "type": "article",
+          "number": "104",
+          "title": "Artículo 104",
+          "text": "° Toda persona, asociación de vecinos u organizaciones gremiales, sociales, culturales, deportivas u otras que funcionen en la comunidad, podrá requerir de los órganos administrativos de control urbanístico, nacionales o municipales, la adopción de las medidas pertinentes para el cumplimiento de los planes urbanos y de las normas que los complementan."
+        },
+        {
+          "type": "article",
+          "number": "105",
+          "title": "Artículo 105",
+          "text": "° Cada asociación de vecinos podrá designar un síndico vecinal para que ejerza las atribuciones que le confiere esta ley. La actuación del síndico se entenderá sin perjuicio de los derechos de los vecinos, individualmente considerados y de las facultades que correspondan a los órganos de la respectiva asociación de vecinos, conforme a los estatutos de ésta. En todo caso el síndico vecinal actuará según las instrucciones de la asociación de vecinos correspondiente."
+        },
+        {
+          "type": "article",
+          "number": "106",
+          "title": "Artículo 106",
+          "text": "° Para la legitimación del síndico vecinal bastará la designación de la correspondiente asociación de vecinos, debidamente autenticada. El síndico vecinal podrá ser removido libremente por la respectiva asociación mediante decisión autenticada. El síndico no será considerado funcionario público a ningún efecto y el ejercicio de su función podrá ser a título oneroso o gratuito. Una persona no podrá ser síndico vecinal de más de una asociación al mismo tiempo."
+        },
+        {
+          "type": "article",
+          "number": "107",
+          "title": "Artículo 107",
+          "text": "° Son funciones del síndico:\n\n1. Asistir a las asociaciones de vecinos en sus denuncias, quejas, reclamos, trámites, solicitudes, recursos y cualquier otro acto ante los órganos de la administración pública nacional, estadal o municipal.\n\n2. Hacer del conocimiento del organismo competente, de oficio o a solicitud de los vecinos o de las asociaciones de éstos, las contravenciones en materia de usos, patentes o construcción o en otros aspectos urbanísticos.\n\n3. Instar a los organismos públicos nacionales, estadales o municipales a proceder en los casos de violación de las normas urbanísticas.\n\n4. Seguir los procedimientos administrativos y jurisdiccionales en los cuales tengan interés las asociaciones de vecinos y hacerse parte de dichos procedimientos cuando pudiere resultar afectado el interés de dichas asociaciones.\n\n5. Asistir a las asociaciones de vecinos en sus actividades relacionadas con la participación de la comunidad en la elaboración de los planes de desarrollo urbano local y los programas de actuaciones urbanísticas.\n\n6. Colaborar con las autoridades urbanísticas en la vigilancia de la adecuación de las actividades urbanísticas a las previsiones contenidas en los planes y ordenanzas."
+        },
+        {
+          "type": "article",
+          "number": "108",
+          "title": "Artículo 108",
+          "text": "° Los organismos de la administración urbanística podrán celebrar convenios con las asociaciones de vecinos para que éstas asuman la realización de determinadas actividades, tales como el acondicionamiento y conservación de parques públicos y zonas verdes, la limpieza de áreas públicas y su financiamiento. Las asociaciones podrán recibir una contraprestación en dinero o en especie para compensar los costos y gastos de la actividad."
+        },
+        {
+          "type": "header",
+          "text": "Título IX"
+        },
+        {
+          "type": "article",
+          "number": "109",
+          "title": "Artículo 109",
+          "text": "° Toda persona natural o jurídica que realice obras o actividades urbanísticas sin haber cumplido con las normas establecidas en esta ley será sancionado de acuerdo a:\n\n1. Cuando haya cumplido con las variables urbanas fundamentales, pero no haya dado cumplimiento a lo establecido en el artículo 84 la autoridad urbanística local procederá a la paralización inmediata de la obra hasta tanto cumpla con los artículos 84 y 85 de la presente ley. El interesado podrá continuar la obra una vez presentados los recaudos establecidos en la ley y obtenida la constancia a que se refiere el artículo 85.\n\n2. Cuando viole las variables urbanas fundamentales la autoridad urbanística local procederá a la paralización de la obra y a la demolición parcial o total de la misma, de acuerdo a las normas que haya incumplido. El responsable será sancionado con multa equivalente al doble del valor de la obra demolida. Sólo podrá continuar la ejecución del proyecto, cuando haya corregido la violación, pagado la multa respectiva y obtenido la constancia a que se refiere el artículo\n\n85. Parágrafo\n\nPrimero: Cuando la realización de obras o actividades urbanísticas a las cuales se refiere éste artículo implique daños al ambiente o a los recursos naturales renovables, las sanciones establecidas deberán incluir la obligación para el infractor de restituir, también a su costa, las condiciones ambientales preexistentes, todo ello sin perjuicio de las demás responsabilidades en que incurra conforme a la legislación nacional. Parágrafo\n\nSegundo: En caso de que no sea posible la restitución a la cual se contrae el parágrafo anterior, la autoridad urbanística establecerá una multa adicional equivalente al doble del valor del daño causado y prohibirá expresamente la continuación de la obra o de la actividad sobre el suelo afectado, sin perjuicio de las sanciones establecidas en otras leyes."
+        },
+        {
+          "type": "article",
+          "number": "110",
+          "title": "Artículo 110",
+          "text": "° Las demás actividades contrarias a la presente ley o a los planes de ordenación urbanística o de desarrollo urbano local darán lugar, según la gravedad de la falta, la naturaleza de la actividad realizada y la magnitud del daño causado a la aplicación de multas entre un mil bolívares (Bs. 1.000,00) y un millón de bolívares (Bs. 1.000.000,00). La administración en todo caso, deberá evaluar estas circunstancias, y aplicar la multa que sea pertinente, no estando autorizada a aplicar, pura y simplemente, el término medio. Si el daño causado es cuantificable económicamente, el monto de la multa se establecerá conforme a los mismos criterios anteriormente indicados, entre un veinte (20%) y un sesenta (60%) por ciento sobre el costo del mismo, previamente determinado por el organismo respectivo, siempre que la multa no resulte menor al monto de las multas antes indicadas."
+        },
+        {
+          "type": "article",
+          "number": "111",
+          "title": "Artículo 111",
+          "text": "° Las multas a que se refieren los artículos anteriores serán aplicadas por las autoridades que tengan a su cargo el control de la ejecución de los planes o de las obras y su producto ingresará al patrimonio municipal o nacional según corresponda."
+        },
+        {
+          "type": "article",
+          "number": "112",
+          "title": "Artículo 112",
+          "text": "° El funcionario que se abstenga o que retarde injustificadamente la ejecución de un acto que por razón de sus atribuciones esté obligado a realizar en relación con una obra de ingeniería, arquitectura o urbanismo, será sancionado con la destitución de su cargo o con multa equivalente a diez (10) veces su remuneración mensual, según la gravedad de la falta. Cuando el funcionario hubiere incurrido en violación de la ley de ejercicio de la ingeniería, arquitectura y profesiones afines, se le instruirá el expediente respectivo por el organismo a quien prestare servicios. El expediente será enviado al colegio de ingenieros de Venezuela a los fines de la aplicación de las sanciones a que hubiere lugar."
+        },
+        {
+          "type": "article",
+          "number": "113",
+          "title": "Artículo 113",
+          "text": "° Los actos generales o particulares que consagren cambios de zonificación aislada o singularmente propuestos serán nulos de nulidad absoluta. Los concejales y demás funcionarios municipales que hubieren aprobado dichos cambios serán sancionados con multas equivalentes a diez (10) veces su remuneración mensual, sin perjuicio de la responsabilidad individual civil o penal a que hubiere lugar."
+        },
+        {
+          "type": "article",
+          "number": "114",
+          "title": "Artículo 114",
+          "text": "° Los concejales y demás funcionarios municipales que violaren el precepto contenido en el artículo 69 de esta ley serán sancionados con multas equivalentes a diez (10) veces su remuneración mensual, sin perjuicio de la responsabilidad civil o penal a que hubiera lugar."
+        },
+        {
+          "type": "article",
+          "number": "115",
+          "title": "Artículo 115",
+          "text": "° Los concejales y demás funcionarios municipales que se negaren a ejecutar decisiones judiciales definitivamente firmes serán sancionados con multa equivalente a diez (10) veces su remuneración mensual, sin perjuicio de la responsabilidad civil o penal a que hubiere lugar."
+        },
+        {
+          "type": "article",
+          "number": "116",
+          "title": "Artículo 116",
+          "text": "° Las multas a que se refieren los artículos 113, 114 y 115, serán impuestas por la respectiva contraloría municipal y, en su defecto, por la Contraloría General de la República."
+        },
+        {
+          "type": "article",
+          "number": "117",
+          "title": "Artículo 117",
+          "text": "° Las sanciones previstas en esta ley serán aplicadas sin perjuicio de las consagradas en otras leyes y de las acciones civiles, administrativas o penales a que hubiere lugar. El procedimiento para la imposición de las sanciones previstas en esta ley podrá iniciarse a instancia de la autoridad urbanística nacional.\n\nParágrafo Único: Las acciones contra las infracciones de la presente ley prescribirán a los cinco (5) años a contar de la fecha de la infracción, a menos que la prescripción fuese interrumpida por actuaciones de la autoridad urbanística nacional o municipal correspondiente."
+        },
+        {
+          "type": "header",
+          "text": "Título X"
+        },
+        {
+          "type": "article",
+          "number": "118",
+          "title": "Artículo 118",
+          "text": "° Se derogan todas las disposiciones legales y reglamentarias contrarias a lo establecido en la presente ley."
+        },
+        {
+          "type": "article",
+          "number": "119",
+          "title": "Artículo 119",
+          "text": "° Las disposiciones de la presente ley tendrán en las materias urbanísticas prelación normativa sobre las contenidas en la ley orgánica para la ordenación del territorio. Esta se aplicará supletoriamente a los asuntos y materias urbanísticos no regulados por el presente texto."
+        },
+        {
+          "type": "article",
+          "number": "120",
+          "title": "Artículo 120",
+          "text": "° La presente ley entrará en vigencia a los noventa (90) días contados a partir de su publicación en la Gaceta Oficial de la República de Venezuela."
+        },
+        {
+          "type": "header",
+          "text": "Título XI"
+        },
+        {
+          "type": "article",
+          "number": "121",
+          "title": "Artículo 121",
+          "text": "° Los denominados planes de ordenación urbanística y los planes de desarrollo urbano local, así como las ordenanzas de zonificación, arquitectura y urbanismo, legalmente aprobados antes de la promulgación de la presente ley, continuarán vigentes hasta la sanción de los planes e instrumentos normativos que habrán de sustituirlos. No obstante, las disposiciones del Título VII se aplicarán a partir de la entrada en vigencia de esta ley."
+        },
+        {
+          "type": "article",
+          "number": "122",
+          "title": "Artículo 122",
+          "text": "° Los permisos concedidos y las obras y actividades en realización para el momento cuando entre en vigencia esta ley, se regirán por las normas vigentes para el momento en que fueron concedidas o iniciadas."
+        },
+        {
+          "type": "article",
+          "number": "123",
+          "title": "Artículo 123",
+          "text": "° El Ministerio del Desarrollo Urbano y los Municipios, en su carácter de autoridades urbanísticas en la esfera de sus respectivas competencias, procederán a elaborar en el plazo máximo de un (1) año, a partir de la vigencia de la presente ley, un compendio de todas las normas y procedimientos técnicos referentes a la elaboración, consulta y ejecución de estudios, proyectos y obras de ingeniería, arquitectura y urbanismo de acuerdo a la presente ley. El Ministerio del Desarrollo Urbano será el responsable de la coordinación, promulgación y publicación de las normas nacionales y de mantenerlas actualizadas."
+        },
+        {
+          "type": "article",
+          "number": "124",
+          "title": "Artículo 124",
+          "text": "° El Ministerio del Desarrollo Urbano y los Municipios deberán elaborar los planes respectivos dentro de los dos (2) años siguientes a la vigencia de la presente ley."
+        },
+        {
+          "type": "article",
+          "number": "125",
+          "title": "Artículo 125",
+          "text": "° Cuando no existieren planes de ordenación urbanística, ni de desarrollo urbano local, ni ordenanza de zonificación, los particulares deberán solicitar del respectivo concejo municipal las variables urbanas fundamentales aplicables al terreno en cuestión y podrán presentar proyectos de urbanizaciones y edificaciones para la asignación de variables por parte de dicho concejo. Las mencionadas variables serán asignadas previa aprobación del Ministerio del Desarrollo Urbano. Cuando existieren planes de ordenación urbanística y no existiesen planes de desarrollo urbano local u ordenanza de zonificación, las variables urbanas fundamentales que fije el respectivo concejo municipal deberán sujetarse a lo establecido en los planes de ordenación urbanística, de lo cual se informará al Ministerio del Desarrollo Urbano dentro de los quince (15) días siguientes a la asignación de dichas variables."
+        },
+        {
+          "type": "article",
+          "number": "126",
+          "title": "Artículo 126",
+          "text": "° Cuando se hubieren aprobado planes de ordenación urbanística, de desarrollo urbano o planes de desarrollo urbano local, sin haberse aprobado previamente el plan nacional de ordenación del territorio o los planes regionales de ordenación del territorio, la adaptación de aquellos a éstos se hará siguiendo el procedimiento que establezca el reglamento de la presente ley. En todo caso, la adaptación se hará teniendo en cuenta las situaciones técnicas, administrativas y jurídicas existentes, particularmente los derechos individuales originados por efecto de la aplicación de los planes de desarrollo urbano, aprobados con anterioridad a la entrada en vigencia de la presente ley. El plazo para la adaptación de los planes quedará al criterio del Ejecutivo Nacional."
+        },
+        {
+          "type": "article",
+          "number": "127",
+          "title": "Artículo 127",
+          "text": "° Dentro de los noventa (90) días siguientes a la entrada en vigencia de esta ley, el Presidente de la República en consejo de ministros, dictará las medidas necesarias para reorganizar el Ministerio del Desarrollo Urbano a los fines de dar cumplimiento a lo establecido en la presente ley. Dado, firmado y sellado en el Palacio Federal Legislativo, en Caracas a los dos días del mes de diciembre de mil novecientos ochenta y siete, año\n\n177º de La Independencia y\n\n128º de la Federación. El Presidente, (L.S.) Reinaldo Leandro Mora El Vicepresidente, José Rodríguez Iturbe Los Secretarios, Héctor Carpio Castillo José Rafael Garcia Palacio de Miraflores, en Caracas, a los dieciséis días del mes de diciembre mil novecientos ochenta y siete. Año\n\n177º de la Independencia y\n\n128º de la Federación. Cúmplase. (L.S.) Jaime Lusinchi"
+        }
+      ]
+    }
+  }
+]

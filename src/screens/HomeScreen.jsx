@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Card, Title, Paragraph, IconButton, Avatar } from 'react-native-paper';
+import { Card, Title, Paragraph, IconButton, Avatar, Surface } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import HistoryManager from '../utils/historyManager';
-import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES } from '../utils/constants';
+import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES, GRADIENTS } from '../utils/constants';
 
 const HomeScreen = ({ navigation }) => {
     const [history, setHistory] = useState([]);
@@ -55,6 +56,14 @@ const HomeScreen = ({ navigation }) => {
             navigateTo: 'CodesList',
         },
         {
+            id: LAW_CATEGORIES.LEYES,
+            name: CATEGORY_NAMES[LAW_CATEGORIES.LEYES],
+            icon: 'bookshelf',
+            description: 'Leyes Orgánicas, Especiales y Reglamentos',
+            color: '#8B5CF6',
+            navigateTo: 'LawsList',
+        },
+        {
             id: LAW_CATEGORIES.TSJ,
             name: CATEGORY_NAMES[LAW_CATEGORIES.TSJ],
             icon: 'gavel',
@@ -77,6 +86,8 @@ const HomeScreen = ({ navigation }) => {
             navigation.navigate('CodesList');
         } else if (category.navigateTo === 'Jurisprudence') {
             navigation.navigate('Jurisprudence');
+        } else if (category.navigateTo === 'LawsList' && category.id === LAW_CATEGORIES.LEYES) {
+            navigation.navigate('LawsCategorySelector');
         } else {
             navigation.navigate('LawsList', {
                 category: category.id,
@@ -86,23 +97,35 @@ const HomeScreen = ({ navigation }) => {
     };
 
     return (
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+            <LinearGradient
+                colors={GRADIENTS.legal}
+                style={styles.header}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+            >
                 <View style={styles.headerTopRow}>
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.title}>Bienvenido</Text>
-                        <Text style={styles.subtitle}>
-                            Consulta las leyes de Venezuela de forma rápida
-                        </Text>
+                        <Text style={styles.greeting}>Hola, Bienvenido</Text>
+                        <Text style={styles.title}>AppLeyes</Text>
+                        <View style={styles.titleUnderline} />
                     </View>
-                    <IconButton
-                        icon="star"
-                        iconColor="#FFD700"
-                        size={28}
+                    <TouchableOpacity
                         onPress={() => navigation.navigate('Favorites')}
-                    />
+                        style={styles.favoritesButton}
+                    >
+                        <IconButton
+                            icon="star"
+                            iconColor="#FFD700"
+                            size={28}
+                            style={{ margin: 0 }}
+                        />
+                    </TouchableOpacity>
                 </View>
-            </View>
+                <Text style={styles.subtitle}>
+                    Tu guía legal digital en Venezuela
+                </Text>
+            </LinearGradient>
 
             <TouchableOpacity
                 style={styles.searchButton}
@@ -123,15 +146,19 @@ const HomeScreen = ({ navigation }) => {
                         renderItem={({ item }) => (
                             <View style={styles.historyCardContainer}>
                                 <TouchableOpacity onPress={() => handleHistoryPress(item)} style={{ flex: 1 }}>
-                                    <Card style={styles.historyCard}>
+                                    <Surface elevation={2} style={styles.historyCard}>
                                         <View style={styles.historyContent}>
-                                            <Avatar.Icon size={40} icon={item.type === 'juris' ? 'gavel' : 'book-outline'} style={{ backgroundColor: item.type === 'juris' ? '#DC2626' : COLORS.primary }} />
+                                            <Avatar.Icon
+                                                size={40}
+                                                icon={item.type === 'juris' ? 'gavel' : 'book-outline'}
+                                                style={{ backgroundColor: item.type === 'juris' ? COLORS.error : COLORS.accent }}
+                                            />
                                             <View style={styles.historyInfo}>
                                                 <Text style={styles.historyTitle} numberOfLines={1}>{item.title}</Text>
                                                 <Text style={styles.historySubtitle} numberOfLines={1}>{item.subtitle}</Text>
                                             </View>
                                         </View>
-                                    </Card>
+                                    </Surface>
                                 </TouchableOpacity>
                                 <IconButton
                                     icon="close-circle"
@@ -154,21 +181,25 @@ const HomeScreen = ({ navigation }) => {
                     <TouchableOpacity
                         key={category.id}
                         onPress={() => handleCategoryPress(category)}
+                        activeOpacity={0.8}
                     >
-                        <Card style={styles.categoryCard}>
-                            <Card.Content style={styles.cardContent}>
-                                <View style={[styles.iconContainer, { backgroundColor: category.color }]}>
-                                    <IconButton icon={category.icon} size={32} iconColor="#fff" />
-                                </View>
+                        <Surface elevation={1} style={styles.categoryCard}>
+                            <View style={styles.cardContent}>
+                                <LinearGradient
+                                    colors={[category.color, category.color + 'CC']}
+                                    style={styles.iconContainer}
+                                >
+                                    <IconButton icon={category.icon} size={28} iconColor="#fff" style={{ margin: 0 }} />
+                                </LinearGradient>
                                 <View style={styles.categoryInfo}>
-                                    <Title style={styles.categoryTitle}>{category.name}</Title>
-                                    <Paragraph style={styles.categoryDescription}>
+                                    <Text style={styles.categoryTitle}>{category.name}</Text>
+                                    <Text style={styles.categoryDescription} numberOfLines={1}>
                                         {category.description}
-                                    </Paragraph>
+                                    </Text>
                                 </View>
-                                <IconButton icon="chevron-right" size={24} iconColor={COLORS.textSecondary} />
-                            </Card.Content>
-                        </Card>
+                                <IconButton icon="chevron-right" size={20} iconColor={COLORS.textSecondary} />
+                            </View>
+                        </Surface>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -182,108 +213,140 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     header: {
-        padding: 20,
-        backgroundColor: COLORS.primary,
+        paddingTop: 50,
+        paddingBottom: 40,
+        paddingHorizontal: 20,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+    },
+    greeting: {
+        fontSize: 14,
+        color: '#CBD5E1',
+        fontWeight: '500',
     },
     title: {
-        fontSize: 28,
+        fontSize: 32,
         fontWeight: 'bold',
         color: '#fff',
-        marginBottom: 8,
+        marginTop: 4,
+    },
+    titleUnderline: {
+        height: 4,
+        width: 40,
+        backgroundColor: COLORS.accent,
+        borderRadius: 2,
+        marginTop: 4,
     },
     subtitle: {
-        fontSize: 16,
-        color: '#E5E7EB',
+        fontSize: 14,
+        color: '#94A3B8',
+        marginTop: 20,
+        fontStyle: 'italic',
     },
     headerTopRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
+    favoritesButton: {
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+        padding: 4,
+    },
     searchButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.surface,
-        margin: 16,
-        padding: 8,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
+        backgroundColor: '#fff',
+        marginTop: -25,
+        marginHorizontal: 20,
+        padding: 12,
+        borderRadius: 15,
+        elevation: 10,
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
     },
     searchText: {
         flex: 1,
         fontSize: 16,
         color: COLORS.textSecondary,
+        fontWeight: '500',
     },
     categoriesContainer: {
-        padding: 16,
+        padding: 20,
+        marginTop: 10,
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: COLORS.primary,
         marginBottom: 16,
+        letterSpacing: 0.5,
     },
     categoryCard: {
-        marginBottom: 12,
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        elevation: 2,
+        marginBottom: 16,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        overflow: 'hidden',
     },
     cardContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 8,
+        padding: 12,
     },
     iconContainer: {
         borderRadius: 12,
-        marginRight: 12,
+        marginRight: 15,
+        width: 48,
+        height: 48,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     categoryInfo: {
         flex: 1,
     },
     categoryTitle: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: 'bold',
         color: COLORS.text,
-        marginBottom: 4,
+        marginBottom: 2,
     },
     categoryDescription: {
-        fontSize: 13,
+        fontSize: 12,
         color: COLORS.textSecondary,
     },
     historySection: {
-        marginBottom: 8,
+        marginTop: 10,
     },
     historyList: {
-        paddingHorizontal: 16,
-        paddingBottom: 8,
+        paddingHorizontal: 20,
+        paddingBottom: 10,
     },
     historyCard: {
         flex: 1,
         backgroundColor: '#fff',
-        borderRadius: 12,
-        elevation: 2,
+        borderRadius: 16,
     },
     historyCardContainer: {
-        width: 220,
-        marginRight: 12,
-        position: 'relative',
+        width: 240,
+        marginRight: 15,
+        paddingTop: 10,
     },
     removeHistoryButton: {
         position: 'absolute',
-        top: -10,
-        right: -10,
+        top: 0,
+        right: 0,
         margin: 0,
-        zIndex: 1,
+        zIndex: 2,
     },
     historyContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
+        padding: 15,
     },
     historyInfo: {
-        marginLeft: 10,
+        marginLeft: 12,
         flex: 1,
     },
     historyTitle: {
@@ -292,7 +355,7 @@ const styles = StyleSheet.create({
         color: COLORS.text,
     },
     historySubtitle: {
-        fontSize: 12,
+        fontSize: 11,
         color: COLORS.textSecondary,
     },
 });

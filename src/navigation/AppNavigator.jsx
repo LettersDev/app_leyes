@@ -7,6 +7,7 @@ import { COLORS } from '../utils/constants';
 import HomeScreen from '../screens/HomeScreen';
 import CodesListScreen from '../screens/CodesListScreen';
 import LawsListScreen from '../screens/LawsListScreen';
+import LawsCategorySelectorScreen from '../screens/LawsCategorySelectorScreen';
 import LawDetailScreen from '../screens/LawDetailScreen';
 import SearchScreen from '../screens/SearchScreen';
 import JurisprudenceScreen from '../screens/JurisprudenceScreen';
@@ -70,6 +71,11 @@ const AppNavigator = () => {
                     name="CodesList"
                     component={CodesListScreen}
                     options={{ title: 'Códigos' }}
+                />
+                <Stack.Screen
+                    name="LawsCategorySelector"
+                    component={LawsCategorySelectorScreen}
+                    options={{ title: 'Leye y Reglamentos' }}
                 />
                 <Stack.Screen
                     name="LawsList"

@@ -11,6 +11,8 @@ export const LAW_CATEGORIES = {
     CODIGO_ORGANICO_JUSTICIA_MILITAR: 'codigo_organico_justicia_militar',
     TSJ: 'tsj',
     GACETA: 'gaceta',
+    LEYES: 'leyes', // Nueva categoría para leyes generales
+    LEYES_ORGANICAS: 'leyes_organicas', // Nueva categoría para leyes orgánicas
 };
 
 // Nombres legibles de categorías
@@ -26,20 +28,30 @@ export const CATEGORY_NAMES = {
     [LAW_CATEGORIES.CODIGO_ORGANICO_JUSTICIA_MILITAR]: 'Código Orgánico de Justicia Militar',
     [LAW_CATEGORIES.TSJ]: 'Sentencias TSJ',
     [LAW_CATEGORIES.GACETA]: 'Gaceta Oficial',
+    [LAW_CATEGORIES.LEYES]: 'Leyes Ordinarias',
+    [LAW_CATEGORIES.LEYES_ORGANICAS]: 'Leyes Orgánicas',
 };
 
-// Colores del tema
+// Colores del tema (Premium Palette)
 export const COLORS = {
-    primary: '#1E3A8A', // Azul oscuro (colores de Venezuela)
-    secondary: '#FCD34D', // Amarillo
-    accent: '#EF4444', // Rojo
-    background: '#F9FAFB',
+    primary: '#0F172A', // Slate 900 (Fondo muy oscuro/elegante)
+    accent: '#B45309', // Amber 700 (Dorado/Legal)
+    secondary: '#1E293B', // Slate 800 (Tarjetas)
+    premium: '#D97706', // Dorado brillante
+    background: '#F8FAFC', // Slate 50
     surface: '#FFFFFF',
-    text: '#111827',
-    textSecondary: '#6B7280',
-    border: '#E5E7EB',
-    success: '#10B981',
-    error: '#EF4444',
+    text: '#0F172A',
+    textSecondary: '#64748B', // Slate 500
+    border: '#E2E8F0', // Slate 200
+    success: '#059669',
+    error: '#DC2626',
+};
+
+// Gradientes para efectos visuales
+export const GRADIENTS = {
+    legal: ['#0F172A', '#1E293B'], // Azul profundo a gris oscuro
+    gold: ['#B45309', '#D97706'], // Dorado elegante
+    surface: ['#FFFFFF', '#F8FAFC'],
 };
 
 // Tipos de documentos

@@ -1,0 +1,422 @@
+[
+  {
+    "title": "Codigo Abogado",
+    "category": "codigo_abogado",
+    "parent_category": "codigos",
+    "type": "Código",
+    "date": "2026-01-24",
+    "description": "Extraído automáticamente de codigo_abogado.pdf",
+    "content": {
+      "articles": [
+        {
+          "type": "header",
+          "text": "Título I. Disposiciones generales"
+        },
+        {
+          "type": "article",
+          "number": "1",
+          "title": "Artículo 1",
+          "text": "º. Las normas contenidas en este código serán de obligatorio cumplimiento para todos los Abogados en su vida pública y privada. Su aplicación corresponderá previstos en la Ley y sus disposiciones no podrán enervarse ni relajarse por convenios de ningún tipo. Serán nulos todos los actos que pretendan contrariarlo, ya emanen de personas o entidades públicas o privadas."
+        },
+        {
+          "type": "article",
+          "number": "2",
+          "title": "Artículo 2",
+          "text": "º. El Abogado tendrá como norte de sus actos servir a la justicia, asegurar la libertad y el ministerio del Derecho. El Abogado que conozca de cualquier hecho que atenta contra las prohibiciones de este Código, está en el deber de dar información inmediata al Colegio de Abogados al cual este inscrito el infractor."
+        },
+        {
+          "type": "header",
+          "text": "Título II. De Los Deberes Profesionales"
+        },
+        {
+          "type": "article",
+          "number": "3",
+          "title": "Artículo 3",
+          "text": "º. Constituyen faltas disciplinarias que acarrean las sanciones previstas en la Ley, la violación de los deberes establecidos en este Titulo."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo I. De Los Deberes Esenciales"
+        },
+        {
+          "type": "article",
+          "number": "4",
+          "title": "Artículo 4",
+          "text": "º. Son deberes de Abogado:\n\n1. Actuar con probidad, honradez, discreción, eficiencia, desinterés, veracidad y lealtad.\n\n2. Conservar absoluta independencia en sus actuaciones profesionales.\n\n3. Mantener en todo momento el respeto a su dignidad como persona y como profesional.\n\n4. Defender los derechos de la sociedad y de los particulares cooperando en la conservación y perfeccionamiento del orden jurídico y en la realización de una recta y eficaz administración de justicia.\n\n5. Fortalecer la fraternidad de sus colegas, mediante el respeto mutuo con trato cordial y racional tolerancia."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo II. De los Deberes Institucionales."
+        },
+        {
+          "type": "article",
+          "number": "5",
+          "title": "Artículo 5",
+          "text": "º. El honor de la Abogacía es indivisible; la dignidad y el decoro han de caracterizar siempre la actuación del Abogado. Lesiona el patrimonio moral de todo gremio, el Abogado que incurra en una acción indigna."
+        },
+        {
+          "type": "article",
+          "number": "6",
+          "title": "Artículo 6",
+          "text": "º. La conducta privada del Abogado se ajustará a las reglas del honor, de la dignidad y de la delicadeza propia del hombre honesto."
+        },
+        {
+          "type": "article",
+          "number": "7",
+          "title": "Artículo 7",
+          "text": "º. El Abogado combatirá por todos los medios lícitos la conducta moralmente censurable de sus colegas, investidos o no de autoridad y deberá hacer las denuncias pertinentes. Incurre en grave falta si elude el cumplimiento de este deber, observando una actitud pasiva, indiferente o complaciente."
+        },
+        {
+          "type": "article",
+          "number": "8",
+          "title": "Artículo 8",
+          "text": "º. El Abogado en ejercicio de su profesión deberá conservar su dignidad e independencia; estas son irrenunciables e incompatibles con toda ocupación que obstaculice. No deberá aceptar sugerencias de su patrocinado, representado o asistido que pueda lesionar su honorabilidad. El Abogado hará respetar su independencia frente a los poderes públicos, los magistrados y demás autoridades administrativas frente a las cuales ejerza su ministerio, y actuará siempre conforme a su conciencia, rechazando todo lo que contraríe a la justicia y a la libertad de la defensa. En su condición profesional y como representante de terceros, tendrá derechos ante los órganos públicos a una atención preferente para el cabal cumplimiento de su ministerio."
+        },
+        {
+          "type": "article",
+          "number": "9",
+          "title": "Artículo 9",
+          "text": "º. El Abogado no debe utilizar los medios de comunicación social para discutir los asuntos que se le encomienden, ni dar publicidad a las piezas del expediente en los asuntos aún no sentenciados, a menos que sea necesario pare la corrección de los conceptos cuando la justicia y la moral lo exijan. Una vez concluido el proceso, el Abogado podrá publicar los documentos y actuaciones, así como también sus comentarios exclusivamente científicos, hechos en publicaciones profesionales que deberán regirse por principios profesionales de la ética. Se omitirán los nombres propios si la publicación puede perjudicar a alguien en su honor y buena fama. Tampoco podrá utilizar los medios de comunicación para amenazar con acciones judiciales y forzar convenios. El Abogado puede publicar informaciones o comentarios con fines científicos en diarios o revistas especializadas, observando las normas morales y la omisión de nombres y apellidos de las partes, cuando tal circunstancia causare perjuicios a los mismos."
+        },
+        {
+          "type": "article",
+          "number": "10",
+          "title": "Artículo 10",
+          "text": "º. La Formación decorosa de patrocinados, representados o defendidos debe fundamentarse en la honorabilidad y capacidad profesional del Abogado, quien deberá abstenerse de utilizar agentes que le procuren nuevos casos profesionales, ni proporcionará publicidad a su propio elogio, ni inducirá a que se hagan noticias o comentarios vinculados a asuntos en los que intervenga o a la manera de conducirlos. La publicidad del Abogado a través de los medios escritos o audiovisuales se limitará a la mención de su nombre, títulos científicos, especialidad autorizada por su correspondiente colegio, dirección de su bufete y teléfono y apartado postal, así como las horas de atención al público. Todo anuncio contenido cuasicomercial en el que se prometan resultados y ventajas especiales, configura falta grave de la ética profesional del abogado. Atenderá a sus patrocinados y demás interesados en los casos que lleve en su bufete, salvo que les sea imposible concurrir al mismo y no autorizará con su nombre la apertura de bufetes u oficinas cuando no los atienda diaria o personalmente."
+        },
+        {
+          "type": "article",
+          "number": "11",
+          "title": "Artículo 11",
+          "text": "º. El abogado debe abstenerse de ofrecer sus servicios y de dar consejos no solicitados con el fin de provocar juicios y obtener patrocinados o defendidos, a menos que vínculos de parentesco o amistad intima se lo imponga como un deber."
+        },
+        {
+          "type": "article",
+          "number": "12",
+          "title": "Artículo 12",
+          "text": "º. El abogado que directa o indirectamente, remunere o recompense a las personas que lo hubieren recomendado, incurre en grave infracción de la ética profesional."
+        },
+        {
+          "type": "article",
+          "number": "13",
+          "title": "Artículo 13",
+          "text": "º. El abogado aceptará o rechazará los asuntos sin exponer las razones que tuviere para ello, salvo el caso de nombramiento de oficio, en que deba justificar el rechazo. En su decisión no deberá influir el interés personal, el monto pecuniario del asunto, ni la capacidad financiera del adversario. Tampoco aceptará el abogado un asunto en el que tuviere sostener principios contrarios a sus convenios personales, incluso políticas o religiosas, ni aquellos en que su independencia se viere obstaculizada por motivos de amistad, parentesco o de otra índole. En suma, no intervendrá en un asunto sino cuando tenga libertad para actuar."
+        },
+        {
+          "type": "article",
+          "number": "14",
+          "title": "Artículo 14",
+          "text": "º. El abogado como servidor de la justicia y colaborador en su administración, no deberá olvidar que la esencia de su poder profesional consiste en defender los derechos de su representado o asistido con diligencia y estricta sujeción a loa normas jurídicas y la ley moral."
+        },
+        {
+          "type": "article",
+          "number": "15",
+          "title": "Artículo 15",
+          "text": "º. El abogado acusador en el juicio penal considerará como su primer deber, velar por el que se haga justicia y no por que se obtenga una condena. En sus actuaciones frente a la nación y a las entidades estatales y municipales, el abogado tendrá cuidado de no lesionar los intereses legítimos de éstas."
+        },
+        {
+          "type": "article",
+          "number": "16",
+          "title": "Artículo 16",
+          "text": "º. Ningún abogado permitirá que sus servicios o bien su nombre sean usados de modo que personas legalmente desautorizadas para el ejercicio del derecho puedan practicarlo. El abogado se abstendrá de suscribir y visar documentos en cuya redacción no haya participado."
+        },
+        {
+          "type": "article",
+          "number": "17",
+          "title": "Artículo 17",
+          "text": "º. Es deber del abogado ser puntual en su asistencia en los tribunales, así como también en sus citas o reuniones con los colegas, sus clientes o la parte contraría."
+        },
+        {
+          "type": "article",
+          "number": "18",
+          "title": "Artículo 18",
+          "text": "º. Cuando un abogado no pudiere concurrir a un acto judicial en el cual deba participar, por motivo de enfermedad u otro plenamente justificable, solicitará oportunamente al juez el diferimiento del acto y prevendrá del hecho a su colega adversario, quien, por espíritu de confraternidad estará obligado también a adherirse a la solicitud del diferimiento del acto."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo III. Deberes para con el Asistido o Patrocinado"
+        },
+        {
+          "type": "article",
+          "number": "19",
+          "title": "Artículo 19",
+          "text": "º. El abogado, en defensa de la verdad y los intereses que representa, ejercerá libremente y con moderación su ministerio, sin más limitaciones que las establecidas en las demás normas que regulen el ejercicio profesional de la abogacía."
+        },
+        {
+          "type": "article",
+          "number": "20",
+          "title": "Artículo 20",
+          "text": "º. La conducta del abogado deberá caracterizarse siempre por la honradez y la franqueza. No deberá aconsejar ni ejecutar actos que puedan calificarse de dolorosos, hacer aseveraciones o negaciones falsas, citas inexactas, incompletas o maliciosas, ni realizar acto alguno que pueda entorpecer una eficaz y rápida administración de la justicia."
+        },
+        {
+          "type": "article",
+          "number": "21",
+          "title": "Artículo 21",
+          "text": "º. El abogado que en el ejercicio de su ministerio, directa o indirectamente, intente o ejecute actos en concusión, soborno o cualesquiera otros de corrupción, incurre en grave falta contra el honor y la ética, sin perjuicio de las acciones penales a que hubiere lugar."
+        },
+        {
+          "type": "article",
+          "number": "22",
+          "title": "Artículo 22",
+          "text": "º. El abogado deberá abstenerse de hacer uso de recusaciones injustificadas y de ejercer otros recursos y procedimientos legales innecesarios, con el solo objeto de entorpecer o retardar la secuela del juicio."
+        },
+        {
+          "type": "article",
+          "number": "23",
+          "title": "Artículo 23",
+          "text": "º. Es deber del abogado la defensa gratuita de las personas de escasos recursos económicos, debiendo observar no obstante, las normas que al respecto contiene la Ley de Abogados y el Reglamento Nacional de Honorarios Mínimos."
+        },
+        {
+          "type": "article",
+          "number": "24",
+          "title": "Artículo 24",
+          "text": "º. Es deber del abogado aceptar la defensa de una persona a quién le imputa delito o falta y emplear todos los medios lícitos para obtener la recta aplicación de la Ley. Podrá excusarse de aceptar esa defensa por razones morales."
+        },
+        {
+          "type": "article",
+          "number": "25",
+          "title": "Artículo 25",
+          "text": "º. El abogado guardará el más riguroso secreto profesional. Este secreto amparará sus archivos y papeles aún después que el abogado haya dejado de presentarles sus servicios al patrocinado o al defendido. El abogado podrá negarse a testificar en contra de éste y abstenerse de contestar cualquier pregunta que envuelva la revelación del secreto o la violación de las confidencias que hubieren hecho. Tampoco podrá el abogado comunicar a terceras personas lo que llegare a su conocimiento por causa de su profesión. Queda comprendido del secreto profesional, todo cuanto un abogado trate con el representante de la parte contraria."
+        },
+        {
+          "type": "article",
+          "number": "26",
+          "title": "Artículo 26",
+          "text": "º. El deber de guardar el secreto profesional comprenderá también todo lo que se haya revelado o descubierto con motivo de requerirse la opinión del abogado, su consejo y patrocinio y, en general, todo lo que llegare a saber por razón de su profesión. El abogado no debe intervenir en asuntos que puedan conducirlo a revelar el secreto, ni a utilizar en provecho propio o de su patrocinado, representado o defendido las confidencias que haya recibido en el ejercicio de su profesión, salvo que obtenga el consentimiento previo, expreso y escrito del confidente. La obligación de guardar el secreto profesional comprende también los asuntos que el abogado conozca por trabajar en común o asociados con otros abogados o por intermedio de empleados o dependientes suyos o de los otros profesionales."
+        },
+        {
+          "type": "article",
+          "number": "27",
+          "title": "Artículo 27",
+          "text": "º. El abogado que fuere acusado judicialmente o denunciado por su patrocinado ante el Tribunal Disciplinario del mismo colegio, estará dispensado de su obligación de guardar el secreto profesional, en, los limites necesarios e indispensables para su propia defensa."
+        },
+        {
+          "type": "article",
+          "number": "28",
+          "title": "Artículo 28",
+          "text": "º. Si un asesorado, patrocinado o defendido comunica a su abogado la intención de cometer un hecho punible, éste agotará todos los medios necesarios para persuadirlo, de tal propósito y, en caso de no lograrlo, puede hacer las revelaciones necesarias para perseguir el acto delictuoso o proteger a las personas y a los bienes amenazados."
+        },
+        {
+          "type": "article",
+          "number": "29",
+          "title": "Artículo 29",
+          "text": "º. Constituye deslealtad e infracción de la ética profesional, celebrar arreglos con la contraparte a espaldas de su patrocinado."
+        },
+        {
+          "type": "article",
+          "number": "30",
+          "title": "Artículo 30",
+          "text": "º. El abogado que ha aceptado prestar su patrocinio a una parte, no puede, en el mismo asunto, encargarse de la representación de la otra parte, ni prestarle sus servicios en dicho asunto, aun cuando ya no represente a la contraria."
+        },
+        {
+          "type": "article",
+          "number": "31",
+          "title": "Artículo 31",
+          "text": "º. El abogado servirá a sus asistidos o patrocinados con eficacia y diligencia para hacer valer sus derechos, sin temor a provocar animadversiones o represalias de autoridades o particulares, sin embargo, él no deberá renunciar a su libertad de acción ni dejar de obedecer a su conciencia, y no podrá exculparse de un acto ilícito de su parte, atribuyendo la instrucciones de su representa do o asistido."
+        },
+        {
+          "type": "article",
+          "number": "32",
+          "title": "Artículo 32",
+          "text": "º. El abogado, en ningún caso, podrá asegurar a su patrocinado que su asunto tendrá éxito para inclinarlo a litigar, estando por el contrario, en el deber de imponerlo de las circunstancias imprevisibles que puedan afectarla decisión del asunto y limitándose a emitir su opinión sobre los méritos del caso. El abogado deberá favorecer siempre un arreglo justo."
+        },
+        {
+          "type": "article",
+          "number": "33",
+          "title": "Artículo 33",
+          "text": "º. El abogado, al ser contratado para un juicio, deberá revelar a su patrocinado las relaciones que tenga con la otra parte, así como cualquier interés que pueda tener en la controversia, y declarará si él está sujeto a influencias que sean adversas a las prestaciones de su patrocinados. Si éste, a pesar de ello, desea contratar sus servicios, será con plena revelación de los hechos."
+        },
+        {
+          "type": "article",
+          "number": "34",
+          "title": "Artículo 34",
+          "text": "º. El abogado no deberá olvidar que el derecho de representación se le otorgará en consideración a su titulo y no le faculta para actuar en beneficio propio, sino que antes bien cuanto obtuviere dentro de su gestión, pertenecerá exclusivamente a su representa o asistido."
+        },
+        {
+          "type": "article",
+          "number": "35",
+          "title": "Artículo 35",
+          "text": "º. Una vez que el abogado acepte el patrocinio de su asunto, deberá atenderlo con diligencia hasta su conclusión, salvo causas justificadas supervinientes, en especial cuando se vea afectado en su dignidad, reputación o conciencia; o cuando el patrocinado incumpla con las obligaciones morales o materiales a las que está obligado para con el abogado."
+        },
+        {
+          "type": "article",
+          "number": "36",
+          "title": "Artículo 36",
+          "text": "º. El abogado debe procurar que se mantenga una actitud correcta y respetuosa tanto con los funcionarios, como con el abogado de la contraparte y con los terceros que intervengan en el juicio. Si el asistido persiste en su conducta incorrecta, el abogado deberá renunciarle su patrocino."
+        },
+        {
+          "type": "article",
+          "number": "37",
+          "title": "Artículo 37",
+          "text": "º. Cuando un abogado descubra en el curso de un juicio que ha ocurrido algún error o impostura mediante el cual su patrocinado se beneficie injustamente deberá comunicarle tal hecho a fin de que sea corregido y no aprovecharse de la ventaja que podría tener al respecto. En caso de que se niegue, el abogado deberá renunciar a continuar prestándole su patrocinio."
+        },
+        {
+          "type": "article",
+          "number": "38",
+          "title": "Artículo 38",
+          "text": "º. Si en el concurso de un asunto el abogado cree que debe cesar la prestación de sus servicios a su patrocinado, deberá prevenirlo a tiempo para que se provea de otro profesional, si lo creyere conveniente a sus interese y procurará que no quede indefenso."
+        },
+        {
+          "type": "article",
+          "number": "39",
+          "title": "Artículo 39",
+          "text": "º. Al estimar sus honorarios el abogado deberá considerar que el objeto esencial de la profesión es servir a la justicia y colaborar en su administración sin hacer comercio de ella. La ventaja o compensación aún cuando sea indudablemente lícita, es puramente asesoría, ya que jamás podría constituir honorablemente un factor determinante para los actos profesionales. El abogado cuidará que su retribución no peque por exceso ni por el defecto, pues ambos extremos son contrarios a la dignidad profesional. Constituye la falta de ética el cobro excesivo e injustificado de honorarios, signo visible de falta de honradez profesional o percibir honorarios inferiores al mínimo establecido en las tarifas adoptadas por el Colegio de Abogados."
+        },
+        {
+          "type": "article",
+          "number": "40",
+          "title": "Artículo 40",
+          "text": "º. Para la determinación del monto de los honorarios, el abogado deberá basar sus consideraciones en las siguientes circunstancias:\n\n1. La importancia de los servicios.\n\n2. La cuantía del asunto.\n\n3. El éxito obtenido y la importancia del caso.\n\n4. La novedad o dificultad de los problemas jurídicos discutidos.\n\n5. Su especialidad, experiencia y reputación profesional.\n\n6. La situación económica de su patrocinado, tomando en consideración que la pobreza obliga a cobrar honorarios menores o ningunos.\n\n7. La posibilidad del abogado pueda ser impedido de patrocinar otros asuntos, o que pueda verse obligado a estar en desacuerdo con otro representados, defendidos o terceros.\n\n8. Si los servicios profesionales son eventuales o fijos y permanentes.\n\n9. La responsabilidad que se deriva para el abogado en relación con el asunto.\n\n10. El tiempo requerido en el patrocinio.\n\n11. El grado de participación del abogado en el estudio, planteamiento y desarrollo del asunto.\n\n12. Si el abogado ha procedido como consejero del patrocinado o como apoderado.\n\n13. El lugar de la prestación de los servicios, o sea, si ha recurrido o no fuera del domicilio del abogado."
+        },
+        {
+          "type": "article",
+          "number": "41",
+          "title": "Artículo 41",
+          "text": "º. El abogado siempre debe solicitar a su patrocinado una provisión de fondos para los gastos necesarios y de justicia, pero esa entrega no debe ser considerada como imputable a los honorarios, ni el abogado puede conceptuar que ella le pertenece como propia. Si los fondos entregados para expensas no se consumieren íntegramente, el abogado debe restituir el saldo de su representado al rendirle cuenta especificada de la inversión que hiciera de dichas expensas."
+        },
+        {
+          "type": "article",
+          "number": "42",
+          "title": "Artículo 42",
+          "text": "º. El abogado deberá da recibo a su patrocinado por las entregas de dinero que le hiciere como anticipo o cancelación de honorarios, o bien como expensas según los casos."
+        },
+        {
+          "type": "article",
+          "number": "43",
+          "title": "Artículo 43",
+          "text": "º. El abogado deberá celebrar con su patrocinado un contrato por escrito, en el cual especificará las condiciones de los servicios y todo lo relativo al pago de los honorarios y gastos, que será firmado por ambas partes, conservando cada una un ejemplar del mismo."
+        },
+        {
+          "type": "article",
+          "number": "44",
+          "title": "Artículo 44",
+          "text": "º. El abogado no deberá, a excepción de sus honorarios, adquirir interés pecuniario en el asunto que se ventila y qué él esté dirigiendo o que hubiere sido dirigido por él. Tampoco podrá adquirir directa o indirectamente, bienes venidos de remates judiciales de asuntos en que hubiere participado."
+        },
+        {
+          "type": "article",
+          "number": "45",
+          "title": "Artículo 45",
+          "text": "º. El abogado deberá evitar toda controversia con su representado frente a honorarios, hasta donde lo sea compatible con su dignidad profesional y con su derecho a recibir una compensación razonable por sus servicios. En caso de seguir la controversia, se recomienda que el abogado proponga el arbitraje de la Junta Directiva Del colegio. Si el patrocinado conviene en el arbitraje el abogado lo aceptará sin reparo alguno. En caso de que el abogado se vea obligado a demandar a su patrocinado es aconsejable que se haga representar por un colega."
+        },
+        {
+          "type": "article",
+          "number": "46",
+          "title": "Artículo 46",
+          "text": "º. El abogado dará aviso inmediatamente a su patrocinado sobre cualesquiera bienes o simas de dinero que reciba en su representación y deberá entregarlos íntegramente tan pronto como le sean reclamados. Es una falta de ética, hacer uso de fondos pertenecientes a su representado sin su consentimiento, además del delito que dicho acto genera."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo IV. Deberes para con los Jueces"
+        },
+        {
+          "type": "article",
+          "number": "47",
+          "title": "Artículo 47",
+          "text": "º. El abogado deberá estar siempre dispuesto a prestar su apoyo a la justicia y a mantener frente a esta una actitud respetuosa, sin que ello menoscabe su amplia independencia y autonomía en el libre ejercicio de la profesión."
+        },
+        {
+          "type": "article",
+          "number": "48",
+          "title": "Artículo 48",
+          "text": "º. El abogado en sus escritos, informes y exposiciones podrá citar las instituciones, así como también los actos de los jueces y demás funcionarios que hubieren intervenido, cuando éstos a su juicio, no se hubiesen ceñido a las leyes o a la verdad procesal. Actuará con la mayor independencia y solo utilizará los calificativos empleados por las leyes o autorizados por la doctrina."
+        },
+        {
+          "type": "article",
+          "number": "49",
+          "title": "Artículo 49",
+          "text": "º. Las regla contenidas en los dos artículos precedentes son también aplicables a otros funcionarios ante quien los abogados actúen en ejercicio de su profesión."
+        },
+        {
+          "type": "article",
+          "number": "50",
+          "title": "Artículo 50",
+          "text": "º. Cuando un abogado desempeñare un cargo judicial u otro destino público, y se retirase de ellos, no deberá aceptar asuntos en los conocido como funcionario. Tampoco patrocinara asuntos similares a aquellos en que hubiere emitido dictamen adverso en su carácter oficial, mientras no justifique satisfactoriamente su cambio de opinión. Es aconsejable que el abogado, durante algún tiempo, se abstenga de actuar profesionalmente por ante el tribunal u oficina pública que estuvo a su cargo o de la que fue empleado."
+        },
+        {
+          "type": "article",
+          "number": "51",
+          "title": "Artículo 51",
+          "text": "º. Es deber del abogado abstenerse de ejercer influencia sobre un juez en razón de vínculos políticos religiosos o de amistad. Tampoco utilizará recomendaciones de superiores jerárquicos para presionar la independencia del funcionario, desviando así su imparcialidad en beneficio de su asunto. El abogado, además, está obligado a emplear en su condición profesional, solamente medios persuasivos fundados en razonamientos jurídicos."
+        },
+        {
+          "type": "article",
+          "number": "52",
+          "title": "Artículo 52",
+          "text": "º. Constituye una grave infracción ética sostener comunicaciones privadas con los jueces, fiscales del Ministerio Publico u otros funcionarios, en ausencia del abogado de la parte contraria, en relación con un juicio pendiente, o de asunto que se gestione."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo V. Deberes para con los Colegas"
+        },
+        {
+          "type": "article",
+          "number": "53",
+          "title": "Artículo 53",
+          "text": "º. El abogado no deberá apartarse, ni aun por apremio de su patrocinado, de los dictados de la decencia y del honor. Constituye falta grave a la ética que un abogado cobre honorarios a su colega por actuaciones jurídicas o extrajudiciales que realice en nombre suyo o en su representación o patrocinio, o en aquellos casos en que el pago de honorarios corresponda al colega, pues tales servicios pueden prestarse gratuitamente, con el mayor celo y diligencia como un imperativo de la solidaridad gremial."
+        },
+        {
+          "type": "article",
+          "number": "54",
+          "title": "Artículo 54",
+          "text": "º. Los arreglos o transacciones con la parte contraría deberá siempre tratarse por intermedio o por el conducto de un representante legal, previamente acreditado."
+        },
+        {
+          "type": "article",
+          "number": "55",
+          "title": "Artículo 55",
+          "text": "º. Todo abogado que sea requerido para encargarse de un asunto, deberá asegurarse antes de aceptar, de que ningún colega ha sido encargado previamente del mismo. Si sustituye a un colega, deberá cerciorarse de que éste se ha desinteresado completamente del asunto. Sin Embargo en materia urgente, podrá prestar el abogado su patrocinio, pero con la condición de informar por la vía más rápida al Presidenta del Colegio respectivo. Cuando la intervención del colega no es descubierta sino después de haber aceptado el asunto, deberá darle aviso de ello al sustituido, en todo caso el abogado está en la obligación de asegurarse de que los honorarios de su colega han sido pagados o garantizados."
+        },
+        {
+          "type": "article",
+          "number": "56",
+          "title": "Artículo 56",
+          "text": "º. Cuando un abogado haya de sustituir a un colega precedentemente encargado del asunto o de asuntos conexos, deberá ofrecerle sus buenos oficios para hacerle obtener la remuneración justa que le fuese debida y si no logra que el cliente satisfaga a su colega, deberá rehusar prestarle sus servicios. Los arreglos convenios entre abogados deberán cumplirse fielmente, aún cuando no se reúnan las formalidades legales. Los que sean importantes para el patrocinado deberán hacerse constar por escrito; pero el honor profesional requiere que aun cuando esto no se haga, sean cumplidos como si estuvieran incorporados en un instrumento."
+        },
+        {
+          "type": "article",
+          "number": "57",
+          "title": "Artículo 57",
+          "text": "º. La distribución de honorarios entre abogados está permitida solamente en los casos de asociación de honorarios para la prestación de servicios, compartiendo las debidas responsabilidades."
+        },
+        {
+          "type": "article",
+          "number": "58",
+          "title": "Artículo 58",
+          "text": "º. El abogado observará la cortesía y la consideración que imponen los deberes de respeto mutuo entre los profesionales del derecho. Si un funcionario publico en abogado, por espíritu de confraternidad, deberá atender a su colega en ejercicio de su gestión profesional, con prioridad y la debida cortesía."
+        },
+        {
+          "type": "header",
+          "text": "Capítulo VI. Deberes para con el Colegio"
+        },
+        {
+          "type": "article",
+          "number": "59",
+          "title": "Artículo 59",
+          "text": "º. Es deber imperativo del abogado sostener al colegio al cual pertenece, con entusiasmo, y usar sus esfuerzos personales para alcanzar el mayor éxito de sus fines organizativos y cualesquiera tareas o cargo de miembros de comisiones que le sean asignadas en esta organización deberán ser aceptados y ejecutados. El abogado podrá excusarse solo por razones justificadas. En consecuencia, pagará puntualmente las cuotas y contribuciones establecidas por los organismos gremiales."
+        },
+        {
+          "type": "header",
+          "text": "Título III. Disposiciones Finales"
+        },
+        {
+          "type": "article",
+          "number": "60",
+          "title": "Artículo 60",
+          "text": "º. Salvo disposiciones expresas del Colegio de Abogados las acciones disciplinarias prescriben a los dieciocho meses, contados desde el día que se perpetró el hecho o el ultimo acto constitutivo de la falta. El auto que declare haber lugar a la Formación de la causa interrumpe la prescripción."
+        },
+        {
+          "type": "article",
+          "number": "61",
+          "title": "Artículo 61",
+          "text": "º. Las normas de este código solo podrán ser modificadas por el consejo superior o la asamblea de la FEDERACION DE COLEGIOS DE ABOGADOS DE VENEZUELA."
+        },
+        {
+          "type": "article",
+          "number": "62",
+          "title": "Artículo 62",
+          "text": "º. Este Código entrará en vigencia el día 15 de Septiembre de 1.985, quedando desde esta fecha derogadas las disposiciones contenidas el código de ética profesional de abogado venezolano dictado en fecha 4 de septiembre de 1.956; Las regulaciones aprobadas por el consejo superior de la federación del colegio de abogados de Venezuela, celebrado en la ciudad de Maracaibo estado Zulia, el día 6 de Julio de 1.968 y cualquier otra normativa que contravenga el presente código. Dado firmado y refrendado en la ciudad de San Cristóbal, en la sede del colegio de abogados del estado Táchira y del decimotercero consejo superior de la federación de colegios de abogados de Venezuela, a los 3 días del mes de agosto de 1.985 La junta directiva del XIII Consejo Superior de la Federación de Colegios de Abogados de Venezuela."
+        }
+      ]
+    }
+  }
+]
