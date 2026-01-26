@@ -2,8 +2,8 @@ name: Sincronización de Jurisprudencia TSJ
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 8:00 PM Venezuela (GMT-4)
-  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
+    - cron: '10 11 * * *' 
+  workflow_dispatch: 
 
 jobs:
   sync:
