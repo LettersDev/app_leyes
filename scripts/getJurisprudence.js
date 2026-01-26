@@ -187,8 +187,8 @@ async function syncDay(salaId, fecha, cookies) {
 
 async function saveToFirestore(s, salaId) {
     const salaInfo = SALA_MAP[salaId];
-    // --- MEJORA: Unicidad por sentencia, no por expediente ---
-    const sentId = `${salaInfo.code}-${s.SSENTNUMERO}`.toLowerCase().replace(/\s+/g, '');
+    const year = s.DSENTFECHA ? s.DSENTFECHA.split('/')[2] : new Date().getFullYear();
+    const sentId = `${salaInfo.code}-${year}-${s.SSENTNUMERO}`.toLowerCase().replace(/\s+/g, '');
 
     try {
         const docRef = doc(db, 'jurisprudence', sentId);
