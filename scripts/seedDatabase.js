@@ -1,12 +1,4 @@
-/**
- * SEED DATABASE RESILIENT (WEB SDK VERSION)
- * -----------------------------------------
- * Este script utiliza el SDK de Web en lugar del SDK de Admin.
- * Razón: El SDK de Admin usa gRPC (puerto 443) que a veces es bloqueado por 
- * proveedores de internet o firewalls, causando que las escrituras se queden colgadas.
- * El SDK de Web usa REST/WebSockets, que son mucho más compatibles.
- */
-
+require('dotenv').config();
 const { initializeApp } = require('firebase/app');
 const {
     getFirestore,
@@ -22,12 +14,12 @@ const path = require('path');
 
 // --- CONFIGURACIÓN ---
 const firebaseConfig = {
-    apiKey: "AIzaSyCgMdSE-aiAkyGIFYWzCHCGTfB_6n9vrkc",
-    authDomain: "appley-3f0fb.firebaseapp.com",
-    projectId: "appley-3f0fb",
-    storageBucket: "appley-3f0fb.firebasestorage.app",
-    messagingSenderId: "591288865686",
-    appId: "1:591288865686:web:b7f16ebd3bd3edf90443b7"
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
 };
 
 const BATCH_SIZE = 400; // Un poco menos de 500 para seguridad
@@ -122,12 +114,25 @@ async function run() {
     const startTime = Date.now();
     const dataDir = path.join(__dirname, '../data');
 
-    // Leer todos los archivos *_full.json
-    const files = fs.readdirSync(dataDir)
-        .filter(f => f.endsWith('_full.json'))
-        .map(f => path.join(dataDir, f));
+    // Leer archivo específico o todos los archivos *_full.json
+    const specificFileName = process.argv[2];
+    let files = [];
 
-    console.log(`📁 Encontrados ${files.length} archivos de leyes\n`);
+    if (specificFileName) {
+        const filePath = path.join(dataDir, specificFileName);
+        if (fs.existsSync(filePath)) {
+            files = [filePath];
+        } else {
+            console.error(`❌ El archivo no existe: ${specificFileName}`);
+            return;
+        }
+    } else {
+        files = fs.readdirSync(dataDir)
+            .filter(f => f.endsWith('_full.json'))
+            .map(f => path.join(dataDir, f));
+    }
+
+    console.log(`📁 Procesando ${files.length} leyes\n`);
 
     let uploadedCount = 0;
     let skippedCount = 0;
