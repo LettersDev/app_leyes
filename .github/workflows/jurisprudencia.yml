@@ -2,7 +2,7 @@ name: Sincronización de Jurisprudencia TSJ
 
 on:
   schedule:
-    - cron: '10 11 * * *' 
+    - cron: '0 0 * * *' 
   workflow_dispatch: 
 
 jobs:
