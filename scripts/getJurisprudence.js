@@ -7,12 +7,12 @@ const { SALA_MAP } = require('./tsj_config');
 // Configuración de Firebase para AppLeyes (Nuevo Proyecto: appley-3f0fb)
 // Configuración de Firebase - Protegiendo con Variables de Entorno
 const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY || "AIzaSyCgMdSE-aiAkyGIFYWzCHCGTfB_6n9vrkc",
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "appley-3f0fb.firebaseapp.com",
-    projectId: process.env.FIREBASE_PROJECT_ID || "appley-3f0fb",
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "appley-3f0fb.firebasestorage.app",
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "591288865686",
-    appId: process.env.FIREBASE_APP_ID || "1:591288865686:web:b7f16ebd3bd3edf90443b7"
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
 };
 
 // Inicializar Firebase
