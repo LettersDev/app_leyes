@@ -23,7 +23,6 @@ jobs:
       - name: Ejecutar Smart Sync
         run: node scripts/getJurisprudence.js auto
         env:
-          # Aquí usaremos las variables de entorno para seguridad
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
