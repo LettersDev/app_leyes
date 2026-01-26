@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require('axios');
 const https = require('https');
 const { initializeApp } = require('firebase/app');
