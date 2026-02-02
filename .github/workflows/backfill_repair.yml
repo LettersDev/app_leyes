@@ -2,7 +2,7 @@ name: Reparación Histórica (Backfill)
 
 on:
   schedule:
-    - cron: '30 4 * * *' # 12:30 AM Venezuela (aprox) -> Ejecutar en la madrugada para no chocar con el otro
+    - cron: '0 9 * * *' # 5:00 AM Venezuela (GMT-4) -> Ejecutar DESPUÉS del reinicio de cuotas (Midnight PT)
   workflow_dispatch:
 
 jobs:
