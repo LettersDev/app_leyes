@@ -29,29 +29,50 @@ except ImportError:
 
 def clean_and_format_text(text):
     """
-    Mejora el formato del texto de los artículos con reglas robustas (basado en fix_formatting.py).
+    Mejora el formato del texto de los artículos con reglas robustas.
+    Elimina artefactos de PDF, URLs, Fechas y pies de página comunes.
     """
     if not text: return ""
 
-    # 0. Unir palabras cortadas por guiones al final de línea (Suele pasar en PDFs)
+    # --- LIMPIEZA AGRESIVA DE ARTEFACTOS DE PDF (Pre-procesamiento) ---
+    
+    # 1. Eliminar URLs largas (http/https) que suelen aparecer en cabeceras/pies
+    text = re.sub(r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+[^\s]*', '', text)
+    
+    # 2. Eliminar Timestamps típicos de impresión (ej: "18/07/2014 2:35 PM")
+    # Formato: d/m/y h:m AM/PM
+    text = re.sub(r'\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}\s+(?:AM|PM|am|pm)', '', text)
+    
+    # 3. Eliminar "Documento sin título" y otras frases de generadores de PDF
+    text = re.sub(r'Documento sin título', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'Page \d+ of \d+', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'Página \d+ de \d+', '', text, flags=re.IGNORECASE)
+
+    # 4. Eliminar pies de página recurrentes específicos (ej: "Normas de Orden Público")
+    # Estos suelen quedar pegados al final del texto
+    text = re.sub(r'\d+\s+Normas de Orden Público', '', text, flags=re.IGNORECASE)
+
+    # --- FORMATO DE TEXTO (Lógica original mejorada) ---
+
+    # 5. Unir palabras cortadas por guiones al final de línea (Suele pasar en PDFs)
     # Ejemplo: "pro- \nfesionales" -> "profesionales"
     text = re.sub(r'(\w+)-\s*\n\s*(\w+)', r'\1\2', text)
     
-    # 1. Normalizar espacios y saltos de línea existentes
+    # 6. Normalizar espacios y saltos de línea existentes (compactar)
     text = re.sub(r'\s+', ' ', text).strip()
     
-    # 2. Saltos de línea antes de numerales ordinales (1°, 2°, 1º, 2º)
+    # 7. Restaurar saltos de línea para estructuras de lista (1°, 2°, a), b), etc.)
+    # Saltos antes de numerales ordinales
     text = re.sub(r'(?<!\n)(\s+)(\d+[°º]\.?)', r'\n\n\2', text)
     
-    # 3. Saltos de línea antes de numerales simples (1., 2., 3.) 
-    text = re.sub(r'(?<!\n)(\s+)(\d+\.)(?=\s[A-ZÁÉÍÓÚa-záéíóú])', r'\n\n\2', text)
+    # Saltos antes de numerales simples (1. Texto) cuando parece inicio de párrafo
+    text = re.sub(r'(?<!\n)(\s+)(\d+\.)(?=\s[A-ZÁÉÍÓÚ])', r'\n\n\2', text)
     
-    # 4. Saltos de línea antes de palabras clave de estructura
+    # 8. Saltos de línea antes de palabras clave de estructura
     numeral_words = [
         'Primero:', 'Segundo:', 'Tercero:', 'Cuarto:', 'Quinto:',
         'Sexto:', 'Séptimo:', 'Octavo:', 'Noveno:', 'Décimo:',
         r'Primero\.', r'Segundo\.', r'Tercero\.', r'Cuarto\.', r'Quinto\.',
-        r'Sexto\.', r'Séptimo\.', r'Octavo\.', r'Noveno\.', r'Décimo\.',
         'Parágrafo Primero', 'Parágrafo Segundo', 'Parágrafo Tercero',
         'Parágrafo Único', 'Parágrafo:'
     ]
@@ -60,7 +81,7 @@ def clean_and_format_text(text):
         pattern = rf'(?<!\n)(\s+)({word})'
         text = re.sub(pattern, r'\n\n\2', text, flags=re.IGNORECASE)
     
-    # 5. Limpiar múltiples espacios y saltos de línea
+    # 9. Limpieza final de espacios
     text = re.sub(r' +', ' ', text)
     text = re.sub(r'\n{3,}', '\n\n', text)
     

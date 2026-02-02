@@ -24,7 +24,7 @@ const firebaseConfig = {
 
 const BATCH_SIZE = 400; // Un poco menos de 500 para seguridad
 const DELAY_MS = 200;
-const SCHEMA_VERSION = "v3_structured_headers"; // Forzar recarga con cabeceras estructuradas
+const SCHEMA_VERSION = "v4_cleaned_text"; // Forzar recarga con texto limpio
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);

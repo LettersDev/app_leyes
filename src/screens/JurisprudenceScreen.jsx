@@ -200,8 +200,10 @@ const JurisprudenceScreen = ({ navigation }) => {
                 constraints.push(where('sala', '==', selectedSala));
             }
 
-            // Orden por defecto
-            constraints.push(orderBy('timestamp', 'desc'));
+            // Orden por defecto: Año Descendente (lo más reciente legalmente)
+            // Esto requerirá un nuevo índice compuesto: Sala + Ano
+            constraints.push(orderBy('ano', 'desc'));
+            constraints.push(orderBy('timestamp', 'desc')); // Tie-breaker para orden de carga dentro del año
 
 
             constraints.push(limit(20));

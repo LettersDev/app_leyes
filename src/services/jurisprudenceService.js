@@ -58,6 +58,7 @@ export const JurisprudenceService = {
                     const mainTerm = searchTerms[0];
 
                     // Traemos hasta 30 candidatos que tengan AL MENOS la primera palabra
+                    // Traemos hasta 30 candidatos que tengan AL MENOS la primera palabra
                     const qKeywords = query(
                         colRef,
                         where('keywords', 'array-contains', mainTerm),
@@ -85,11 +86,6 @@ export const JurisprudenceService = {
             return results;
         } catch (error) {
             console.error("Error searching jurisprudence:", error);
-            // Si falta el índice compuesto (keywords + timestamp), intentar sin orden
-            if (error.code === 'failed-precondition') {
-                console.warn("Retrying search without sorting (Index missing)...");
-                return [];
-            }
             return [];
         }
     },
