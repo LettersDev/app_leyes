@@ -33,11 +33,54 @@ async function getJurisprudence(options = {}) {
         return;
     }
 
+    if (mode === 'repair_auto') {
+        await runRepairAuto(roomIds);
+        return;
+    }
+
     console.log(`📅 Modo: ${mode}${year ? ` | Año: ${year}` : ''}`);
     const cookieStr = await getSessionCookies();
     if (!cookieStr) return;
 
     await executeSync(mode, year, roomIds, cookieStr);
+}
+
+// ... existing getSessionCookies ...
+
+// ... existing executeSync ...
+
+async function runRepairAuto(roomIds) {
+    console.log(`\n🚑 Iniciando Modo Reparación Automática (Backfill 2000 -> Futuro)`);
+    const configRef = doc(db, 'sync_monitor', 'repair_status');
+
+    let yearToRepair = 2000;
+    try {
+        const configSnap = await getDoc(configRef);
+        if (configSnap.exists()) {
+            yearToRepair = configSnap.data().nextYearToRepair || 2000;
+        }
+    } catch (e) {
+        console.log("⚠️ No se pudo leer estado de reparación, iniciando en 2000.");
+    }
+
+    const currentYear = new Date().getFullYear();
+    if (yearToRepair > currentYear) {
+        console.log(`✅ Reparación completada hasta el presente.`);
+        return;
+    }
+
+    console.log(`⏳ Reparando año: ${yearToRepair}...`);
+    const cookieStr = await getSessionCookies();
+    if (cookieStr) {
+        await executeSync('historical', yearToRepair, roomIds, cookieStr);
+
+        // Avanzar al siguiente año para mañana
+        await setDoc(configRef, {
+            nextYearToRepair: yearToRepair + 1,
+            lastRun: new Date().toISOString()
+        }, { merge: true });
+        console.log(`✅ Año ${yearToRepair} reparado. Próxima ejecución será: ${yearToRepair + 1}`);
+    }
 }
 
 async function getSessionCookies() {
