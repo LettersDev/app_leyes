@@ -1,6 +1,7 @@
 import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, startAt, endAt } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import OfflineService from './offlineService';
+import LawsIndexService from './lawsIndexService';
 
 const LAWS_COLLECTION = 'laws';
 
@@ -12,10 +13,19 @@ const normalizeText = (text) => {
 };
 
 /**
- * Obtener todas las leyes
+ * Obtener todas las leyes - LOCAL FIRST
+ * Primero intenta obtener del índice local, solo usa Firebase si no hay índice
  */
 export const getAllLaws = async () => {
     try {
+        // Intentar índice local primero (sin consumir Firebase reads)
+        const localLaws = await LawsIndexService.getAllLawsLocal();
+        if (localLaws && localLaws.length > 0) {
+            return localLaws;
+        }
+
+        // Fallback a Firebase si no hay índice local
+        console.log('No local index, fetching from Firebase...');
         const lawsRef = collection(db, LAWS_COLLECTION);
         const snapshot = await getDocs(lawsRef);
 
@@ -30,10 +40,17 @@ export const getAllLaws = async () => {
 };
 
 /**
- * Obtener leyes por categoría
+ * Obtener leyes por categoría - LOCAL FIRST
  */
 export const getLawsByCategory = async (category) => {
     try {
+        // Intentar índice local primero
+        const localLaws = await LawsIndexService.getLawsByCategoryLocal(category);
+        if (localLaws && localLaws.length > 0) {
+            return localLaws;
+        }
+
+        // Fallback a Firebase
         const lawsRef = collection(db, LAWS_COLLECTION);
         const q = query(lawsRef, where('category', '==', category));
         const snapshot = await getDocs(q);
@@ -49,10 +66,17 @@ export const getLawsByCategory = async (category) => {
 };
 
 /**
- * Obtener leyes por categoría padre (Agrupación)
+ * Obtener leyes por categoría padre (Agrupación) - LOCAL FIRST
  */
 export const getLawsByParentCategory = async (parentCategory) => {
     try {
+        // Intentar índice local primero
+        const localLaws = await LawsIndexService.getLawsByParentCategoryLocal(parentCategory);
+        if (localLaws && localLaws.length > 0) {
+            return localLaws;
+        }
+
+        // Fallback a Firebase
         const lawsRef = collection(db, LAWS_COLLECTION);
         const q = query(lawsRef, where('parent_category', '==', parentCategory));
         const snapshot = await getDocs(q);
@@ -216,10 +240,19 @@ export const getLawItemsAround = async (lawId, articleNumber, windowSize = 2) =>
 };
 
 /**
- * Buscar leyes por texto (Global)
+ * Buscar leyes por texto (Global) - LOCAL FIRST
+ * Esta función ahora es instantánea al usar el índice local
  */
 export const searchLaws = async (searchText) => {
     try {
+        // Intentar búsqueda local primero (0 Firebase reads)
+        const localResults = await LawsIndexService.searchLawsLocal(searchText);
+        if (localResults !== null) {
+            return localResults;
+        }
+
+        // Fallback a búsqueda en Firebase (solo si no hay índice)
+        console.log('No local index for search, using Firebase...');
         const allLaws = await getAllLaws();
         const searchNorm = normalizeText(searchText);
 

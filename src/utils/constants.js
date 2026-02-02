@@ -9,6 +9,8 @@ export const LAW_CATEGORIES = {
     CODIGO_ORGANICO_PROCESAL_PENAL: 'codigo_organico_procesal_penal',
     CODIGO_ORGANICO_TRIBUTARIO: 'codigo_organico_tributario',
     CODIGO_ORGANICO_JUSTICIA_MILITAR: 'codigo_organico_justicia_militar',
+    CODIGO_ABOGADO: 'codigo_abogado',
+    CODIGO_DEONTOLOGIA: 'codigo_deontologia',
     TSJ: 'tsj',
     GACETA: 'gaceta',
     LEYES: 'leyes', // Nueva categoría para leyes generales
@@ -26,6 +28,8 @@ export const CATEGORY_NAMES = {
     [LAW_CATEGORIES.CODIGO_ORGANICO_PROCESAL_PENAL]: 'Código Orgánico Procesal Penal',
     [LAW_CATEGORIES.CODIGO_ORGANICO_TRIBUTARIO]: 'Código Orgánico Tributario',
     [LAW_CATEGORIES.CODIGO_ORGANICO_JUSTICIA_MILITAR]: 'Código Orgánico de Justicia Militar',
+    [LAW_CATEGORIES.CODIGO_ABOGADO]: 'Código de Ética del Abogado',
+    [LAW_CATEGORIES.CODIGO_DEONTOLOGIA]: 'Código de Deontología Médica',
     [LAW_CATEGORIES.TSJ]: 'Sentencias TSJ',
     [LAW_CATEGORIES.GACETA]: 'Gaceta Oficial',
     [LAW_CATEGORIES.LEYES]: 'Leyes Ordinarias',

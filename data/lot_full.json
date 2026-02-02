@@ -1,11 +1,11 @@
 [
   {
     "title": "Ley Orgánica del Trabajo, los Trabajadores y las Trabajadoras",
-    "category": "lot",
-    "parent_category": "leyes",
-    "type": "ley_organica",
+    "category": "lottt",
+    "parent_category": "leyes_organicas",
+    "type": "Ley Organica",
     "date": "2026-01-24",
-    "description": "Extraído automáticamente de lot.pdf",
+    "description": "Ley que rige el area laboral",
     "content": {
       "articles": [
         {

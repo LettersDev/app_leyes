@@ -1,81 +1,95 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Card, Title, Paragraph, IconButton } from 'react-native-paper';
-import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES } from '../utils/constants';
+import { COLORS } from '../utils/constants';
+import LawsIndexService from '../services/lawsIndexService';
+import { getLawsByParentCategory } from '../services/lawService';
+
+// Mapeo de iconos por categoría (fallback para códigos conocidos)
+const CODE_ICONS = {
+    'codigo_civil': { icon: 'scale-balance', color: '#059669' },
+    'codigo_penal': { icon: 'gavel', color: '#DC2626' },
+    'codigo_comercio': { icon: 'briefcase', color: '#7C3AED' },
+    'codigo_procedimiento_civil': { icon: 'file-document-outline', color: '#2563EB' },
+    'codigo_organico_procesal_penal': { icon: 'shield-account', color: '#EA580C' },
+    'codigo_organico_tributario': { icon: 'cash-multiple', color: '#0891B2' },
+    'codigo_organico_justicia_militar': { icon: 'shield-star', color: '#65A30D' },
+    'codigo_abogado': { icon: 'account-tie', color: '#4F46E5' },
+    'codigo_deontologia': { icon: 'medical-bag', color: '#E11D48' },
+};
+
+// Colores para códigos nuevos (rotación automática)
+const DEFAULT_COLORS = ['#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B', '#10B981'];
 
 const CodesListScreen = ({ navigation }) => {
-    const codes = [
-        {
-            id: LAW_CATEGORIES.CODIGO_CIVIL,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGO_CIVIL],
-            icon: 'scale-balance',
-            description: 'Regula las relaciones civiles y patrimoniales',
-            color: '#059669',
-            articles: '1,982 artículos',
-        },
-        {
-            id: LAW_CATEGORIES.CODIGO_PENAL,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGO_PENAL],
-            icon: 'gavel',
-            description: 'Tipifica delitos y establece sanciones',
-            color: '#DC2626',
-            articles: '546 artículos',
-        },
-        {
-            id: LAW_CATEGORIES.CODIGO_COMERCIO,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGO_COMERCIO],
-            icon: 'briefcase',
-            description: 'Regula las relaciones comerciales',
-            color: '#7C3AED',
-            articles: '1,120 artículos',
-        },
-        {
-            id: LAW_CATEGORIES.CODIGO_PROCEDIMIENTO_CIVIL,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGO_PROCEDIMIENTO_CIVIL],
-            icon: 'file-document-outline',
-            description: 'Procedimientos judiciales civiles',
-            color: '#2563EB',
-            articles: '944 artículos',
-        },
-        {
-            id: LAW_CATEGORIES.CODIGO_ORGANICO_PROCESAL_PENAL,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGO_ORGANICO_PROCESAL_PENAL],
-            icon: 'shield-account',
-            description: 'Procedimientos penales (COPP)',
-            color: '#EA580C',
-            articles: '518 artículos',
-        },
-        {
-            id: LAW_CATEGORIES.CODIGO_ORGANICO_TRIBUTARIO,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGO_ORGANICO_TRIBUTARIO],
-            icon: 'cash-multiple',
-            description: 'Normativa tributaria (COT)',
-            color: '#0891B2',
-            articles: '342 artículos',
-        },
-        {
-            id: LAW_CATEGORIES.CODIGO_ORGANICO_JUSTICIA_MILITAR,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGO_ORGANICO_JUSTICIA_MILITAR],
-            icon: 'shield-star',
-            description: 'Justicia militar',
-            color: '#65A30D',
-            articles: '596 artículos',
-        },
-    ];
+    const [codes, setCodes] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadCodes();
+    }, []);
+
+    const loadCodes = async () => {
+        try {
+            // Cargar códigos desde el índice local (soporta ambos formatos)
+            let allCodes = await LawsIndexService.getAllCodesLocal();
+
+            // Si no hay índice local, intentar con Firebase
+            if (!allCodes || allCodes.length === 0) {
+                allCodes = await getLawsByParentCategory('codigos');
+            }
+
+            // Formatear para mostrar
+            const formattedCodes = allCodes.map((code, index) => {
+                const iconConfig = CODE_ICONS[code.category] || {
+                    icon: 'book-open-variant',
+                    color: DEFAULT_COLORS[index % DEFAULT_COLORS.length]
+                };
+
+                // Contar artículos si hay contenido
+                const articleCount = code.content?.articles?.filter(a => a.type === 'article').length || 0;
+
+                return {
+                    id: code.id,
+                    category: code.category,
+                    name: code.title,
+                    description: code.description || 'Código legal de Venezuela',
+                    icon: iconConfig.icon,
+                    color: iconConfig.color,
+                    articles: articleCount > 0 ? `${articleCount} artículos` : '',
+                };
+            });
+
+            setCodes(formattedCodes);
+        } catch (error) {
+            console.error('Error loading codes:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleCodePress = (code) => {
         navigation.navigate('LawsList', {
-            category: code.id,
+            category: code.category,
             categoryName: code.name,
         });
     };
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Text style={styles.loadingText}>Cargando códigos...</Text>
+            </View>
+        );
+    }
 
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>Códigos de Venezuela</Text>
                 <Text style={styles.subtitle}>
-                    Accede a todos los códigos legales del país
+                    {codes.length} códigos disponibles
                 </Text>
             </View>
 
@@ -95,7 +109,9 @@ const CodesListScreen = ({ navigation }) => {
                                     <Paragraph style={styles.codeDescription}>
                                         {code.description}
                                     </Paragraph>
-                                    <Text style={styles.articlesCount}>{code.articles}</Text>
+                                    {code.articles ? (
+                                        <Text style={styles.articlesCount}>{code.articles}</Text>
+                                    ) : null}
                                 </View>
                                 <IconButton icon="chevron-right" size={24} iconColor={COLORS.textSecondary} />
                             </Card.Content>
@@ -111,6 +127,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: COLORS.background,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLORS.background,
+    },
+    loadingText: {
+        marginTop: 12,
+        color: COLORS.textSecondary,
     },
     header: {
         padding: 20,
@@ -166,3 +192,4 @@ const styles = StyleSheet.create({
 });
 
 export default CodesListScreen;
+

@@ -88,6 +88,109 @@ const OfflineService = {
         } catch (error) {
             return [];
         }
+    },
+
+    /**
+     * Get total storage used by offline laws (in bytes)
+     */
+    getTotalStorageUsed: async () => {
+        try {
+            await OfflineService.init();
+            const files = await FileSystem.readDirectoryAsync(OFFLINE_DIR);
+            let totalSize = 0;
+
+            for (const file of files) {
+                const filePath = `${OFFLINE_DIR}${file}`;
+                const fileInfo = await FileSystem.getInfoAsync(filePath);
+                if (fileInfo.exists && fileInfo.size) {
+                    totalSize += fileInfo.size;
+                }
+            }
+
+            return totalSize;
+        } catch (error) {
+            console.error('Error getting storage size:', error);
+            return 0;
+        }
+    },
+
+    /**
+     * Get storage stats for display
+     */
+    getStorageStats: async () => {
+        try {
+            const downloadedIds = await OfflineService.getDownloadedLawIds();
+            const totalSize = await OfflineService.getTotalStorageUsed();
+
+            return {
+                lawCount: downloadedIds.length,
+                totalSizeBytes: totalSize,
+                totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2)
+            };
+        } catch (error) {
+            return { lawCount: 0, totalSizeBytes: 0, totalSizeMB: '0' };
+        }
+    },
+
+    /**
+     * Delete all offline laws to free space
+     */
+    clearAllOfflineLaws: async () => {
+        try {
+            const files = await FileSystem.readDirectoryAsync(OFFLINE_DIR);
+            for (const file of files) {
+                await FileSystem.deleteAsync(`${OFFLINE_DIR}${file}`);
+            }
+            console.log('All offline laws cleared');
+            return true;
+        } catch (error) {
+            console.error('Error clearing offline laws:', error);
+            return false;
+        }
+    },
+
+    /**
+     * Get detailed info about each downloaded law
+     */
+    getDownloadedLawsInfo: async () => {
+        try {
+            await OfflineService.init();
+            const files = await FileSystem.readDirectoryAsync(OFFLINE_DIR);
+            const lawsInfo = [];
+
+            for (const file of files) {
+                const filePath = `${OFFLINE_DIR}${file}`;
+                const fileInfo = await FileSystem.getInfoAsync(filePath);
+                const lawId = file.replace('.json', '');
+
+                if (fileInfo.exists) {
+                    try {
+                        const content = await FileSystem.readAsStringAsync(filePath);
+                        const data = JSON.parse(content);
+                        lawsInfo.push({
+                            id: lawId,
+                            title: data.metadata?.title || lawId,
+                            sizeBytes: fileInfo.size,
+                            sizeMB: ((fileInfo.size || 0) / (1024 * 1024)).toFixed(2),
+                            downloadedAt: data.downloadedAt,
+                            itemCount: data.items?.length || 0
+                        });
+                    } catch (e) {
+                        lawsInfo.push({
+                            id: lawId,
+                            title: lawId,
+                            sizeBytes: fileInfo.size,
+                            sizeMB: ((fileInfo.size || 0) / (1024 * 1024)).toFixed(2)
+                        });
+                    }
+                }
+            }
+
+            return lawsInfo;
+        } catch (error) {
+            console.error('Error getting downloaded laws info:', error);
+            return [];
+        }
     }
 };
 

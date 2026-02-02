@@ -9,14 +9,14 @@ const { width, height } = Dimensions.get('window');
 const SLIDES = [
     {
         id: '1',
-        title: 'AppLeyes Venezuela',
+        title: 'Tuley Venezuela',
         description: 'Toda la base legal de la República en un solo lugar. La herramienta definitiva para abogados y ciudadanos.',
         icon: 'scale-balance',
         color: COLORS.primary
     },
     {
         id: '2',
-        title: 'Jurisprudencia en Vivo',
+        title: 'Jurisprudencias',
         description: 'Consulta las últimas sentencias del TSJ seleccionadas y limpias para una lectura cómoda y nativa.',
         icon: 'gavel',
         color: '#DC2626'

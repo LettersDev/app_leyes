@@ -388,29 +388,7 @@ const LawDetailScreen = ({ route }) => {
         itemVisiblePercentThreshold: 50
     }).current;
 
-    const highlightText = (text, query) => {
-        if (!text || !query) return <Text>{text}</Text>;
-        const normalize = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-        const normText = normalize(text);
-        const normQuery = normalize(query.trim());
-        if (!normQuery) return <Text>{text}</Text>;
-
-        let lastIndex = 0;
-        const result = [];
-        const regex = new RegExp(normQuery, 'gi');
-        let match;
-        while ((match = regex.exec(normText)) !== null) {
-            result.push(text.substring(lastIndex, match.index));
-            result.push(
-                <Text key={match.index} style={styles.highlight}>
-                    {text.substring(match.index, match.index + normQuery.length)}
-                </Text>
-            );
-            lastIndex = match.index + normQuery.length;
-        }
-        result.push(text.substring(lastIndex));
-        return <Text>{result}</Text>;
-    };
+    // Note: highlightText function is defined in LawArticle component - removed duplicate
 
     const formatDate = (timestamp) => {
         if (!timestamp) return '';

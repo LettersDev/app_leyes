@@ -3,12 +3,15 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Searchbar, Card, Title, Paragraph, ActivityIndicator } from 'react-native-paper';
 import { searchLaws } from '../services/lawService';
 import { COLORS } from '../utils/constants';
+import JurisprudenceService from '../services/jurisprudenceService';
 
 const SearchScreen = ({ navigation }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
+
+    // ... (existing imports)
 
     const handleSearch = async (query) => {
         setSearchQuery(query);
@@ -21,8 +24,15 @@ const SearchScreen = ({ navigation }) => {
 
         try {
             setLoading(true);
-            const data = await searchLaws(query);
-            setResults(data);
+
+            // Buscar en Paralelo: Leyes (Local) y Jurisprudencia (Remoto)
+            const [lawsData, jurisprudenceData] = await Promise.all([
+                searchLaws(query),
+                JurisprudenceService.searchSentences(query)
+            ]);
+
+            // Combinar resultados
+            setResults([...jurisprudenceData, ...lawsData]);
             setSearched(true);
         } catch (error) {
             console.error('Error en búsqueda:', error);
@@ -47,9 +57,7 @@ const SearchScreen = ({ navigation }) => {
         let match;
 
         while ((match = regex.exec(normText)) !== null) {
-            // Texto antes del match
             result.push(text.substring(lastIndex, match.index));
-            // Texto del match (con estilo)
             result.push(
                 <Text key={match.index} style={styles.highlight}>
                     {text.substring(match.index, match.index + normQuery.length)}
@@ -62,25 +70,44 @@ const SearchScreen = ({ navigation }) => {
         return <Text>{result}</Text>;
     };
 
-    const renderResultItem = ({ item }) => (
-        <TouchableOpacity
-            onPress={() => navigation.navigate('LawDetail', { lawId: item.id })}
-        >
-            <Card style={styles.resultCard}>
-                <Card.Content>
-                    <Title style={styles.resultTitle} numberOfLines={2}>
-                        {highlightText(item.title, searchQuery)}
-                    </Title>
+    const renderResultItem = ({ item }) => {
+        const isJurisprudence = item.type === 'jurisprudencia';
 
-                    {item.searchableText && (
+        return (
+            <TouchableOpacity
+                onPress={() => isJurisprudence
+                    ? console.log("Navigate to Jurisprudence Detail", item.id) // TODO: Implement Detail Screen
+                    : navigation.navigate('LawDetail', { lawId: item.id })
+                }
+            >
+                <Card style={[styles.resultCard, isJurisprudence && { borderLeftColor: COLORS.secondary, borderLeftWidth: 4 }]}>
+                    <Card.Content>
+                        {isJurisprudence && (
+                            <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                                <Text style={{ fontSize: 12, color: COLORS.secondary, fontWeight: 'bold' }}>
+                                    {item.matchType ? `${item.matchType} • ` : ''}{item.sala || "JURISPRUDENCIA"}
+                                </Text>
+                                <Text style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>
+                                    {item.fecha} • EXP: {item.expediente}
+                                </Text>
+                            </View>
+                        )}
+
+                        <Title style={styles.resultTitle} numberOfLines={2}>
+                            {highlightText(item.title || item.titulo, searchQuery)}
+                        </Title>
+
                         <Paragraph style={styles.resultSnippet} numberOfLines={3}>
-                            {highlightText(item.searchableText.substring(0, 150), searchQuery)}...
+                            {highlightText(
+                                (item.searchableText || item.resumen || "").substring(0, 150),
+                                searchQuery
+                            )}...
                         </Paragraph>
-                    )}
-                </Card.Content>
-            </Card>
-        </TouchableOpacity>
-    );
+                    </Card.Content>
+                </Card>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <View style={styles.container}>

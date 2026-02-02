@@ -203,6 +203,7 @@ async function saveToFirestore(s, salaId) {
         // Crear el objeto de metadatos
         const metadata = {
             id_sentencia: sentId,
+            ano: parseInt(year), // Guardar año Numérico para búsquedas
             expediente: s.SSENTEXPEDIENTE,
             numero: s.SSENTNUMERO,
             sala: salaInfo.name,
@@ -212,6 +213,8 @@ async function saveToFirestore(s, salaId) {
             procedimiento: s.SPROCDESCRIPCION,
             partes: s.SSENTPARTES || 'N/A',
             resumen: s.SSENTDECISION || '',
+            // Texto para facilitar búsquedas simples (lowercase)
+            searchable_text: `${s.SSENTNUMERO} ${s.SSENTEXPEDIENTE} ${s.SSENTDECISION || ''}`.toLowerCase(),
             url_original: `http://historico.tsj.gob.ve/decisiones/${s.SSALADIR}/${s.NOMBREMES?.trim()}/${s.SSENTNOMBREDOC}`,
             timestamp: new Date().toISOString()
         };

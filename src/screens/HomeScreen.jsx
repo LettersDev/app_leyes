@@ -1,23 +1,36 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Card, Title, Paragraph, IconButton, Avatar, Surface } from 'react-native-paper';
+import { Card, Title, Paragraph, IconButton, Avatar, Surface, Banner } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import HistoryManager from '../utils/historyManager';
 import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES, GRADIENTS } from '../utils/constants';
+import LawsIndexService from '../services/lawsIndexService';
 
 const HomeScreen = ({ navigation }) => {
     const [history, setHistory] = useState([]);
+    const [hasNewLaws, setHasNewLaws] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
             loadHistory();
+            checkNewLaws();
         }, [])
     );
 
     const loadHistory = async () => {
         const h = await HistoryManager.getHistory();
         setHistory(h);
+    };
+
+    const checkNewLaws = async () => {
+        const hasNew = await LawsIndexService.hasNewLawsNotification();
+        setHasNewLaws(hasNew);
+    };
+
+    const dismissNewLawsBanner = async () => {
+        await LawsIndexService.clearNewLawsNotification();
+        setHasNewLaws(false);
     };
 
     const handleHistoryPress = (item) => {
@@ -98,6 +111,18 @@ const HomeScreen = ({ navigation }) => {
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+            {hasNewLaws && (
+                <Banner
+                    visible={hasNewLaws}
+                    icon="new-box"
+                    actions={[
+                        { label: 'Entendido', onPress: dismissNewLawsBanner }
+                    ]}
+                    style={styles.newLawsBanner}
+                >
+                    ¡Nuevas leyes disponibles! Revisa las categorías para ver las actualizaciones.
+                </Banner>
+            )}
             <LinearGradient
                 colors={GRADIENTS.legal}
                 style={styles.header}
@@ -107,7 +132,7 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.headerTopRow}>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.greeting}>Hola, Bienvenido</Text>
-                        <Text style={styles.title}>AppLeyes</Text>
+                        <Text style={styles.title}>TuLey</Text>
                         <View style={styles.titleUnderline} />
                     </View>
                     <TouchableOpacity
@@ -357,6 +382,12 @@ const styles = StyleSheet.create({
     historySubtitle: {
         fontSize: 11,
         color: COLORS.textSecondary,
+    },
+    newLawsBanner: {
+        backgroundColor: '#ECFDF5',
+        marginHorizontal: 16,
+        marginTop: 10,
+        borderRadius: 12,
     },
 });
 
