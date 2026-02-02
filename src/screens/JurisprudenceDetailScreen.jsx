@@ -7,6 +7,7 @@ import { COLORS } from '../utils/constants';
 const JurisprudenceDetailScreen = ({ route, navigation }) => {
     const { url, title } = route.params;
     const [loading, setLoading] = useState(true);
+    const [lastError, setLastError] = useState(null);
     const theme = useTheme();
 
     // Script para limpiar la interfaz del TSJ (ocultar cabeceras, pies de página y menús)
@@ -34,11 +35,13 @@ const JurisprudenceDetailScreen = ({ route, navigation }) => {
                 onError={(syntheticEvent) => {
                     const { nativeEvent } = syntheticEvent;
                     console.warn('WebView error: ', nativeEvent);
+                    setLastError(`${nativeEvent.description} (Code: ${nativeEvent.code})`);
                     setLoading(false);
                 }}
                 onHttpError={(syntheticEvent) => {
                     const { nativeEvent } = syntheticEvent;
                     console.warn('WebView HTTP error: ', nativeEvent);
+                    setLastError(`HTTP Error: ${nativeEvent.statusCode}`);
                 }}
                 style={styles.webview}
                 javaScriptEnabled={true}
@@ -56,8 +59,13 @@ const JurisprudenceDetailScreen = ({ route, navigation }) => {
                         <Text style={[styles.loadingText, { color: 'red', marginBottom: 10 }]}>
                             No se pudo cargar la sentencia.
                         </Text>
+                        {lastError && (
+                            <Text style={{ color: 'red', marginBottom: 10, fontSize: 12, textAlign: 'center', paddingHorizontal: 10 }}>
+                                {lastError}
+                            </Text>
+                        )}
                         <Text style={{ fontSize: 12, color: '#666', textAlign: 'center', paddingHorizontal: 20 }}>
-                            Es posible que el sitio web del TSJ esté caído o bloqueando la conexión.
+                            Es posible que el sitio web del TSJ esté caído, bloqueando la conexión, o falte configuración de red (Cleartext).
                         </Text>
                     </View>
                 )}
