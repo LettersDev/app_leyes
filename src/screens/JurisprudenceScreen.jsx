@@ -18,6 +18,7 @@ import {
 import { db } from '../config/firebase';
 import { collection, query, where, getDocs, orderBy, limit, startAfter } from 'firebase/firestore';
 import { COLORS } from '../utils/constants';
+import JurisprudenceService from '../services/jurisprudenceService';
 
 const SALAS = [
     { id: 'all', label: 'Todas' },
@@ -63,6 +64,11 @@ const JurisprudenceCard = React.memo(({
             <Card.Content>
                 <View style={styles.cardHeader}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {item.matchType && (
+                            <Text style={{ fontSize: 10, color: COLORS.secondary, fontWeight: 'bold', marginRight: 5 }}>
+                                [{item.matchType}]
+                            </Text>
+                        )}
                         <Text style={styles.expediente}>Exp: {item.expediente}</Text>
                         {item.fecha && (new Date() - parseDateString(item.fecha)) < (5 * 24 * 60 * 60 * 1000) && (
                             <View style={{
@@ -152,64 +158,51 @@ const JurisprudenceScreen = ({ navigation }) => {
         fetchJurisprudence(true);
     }, [selectedSala]);
 
+
+
     const fetchJurisprudence = async (isNewSearch = false) => {
         if (loading || (!isNewSearch && !hasMore)) return;
 
-        // Bloqueo de seguridad: si no es búsqueda nueva y no tenemos cursor, no hay nada que hacer
-        if (!isNewSearch && !lastDoc) return;
+        // Bloqueo de seguridad
+        if (!isNewSearch && !lastDoc && !searchQuery) return;
 
         setLoading(true);
         setIndexError(false);
 
-        if (isNewSearch) {
-            setData([]);
-            setLastDoc(null);
-            setHasMore(true);
-        }
-
         try {
+            // MODO BÚSQUEDA: Usar JurisprudenceService (Multi-filtro)
+            if (searchQuery.trim()) {
+                if (isNewSearch) {
+                    const results = await JurisprudenceService.searchSentences(searchQuery.trim());
+                    setData(results);
+                    setHasMore(false); // Búsqueda compuesta no soporta paginación simple indefinida por ahora
+                }
+                setLoading(false);
+                setRefreshing(false);
+                return;
+            }
+
+            // MODO NAVEGACIÓN (Por Sala/Recientes)
+            if (isNewSearch) {
+                setData([]);
+                setLastDoc(null);
+                setHasMore(true);
+            }
+
             let q = collection(db, 'jurisprudence');
             const constraints = [];
 
             // 1. Filtro por Sala o Recientes
             if (selectedSala === 'recent') {
                 const recentDates = getLastNDaysStrings(7);
-                console.log(`🕒 Filtrando sentencias publicadas en: ${recentDates.join(', ')}`);
                 constraints.push(where('fecha', 'in', recentDates));
-                // Nota: Firestore 'in' solo permite 10 elementos. 7 está bien.
-                // En este modo ordenamos por timestamp para ver lo último guardado de esos días
-                constraints.push(orderBy('timestamp', 'desc'));
             } else if (selectedSala !== 'all') {
-                console.log(`🏛️ Filtrando por sala: ${selectedSala}`);
                 constraints.push(where('sala', '==', selectedSala));
             }
 
-            // 2. Lógica de Búsqueda
-            const queryText = searchQuery.trim();
-            if (queryText) {
-                // Detectar si es una fecha (DD/MM/YYYY) o (DD-MM-YYYY)
-                const dateRegex = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/;
-                const dateMatch = queryText.match(dateRegex);
+            // Orden por defecto
+            constraints.push(orderBy('timestamp', 'desc'));
 
-                if (dateMatch) {
-                    // Normalizar a DD/MM/YYYY que es como guarda el scraper
-                    const day = dateMatch[1].padStart(2, '0');
-                    const month = dateMatch[2].padStart(2, '0');
-                    const year = dateMatch[3];
-                    const normalizedDate = `${day}/${month}/${year}`;
-
-                    console.log(`📅 Filtrando por fecha exacta: ${normalizedDate}`);
-                    constraints.push(where('fecha', '==', normalizedDate));
-                    constraints.push(orderBy('timestamp', 'desc'));
-                } else {
-                    console.log(`🔍 Buscando expediente que empiece con: ${queryText}`);
-                    constraints.push(where('expediente', '>=', queryText));
-                    constraints.push(where('expediente', '<=', queryText + '\uf8ff'));
-                    constraints.push(orderBy('expediente'));
-                }
-            } else if (selectedSala !== 'recent') {
-                constraints.push(orderBy('timestamp', 'desc'));
-            }
 
             constraints.push(limit(20));
 
