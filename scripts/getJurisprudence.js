@@ -311,8 +311,33 @@ async function syncHistoricalYear(salaId, year, cookies) {
 }
 
 // Interfaz de CLI simple
+// Interfaz de CLI simple y robusta
 const myArgs = process.argv.slice(2);
-const mode = myArgs[0] || 'daily';
-const year = myArgs[1] || new Date().getFullYear().toString();
+let mode = 'daily';
+let year = new Date().getFullYear().toString();
+
+// Parsear argumentos (soportando "historical 2008" y "mode=historical year=2008")
+myArgs.forEach(arg => {
+    if (arg.includes('=')) {
+        const [key, value] = arg.split('=');
+        if (key === 'mode') mode = value;
+        if (key === 'year' || key === 'ano') year = value;
+    } else {
+        // Asumir posicionales si no hay =
+        if (arg === 'historical' || arg === 'recent' || arg === 'daily' || arg === 'auto') {
+            mode = arg;
+        } else if (arg.match(/^\d{4}$/)) {
+            year = arg;
+        }
+    }
+});
+
+// Corrección para cuando se pasa "mode=historical 2008" (mezcla)
+if (myArgs.length >= 2 && !myArgs[1].includes('=')) {
+    if (myArgs[0].includes('mode=')) {
+        // El segundo argumento es probablemente el año si es numérico
+        if (myArgs[1].match(/^\d{4}$/)) year = myArgs[1];
+    }
+}
 
 getJurisprudence({ mode, year });
