@@ -352,12 +352,15 @@ const JurisprudenceScreen = ({ navigation }) => {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Searchbar
-                    placeholder="Buscador de Jurisprudencia"
+                    placeholder="Buscar (Ej: divorcio, amparo...)"
                     onChangeText={setSearchQuery}
                     value={searchQuery}
                     onSubmitEditing={handleSearch}
                     style={styles.searchbar}
                 />
+                <Text style={{ fontSize: 10, color: '#666', paddingHorizontal: 10, marginBottom: 5 }}>
+                    * Busca por N° Sentencia, Expediente o Palabras Clave (Ej: "custodia compartido")
+                </Text>
                 <FlatList
                     horizontal
                     data={SALAS}

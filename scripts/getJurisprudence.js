@@ -185,6 +185,31 @@ async function syncDay(salaId, fecha, cookies) {
     }
 }
 
+// Helper para generar palabras clave de búsqueda
+function generateKeywords(text) {
+    if (!text) return [];
+    // Palabras comunes a ignorar (stopwords)
+    const stopWords = new Set([
+        'de', 'la', 'el', 'en', 'y', 'a', 'los', 'del', 'se', 'las', 'por', 'un', 'para', 'con', 'no', 'una', 'su', 'al', 'es', 'lo', 'como',
+        'mas', 'pero', 'sus', 'le', 'ya', 'o', 'fue', 'este', 'ha', 'si', 'porque', 'esta', 'son', 'entre', 'esta', 'cuando', 'muy', 'sin', 'sobre',
+        'ser', 'tiene', 'tambien', 'me', 'hasta', 'hay', 'donde', 'han', 'quien', 'estan', 'estado', 'desde', 'todo', 'nos', 'durante', 'estados',
+        'todos', 'uno', 'les', 'ni', 'contra', 'otros', 'ese', 'eso', 'ante', 'ellos', 'e', 'esto', 'mi', 'antes', 'algunos', 'que', 'unos', 'yo',
+        'otro', 'otras', 'otra', 'el', 'ella', 'le', 'te', 'sentencia', 'sala', 'tsj', 'republica', 'bolivariana', 'venezuela'
+    ]);
+
+    // Normalizar texto: minúsculas, sin acentos
+    const normalized = text.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+        .replace(/[^a-z0-9\s]/g, ""); // Quitar caracteres especiales
+
+    // Tokenizar y filtrar
+    const tokens = normalized.split(/\s+/);
+    const keywords = tokens.filter(t => t.length > 2 && !stopWords.has(t));
+
+    // Eliminar duplicados
+    return [...new Set(keywords)];
+}
+
 async function saveToFirestore(s, salaId) {
     const salaInfo = SALA_MAP[salaId];
     const year = s.DSENTFECHA ? s.DSENTFECHA.split('/')[2] : new Date().getFullYear();
@@ -192,13 +217,25 @@ async function saveToFirestore(s, salaId) {
 
     try {
         const docRef = doc(db, 'jurisprudence', sentId);
-
-        // Verificar si ya existe esta sentencia específica
         const docSnap = await getDoc(docRef);
+
+        // Optimización de Costos:
+        // Si el documento ya existe Y ya tiene keywords, no escribir nada (Ahorra 1 Write)
         if (docSnap.exists()) {
-            console.log(`      ⏭️ Saltado: Sentencia ${s.SSENTNUMERO} (${salaInfo.short}) - Ya existe`);
-            return;
+            const data = docSnap.data();
+            if (data.keywords && data.keywords.length > 0) {
+                console.log(`      ⏭️ Saltado (Ya indexado): ${s.SSENTNUMERO}`);
+                return;
+            }
         }
+
+        // Preparar texto para keywords (Título + Resumen + Materia/Procedimiento)
+        const textForKeywords = `${s.SSENTNUMERO} ${s.SSENTEXPEDIENTE} ${s.SSENTDECISION || ''} ${s.SPROCDESCRIPCION || ''} ${s.SSENTDECISION || ''}`;
+        const keywords = generateKeywords(textForKeywords);
+
+        // Añadir partes clave como expediente exacto y número
+        if (s.SSENTNUMERO) keywords.push(s.SSENTNUMERO.toString());
+        if (s.SSENTEXPEDIENTE) keywords.push(s.SSENTEXPEDIENTE.toLowerCase());
 
         // Crear el objeto de metadatos
         const metadata = {
@@ -213,14 +250,16 @@ async function saveToFirestore(s, salaId) {
             procedimiento: s.SPROCDESCRIPCION,
             partes: s.SSENTPARTES || 'N/A',
             resumen: s.SSENTDECISION || '',
-            // Texto para facilitar búsquedas simples (lowercase)
+            // Guardamos keywords para búsqueda eficiente: where('keywords', 'array-contains', 'termino')
+            keywords: keywords.slice(0, 50), // Límite de seguridad
             searchable_text: `${s.SSENTNUMERO} ${s.SSENTEXPEDIENTE} ${s.SSENTDECISION || ''}`.toLowerCase(),
             url_original: `http://historico.tsj.gob.ve/decisiones/${s.SSALADIR}/${s.NOMBREMES?.trim()}/${s.SSENTNOMBREDOC}`,
             timestamp: new Date().toISOString()
         };
 
+        // Si existe, hacemos merge para actualizar keywords. Si no, crea nuevo.
         await setDoc(docRef, metadata, { merge: true });
-        console.log(`      ✅ Guardada: Sentencia ${s.SSENTNUMERO} (${salaInfo.short})`);
+        console.log(`      ✅ Guardada/Actualizada: ${s.SSENTNUMERO} (${salaInfo.short})`);
     } catch (e) {
         console.error(`      ⚠️ Error al procesar sentencia ${s.SSENTNUMERO}: ${e.message}`);
     }

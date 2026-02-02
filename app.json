@@ -20,10 +20,16 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.lettersdev.tuley"
+      "package": "com.lettersdev.tuley",
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "43681606-bd13-4324-b728-e963ba42cf75"
+      }
     }
   }
 }

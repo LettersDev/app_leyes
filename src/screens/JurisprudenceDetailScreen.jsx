@@ -31,14 +31,34 @@ const JurisprudenceDetailScreen = ({ route, navigation }) => {
                 injectedJavaScript={injectedData}
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
+                onError={(syntheticEvent) => {
+                    const { nativeEvent } = syntheticEvent;
+                    console.warn('WebView error: ', nativeEvent);
+                    setLoading(false);
+                }}
+                onHttpError={(syntheticEvent) => {
+                    const { nativeEvent } = syntheticEvent;
+                    console.warn('WebView HTTP error: ', nativeEvent);
+                }}
                 style={styles.webview}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
                 startInLoadingState={true}
+                mixedContentMode="always"
                 renderLoading={() => (
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator color={COLORS.primary} size="large" />
-                        <Text style={styles.loadingText}>Preparando lectura nativa...</Text>
+                        <Text style={styles.loadingText}>Cargando sentencia...</Text>
+                    </View>
+                )}
+                renderError={() => (
+                    <View style={styles.loadingContainer}>
+                        <Text style={[styles.loadingText, { color: 'red', marginBottom: 10 }]}>
+                            No se pudo cargar la sentencia.
+                        </Text>
+                        <Text style={{ fontSize: 12, color: '#666', textAlign: 'center', paddingHorizontal: 20 }}>
+                            Es posible que el sitio web del TSJ esté caído o bloqueando la conexión.
+                        </Text>
                     </View>
                 )}
             />

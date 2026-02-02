@@ -44,36 +44,52 @@ export const JurisprudenceService = {
             });
 
             // 3. Si no es numérico puro, o si queremos fallback de texto:
+            // 3. Fallback: Búsqueda por Palabras Clave (Indexed Search)
             if (results.length < 5) {
-                // ... (Logic for text search)
-                // 2. Búsqueda por texto (Título/Contenido)
-                // Firestore no soporta "contains" nativo.
-                // Simulamos un "búsqueda por sala" o traemos los últimos y filtramos en cliente (costoso pero funcional para mvp)
+                console.log(`Searching jurisprudence by keywords: ${searchText}`);
 
-                console.log(`Searching jurisprudence by text (client-side filter of recent): ${searchText}`);
+                const normSearch = searchText.toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9\s]/g, "");
 
-                // ESTRATEGIA MVP: Traer las últimas 50 sentencias y filtrar localmente
-                // Esto es temporal hasta tener Algolia o un índice mejor.
-                const qRecent = query(colRef, orderBy('timestamp', 'desc'), limit(50));
-                const snapshot = await getDocs(qRecent);
+                const searchTerms = normSearch.split(/\s+/).filter(t => t.length > 2);
 
-                const normSearch = searchText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if (searchTerms.length > 0) {
+                    const mainTerm = searchTerms[0];
 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const title = (data.titulo || '').toLowerCase();
-                    const resume = (data.resumen || '').toLowerCase();
-                    const content = (data.texto || '').toLowerCase(); // Si decidimos guardar texto full
+                    // Traemos hasta 30 candidatos que tengan AL MENOS la primera palabra
+                    const qKeywords = query(
+                        colRef,
+                        where('keywords', 'array-contains', mainTerm),
+                        orderBy('timestamp', 'desc'),
+                        limit(30)
+                    );
 
-                    if (title.includes(normSearch) || resume.includes(normSearch) || content.includes(normSearch)) {
-                        results.push({ id: doc.id, ...data, type: 'jurisprudencia' });
-                    }
-                });
+                    const snapKeywords = await getDocs(qKeywords);
+
+                    snapKeywords.forEach(doc => {
+                        if (results.find(r => r.id === doc.id)) return;
+                        const data = doc.data();
+
+                        // FILTRADO CLIENT-SIDE: Verificar que tenga TODOS los términos restantes
+                        const allTermsMatch = searchTerms.every(term => {
+                            return data.keywords && data.keywords.includes(term);
+                        });
+
+                        if (allTermsMatch) {
+                            results.push({ id: doc.id, ...data, type: 'jurisprudencia', matchType: 'Contenido' });
+                        }
+                    });
+                }
             }
-
             return results;
         } catch (error) {
             console.error("Error searching jurisprudence:", error);
+            // Si falta el índice compuesto (keywords + timestamp), intentar sin orden
+            if (error.code === 'failed-precondition') {
+                console.warn("Retrying search without sorting (Index missing)...");
+                return [];
+            }
             return [];
         }
     },
