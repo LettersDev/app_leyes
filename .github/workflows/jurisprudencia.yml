@@ -2,7 +2,7 @@ name: Sincronización de Jurisprudencia TSJ
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 8:00 PM Venezuela (GMT-4)
+    - cron: '0 9 * * *' # 5:00 AM Venezuela (GMT-4) - Maximizar cuota diaria
   workflow_dispatch:
 
 jobs:

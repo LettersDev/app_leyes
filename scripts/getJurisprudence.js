@@ -33,10 +33,7 @@ async function getJurisprudence(options = {}) {
         return;
     }
 
-    if (mode === 'repair_auto') {
-        await runRepairAuto(roomIds);
-        return;
-    }
+
 
     console.log(`📅 Modo: ${mode}${year ? ` | Año: ${year}` : ''}`);
     const cookieStr = await getSessionCookies();
@@ -163,9 +160,20 @@ async function runAutoSync(roomIds) {
     console.log(`   🔎 Verificando hoy (${fmtToday})...`);
     await executeSyncManualDate(fmtToday, roomIds, cookieStr);
 
-    // 2. El backfill histórico ahora lo maneja 'runRepairAuto' (Bot Reparador)
-    // Así mantenemos este bot ligero para correr diariamente sin consumir cuota masiva.
-    console.log(`\n✨ [SmartSync] Verificación diaria completada.`);
+    // 2. Si aún falta historia (del 2000 al presente), avanzar un año por ejecución
+    if (nextYear < currentYear) {
+        console.log(`\n⏳ [SmartSync] Paso 2: Avanzando historia. Sincronizando año: ${nextYear}`);
+        await executeSync('historical', nextYear, roomIds, cookieStr);
+
+        // Guardar progreso en Firestore para la próxima vez
+        await setDoc(configRef, {
+            lastYearSynced: nextYear,
+            lastUpdate: new Date().toISOString()
+        }, { merge: true });
+        console.log(`\n✅ [SmartSync] Año ${nextYear} completado y guardado en DB.`);
+    } else {
+        console.log(`\n✨ [SmartSync] Toda la historia está al día (hasta ${lastYearSynced}).`);
+    }
 }
 
 async function syncDay(salaId, fecha, cookies) {
