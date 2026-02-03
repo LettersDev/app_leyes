@@ -33,6 +33,11 @@ async function getJurisprudence(options = {}) {
         return;
     }
 
+    if (mode === 'repair_auto') {
+        await runRepairAuto(roomIds);
+        return;
+    }
+
 
 
     console.log(`📅 Modo: ${mode}${year ? ` | Año: ${year}` : ''}`);
@@ -364,7 +369,7 @@ myArgs.forEach(arg => {
         if (key === 'year' || key === 'ano') year = value;
     } else {
         // Asumir posicionales si no hay =
-        if (arg === 'historical' || arg === 'recent' || arg === 'daily' || arg === 'auto') {
+        if (['historical', 'recent', 'daily', 'auto', 'repair_auto'].includes(arg)) {
             mode = arg;
         } else if (arg.match(/^\d{4}$/)) {
             year = arg;
