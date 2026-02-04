@@ -15,6 +15,7 @@ export const LAW_CATEGORIES = {
     GACETA: 'gaceta',
     LEYES: 'leyes', // Nueva categoría para leyes generales
     LEYES_ORGANICAS: 'leyes_organicas', // Nueva categoría para leyes orgánicas
+    CONVENIOS: 'convenios', // Convenios Internacionales
 };
 
 // Nombres legibles de categorías
@@ -34,6 +35,7 @@ export const CATEGORY_NAMES = {
     [LAW_CATEGORIES.GACETA]: 'Gaceta Oficial',
     [LAW_CATEGORIES.LEYES]: 'Leyes Ordinarias',
     [LAW_CATEGORIES.LEYES_ORGANICAS]: 'Leyes Orgánicas',
+    [LAW_CATEGORIES.CONVENIOS]: 'Convenios Internacionales',
 };
 
 // Colores del tema (Premium Palette)

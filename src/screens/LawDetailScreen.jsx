@@ -507,6 +507,13 @@ const LawDetailScreen = ({ route }) => {
                     onPress={handleShareLaw}
                 />
                 <IconButton
+                    icon={isOfflineAvailable ? "check-circle" : "download"}
+                    iconColor={isOfflineAvailable ? "#4ADE80" : "#fff"}
+                    size={24}
+                    onPress={isOfflineAvailable ? handleRemoveOffline : handleDownloadContent}
+                    disabled={isDownloadingContent}
+                />
+                <IconButton
                     icon="format-size"
                     iconColor="#fff"
                     size={24}

@@ -1,0 +1,82 @@
+# GUÍA DE FORMATO JSON PARA APPLEYES
+
+Para que las nuevas leyes y códigos aparezcan automáticamente en la categoría correcta de la aplicación, debes asegurarte de usar los campos `parent_category` y `type` correctamente en tus archivos JSON.
+
+## 1. CÓDIGOS (Códigos)
+Aparecen en la pantalla de "Códigos".
+
+```json
+[
+  {
+    "title": "Código de Ética del Abogado",
+    "category": "codigo_abogado",         // ID único (ej: codigo_militar, codigo_comercio)
+    "parent_category": "codigos",         // ¡IMPORTANTE! Debe ser exactamente "codigos"
+    "type": "Código",                     // Nombre amigable para mostrar
+    "date": "2024-01-01",
+    "description": "Descripción breve...",
+    "content": { ... }
+  }
+]
+```
+
+## 2. LEYES ORGÁNICAS (Leyes Orgánicas)
+Aparecen en Leyes -> Leyes Orgánicas.
+
+```json
+[
+  {
+    "title": "Ley Orgánica del Trabajo (LOTTT)",
+    "category": "lottt",                  // ID único
+    "parent_category": "leyes_organicas", // ¡IMPORTANTE! Debe ser exactamente "leyes_organicas"
+    "type": "Ley Orgánica",               // Nombre amigable
+    "date": "2012-05-07",
+    "description": "Ley que rige el trabajo...",
+    "content": { ... }
+  }
+]
+```
+
+## 3. LEYES ORDINARIAS (Leyes)
+Aparecen en Leyes -> Leyes Ordinarias.
+
+```json
+[
+  {
+    "title": "Ley de Impuesto sobre la Renta",
+    "category": "islr",                   // ID único
+    "parent_category": "leyes",           // ¡IMPORTANTE! Debe ser exactamente "leyes"
+    "type": "Ley Ordinaria",              // Nombre amigable
+    "date": "2016-12-30",
+    "description": "Ley de impuestos...",
+    "content": { ... }
+  }
+]
+```
+
+## RESUMEN DE CAMPOS CLAVE
+
+| Tipo de Norma | parent_category (CLAVE) | type (VISUAL) |
+|---------------|-------------------------|---------------|
+| Código | `codigos` | `"Código"` |
+| Ley Orgánica | `leyes_organicas` | `"Ley Orgánica"` |
+| Ley Ordinaria | `leyes` | `"Ley Ordinaria"` |
+| Convenios Int. | `convenios` | `"Convenio"` |
+
+## 4. CONVENIOS INTERNACIONALES (Convenios)
+Aparecen en la nueva sección "Convenios Internacionales".
+
+```json
+[
+  {
+    "title": "Convención Americana sobre Derechos Humanos",
+    "category": "pacto_san_jose",       // ID único
+    "parent_category": "convenios",       // ¡IMPORTANTE! Debe ser exactamente "convenios"
+    "type": "Convenio",                   // Nombre amigable
+    "date": "1969-11-22",
+    "description": "Pacto de San José de Costa Rica...",
+    "content": { ... }
+  }
+]
+```
+
+**Nota:** Si subes un archivo corregido a Firebase, recuerda borrar los datos de la app o esperar 24 horas para que se actualice el índice local.

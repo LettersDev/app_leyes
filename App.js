@@ -8,6 +8,7 @@ import { COLORS } from './src/utils/constants';
 import { SettingsProvider } from './src/context/SettingsContext';
 import LawsIndexService from './src/services/lawsIndexService';
 import { downloadLawContent } from './src/services/lawService';
+import OfflineService from './src/services/offlineService';
 
 const theme = {
   ...MD3LightTheme,
@@ -35,28 +36,55 @@ export default function App() {
       if (!hasIndex) {
         setInitStatus('Descargando índice de leyes...');
         await LawsIndexService.downloadFullIndex();
-
-        // Pre-download priority codes
-        setInitStatus('Preparando códigos principales...');
-        const priorityCodes = LawsIndexService.getPriorityCodes();
-        for (const codeId of priorityCodes.slice(0, 3)) {
-          try {
-            await downloadLawContent(codeId);
-          } catch (e) {
-            console.log(`Could not pre-download ${codeId}:`, e.message);
-          }
-        }
       } else {
         // Just initialize (check for updates if needed)
+        console.log('App: Verifying updates (background)...');
         setInitStatus('Verificando actualizaciones...');
-        await LawsIndexService.initialize();
+        LawsIndexService.initialize().catch(err => console.error('Background init error:', err));
       }
+
+      // Check and download priority laws (Constitution + Codes)
+      setInitStatus('Verificando leyes principales...');
+
+      // Start download in background, do not await
+      ensurePriorityLawsDownloaded();
 
       setIsInitializing(false);
     } catch (error) {
       console.error('Error initializing app:', error);
       // Continue anyway, app will work with Firebase fallback
       setIsInitializing(false);
+    }
+  };
+
+  const ensurePriorityLawsDownloaded = async () => {
+    try {
+      console.log('App: Auto-download check started (background)');
+      // 1. Get all codes
+      const allCodes = await LawsIndexService.getAllCodesLocal() || [];
+      const codeIds = allCodes.map(c => c.id);
+
+      // 2. Ensure Constitution is included
+      if (!codeIds.includes('constitucion')) {
+        codeIds.unshift('constitucion');
+      }
+
+      // 3. Download only if not exists
+      for (const lawId of codeIds) {
+        const isOffline = await OfflineService.isLawOffline(lawId);
+        if (!isOffline) {
+          console.log(`Auto-downloading missing law: ${lawId}`);
+          try {
+            await downloadLawContent(lawId);
+            console.log(`Successfully downloaded ${lawId}`);
+          } catch (e) {
+            console.log(`Could not download ${lawId}:`, e.message);
+          }
+        }
+      }
+      console.log('App: Auto-download check finished');
+    } catch (error) {
+      console.error('Error in auto-download check:', error);
     }
   };
 

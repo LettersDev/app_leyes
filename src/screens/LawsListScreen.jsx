@@ -20,7 +20,9 @@ const LawsListScreen = ({ route, navigation }) => {
             setError(null);
 
             let data;
-            if (category === LAW_CATEGORIES.LEYES || category === LAW_CATEGORIES.LEYES_ORGANICAS) {
+            if (category === LAW_CATEGORIES.LEYES ||
+                category === LAW_CATEGORIES.LEYES_ORGANICAS ||
+                category === LAW_CATEGORIES.CONVENIOS) {
                 console.log(`📂 Cargando leyes por parent_category: ${category}`);
                 data = await getLawsByParentCategory(category);
             } else {

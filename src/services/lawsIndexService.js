@@ -145,6 +145,15 @@ const LawsIndexService = {
     },
 
     /**
+     * Get all Convenios from local index
+     */
+    getConveniosLocal: async () => {
+        const laws = await LawsIndexService.getAllLawsLocal();
+        if (!laws) return null;
+        return laws.filter(law => law.category === 'convenios');
+    },
+
+    /**
      * Get all codes (Códigos) from local index
      * Supports both old format (category starts with 'codigo_') and new format (parent_category === 'codigos')
      */
@@ -228,8 +237,11 @@ const LawsIndexService = {
             // Check for new laws
             const newLaws = remoteLawIds.filter(id => !knownIds.includes(id));
 
-            if (newLaws.length > 0) {
-                console.log(`Found ${newLaws.length} new laws!`);
+            // Check for deleted laws
+            const deletedLaws = knownIds.filter(id => !remoteLawIds.includes(id));
+
+            if (newLaws.length > 0 || deletedLaws.length > 0) {
+                console.log(`Index update needed: ${newLaws.length} new, ${deletedLaws.length} deleted.`);
                 await AsyncStorage.setItem(STORAGE_KEYS.HAS_NEW_LAWS, 'true');
 
                 // Re-download full index

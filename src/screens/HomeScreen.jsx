@@ -92,6 +92,14 @@ const HomeScreen = ({ navigation }) => {
             color: '#D97706',
             navigateTo: 'LawsList',
         },
+        {
+            id: LAW_CATEGORIES.CONVENIOS,
+            name: CATEGORY_NAMES[LAW_CATEGORIES.CONVENIOS],
+            icon: 'earth',
+            description: 'Acuerdos y tratados internacionales suscritos',
+            color: '#0891B2', // Cyan 600
+            navigateTo: 'LawsList',
+        },
     ];
 
     const handleCategoryPress = (category) => {

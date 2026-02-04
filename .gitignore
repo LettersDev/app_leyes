@@ -68,3 +68,7 @@ Thumbs.db
 .gemini/
 .idea/
 .vscode/
+
+# Data files
+*.md 
+*.txt
