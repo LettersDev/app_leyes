@@ -23,6 +23,26 @@ const db = getFirestore(app);
 // Cliente Axios con soporte de sesiones persistentes
 const agent = new https.Agent({ rejectUnauthorized: false });
 
+// Helper para reintentos y evitar compresión GZIP problemática
+async function fetchWithRetry(url, options = {}, retries = 3, backoff = 2000) {
+    try {
+        // Forzar NO compresión para evitar "incorrect header check"
+        if (!options.headers) options.headers = {};
+        options.headers['Accept-Encoding'] = 'identity';
+
+        return await axios.get(url, options);
+    } catch (err) {
+        const isNetworkError = err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.response?.status >= 500 || err.response?.status === 404;
+
+        if (retries > 0 && isNetworkError) {
+            console.log(`      ⚠️ Error temporal (${err.message}). Reintentando en ${backoff / 1000}s... (${retries} restantes)`);
+            await new Promise(r => setTimeout(r, backoff));
+            return fetchWithRetry(url, options, retries - 1, backoff * 1.5);
+        }
+        throw err;
+    }
+}
+
 async function getJurisprudence(options = {}) {
     const { mode = 'daily', year, roomIds = Object.keys(SALA_MAP) } = options;
 
@@ -74,20 +94,26 @@ async function runRepairAuto(roomIds) {
     console.log(`⏳ Reparando año: ${yearToRepair}...`);
     const cookieStr = await getSessionCookies();
     if (cookieStr) {
-        await executeSync('historical', yearToRepair, roomIds, cookieStr);
+        // Solo avanzamos el año si TODO el proceso fue exitoso
+        const success = await executeSync('historical', yearToRepair, roomIds, cookieStr);
 
-        // Avanzar al siguiente año para mañana
-        await setDoc(configRef, {
-            nextYearToRepair: yearToRepair + 1,
-            lastRun: new Date().toISOString()
-        }, { merge: true });
-        console.log(`✅ Año ${yearToRepair} reparado. Próxima ejecución será: ${yearToRepair + 1}`);
+        if (success) {
+            // Avanzar al siguiente año para mañana
+            await setDoc(configRef, {
+                nextYearToRepair: yearToRepair + 1,
+                lastRun: new Date().toISOString()
+            }, { merge: true });
+            console.log(`✅ Año ${yearToRepair} reparado exitosamente. Próxima ejecución será: ${yearToRepair + 1}`);
+        } else {
+            console.error(`❌ Año ${yearToRepair} con errores. NO se avanzará al siguiente año para reintentar.`);
+        }
     }
 }
 
 async function getSessionCookies() {
     try {
-        const initRes = await axios.get('https://www.tsj.gob.ve/decisiones', {
+        // Usamos fetchWithRetry para robustez
+        const initRes = await fetchWithRetry('https://www.tsj.gob.ve/decisiones', {
             httpsAgent: agent,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -98,11 +124,12 @@ async function getSessionCookies() {
         return cookies.join('; ');
     } catch (error) {
         console.error(`❌ Error iniciando sesión: ${error.message}`);
-        return null;
+        return null; // Si falla la sesión, no podemos hacer nada
     }
 }
 
 async function executeSync(mode, year, roomIds, cookieStr) {
+    let allSuccess = true;
     for (const salaId of roomIds) {
         const salaInfo = SALA_MAP[salaId];
         console.log(`\n🏛️ Procesando: ${salaInfo.name}...`);
@@ -115,8 +142,10 @@ async function executeSync(mode, year, roomIds, cookieStr) {
             }
         } catch (error) {
             console.error(`   ❌ Error en sala ${salaInfo.short}: ${error.message}`);
+            allSuccess = false; // Marcar como fallido si alguna sala falla
         }
     }
+    return allSuccess;
 }
 
 async function executeSyncManualDate(fecha, roomIds, cookieStr) {
@@ -202,7 +231,7 @@ async function syncDay(salaId, fecha, cookies) {
 
     console.log(`   🔍 Buscando sentencias para el ${fecha}...`);
 
-    const response = await axios.get(baseUrl, {
+    const response = await fetchWithRetry(baseUrl, {
         httpsAgent: agent,
         params: params,
         headers: {
@@ -330,7 +359,7 @@ async function syncHistoricalYear(salaId, year, cookies) {
         ANO: year
     };
 
-    const response = await axios.get(baseUrl, {
+    const response = await fetchWithRetry(baseUrl, {
         httpsAgent: agent,
         params: params,
         headers: {
