@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, Linking, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, SectionList, Linking, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import FavoritesManager from '../utils/favoritesManager';
 import HistoryManager from '../utils/historyManager';
@@ -13,7 +13,9 @@ import {
     Chip,
     Button,
     useTheme,
-    IconButton
+    IconButton,
+    Menu,
+    Divider
 } from 'react-native-paper';
 import { db } from '../config/firebase';
 import { collection, query, where, getDocs, orderBy, limit, startAfter } from 'firebase/firestore';
@@ -130,17 +132,25 @@ const JurisprudenceCard = React.memo(({
 });
 
 
+const YEARS = ['Todos', ...Array.from({ length: 27 }, (_, i) => (new Date().getFullYear() - i).toString())];
+
 const JurisprudenceScreen = ({ navigation }) => {
     const theme = useTheme();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSala, setSelectedSala] = useState('all');
+    const [selectedYear, setSelectedYear] = useState('Todos');
+    const [yearMenuVisible, setYearMenuVisible] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [data, setData] = useState([]);
+    const [sections, setSections] = useState([]); // Usamos sections para SectionList
     const [lastDoc, setLastDoc] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const [indexError, setIndexError] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [favoriteIds, setFavoriteIds] = useState(new Set());
+
+    // Mantenemos una referencia a TODOS los datos planos para poder reconstruir las secciones
+    // al paginar sin duplicados ni problemas de orden.
+    const [rawData, setRawData] = useState([]);
 
     useFocusEffect(
         useCallback(() => {
@@ -156,7 +166,7 @@ const JurisprudenceScreen = ({ navigation }) => {
 
     useEffect(() => {
         fetchJurisprudence(true);
-    }, [selectedSala]);
+    }, [selectedSala, selectedYear]);
 
 
 
@@ -174,17 +184,18 @@ const JurisprudenceScreen = ({ navigation }) => {
             if (searchQuery.trim()) {
                 if (isNewSearch) {
                     const results = await JurisprudenceService.searchSentences(searchQuery.trim());
-                    setData(results);
-                    setHasMore(false); // Búsqueda compuesta no soporta paginación simple indefinida por ahora
+                    processAndSetData(results, true);
+                    setHasMore(false);
                 }
                 setLoading(false);
                 setRefreshing(false);
                 return;
             }
 
-            // MODO NAVEGACIÓN (Por Sala/Recientes)
+            // MODO NAVEGACIÓN (Por Sala/Recientes/Año)
             if (isNewSearch) {
-                setData([]);
+                setRawData([]);
+                setSections([]);
                 setLastDoc(null);
                 setHasMore(true);
             }
@@ -200,23 +211,26 @@ const JurisprudenceScreen = ({ navigation }) => {
                 constraints.push(where('sala', '==', selectedSala));
             }
 
-            // Orden por defecto: Año Descendente (lo más reciente legalmente)
-            // Esto requerirá un nuevo índice compuesto: Sala + Ano
-            constraints.push(orderBy('ano', 'desc'));
-            constraints.push(orderBy('timestamp', 'desc')); // Tie-breaker para orden de carga dentro del año
-
+            // 2. Filtro por Año
+            if (selectedYear !== 'Todos') {
+                constraints.push(where('ano', '==', parseInt(selectedYear)));
+                // Al filtrar por igualdad, ordenamos por timestamp
+                constraints.push(orderBy('timestamp', 'desc'));
+            } else {
+                // Orden por defecto: Año Descendente
+                constraints.push(orderBy('ano', 'desc'));
+                constraints.push(orderBy('timestamp', 'desc'));
+            }
 
             constraints.push(limit(20));
 
             // Aplicar cursor si es scroll infinito
             if (!isNewSearch && lastDoc) {
-                console.log("⏬ Cargando más resultados...");
                 constraints.push(startAfter(lastDoc));
             }
 
             const finalQ = query(q, ...constraints);
             const querySnapshot = await getDocs(finalQ);
-            console.log(`✅ Resultados obtenidos: ${querySnapshot.size}`);
 
             const newData = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -224,12 +238,11 @@ const JurisprudenceScreen = ({ navigation }) => {
             }));
 
             if (isNewSearch) {
-                setData(newData);
+                processAndSetData(newData, true);
             } else {
-                setData(prev => [...prev, ...newData]);
+                processAndSetData(newData, false);
             }
 
-            // Si trajimos menos de 20, ya no hay más datos para pedir
             if (querySnapshot.size < 20) {
                 setHasMore(false);
             }
@@ -239,9 +252,6 @@ const JurisprudenceScreen = ({ navigation }) => {
             console.error("Error fetching jurisprudence:", error);
             if (error.message.includes('requires an index')) {
                 setIndexError(true);
-                if (__DEV__) {
-                    console.log("🔗 CREAR ÍNDICE AQUÍ: https://console.firebase.google.com/v1/r/project/appley-3f0fb/firestore/indexes?create_composite=ClJwcm9qZWN0cy9hcHBsZXktM2YwZmIvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL2p1cmlzcHJ1ZGVuY2UvaW5kZXhlcy9fEAEaCAoEc2FsYRABGg0KCXRpbWVzdGFtcBACGgwKCF9fbmFtZV9fEAI");
-                }
             }
         } finally {
             setLoading(false);
@@ -249,11 +259,48 @@ const JurisprudenceScreen = ({ navigation }) => {
         }
     };
 
+    // Helper para procesar datos crudos y convertirlos en Secciones (Años)
+    const processAndSetData = (newItems, isReset) => {
+        setRawData(prev => {
+            const allItems = isReset ? newItems : [...prev, ...newItems];
+
+            // Agrupar por Año
+            const grouped = allItems.reduce((acc, item) => {
+                // Obtener año: campo 'ano' (numérico) o extraer de fecha
+                let year = item.ano || (item.fecha ? item.fecha.split('/')[2] : 'Desconocido');
+                if (!acc[year]) acc[year] = [];
+                acc[year].push(item);
+                return acc;
+            }, {});
+
+            // Ordenar claves de años descendentemente (2025, 2024...)
+            const sortedYears = Object.keys(grouped).sort((a, b) => b - a);
+
+            // Crear estructura para SectionList
+            const newSections = sortedYears.map(year => ({
+                title: year.toString(),
+                data: grouped[year]
+            }));
+
+            setSections(newSections);
+            return allItems;
+        });
+    };
+
     const handleSearch = useCallback(() => {
         fetchJurisprudence(true);
     }, [fetchJurisprudence]);
 
     const openOriginal = useCallback((item) => {
+        if (!item.url_original || item.url_original.endsWith('/null') || item.url_original.includes('/null/')) {
+            Alert.alert(
+                "Documento No Disponible",
+                "El texto completo de esta sentencia aún no ha sido publicado por el TSJ, aunque aparezca en la lista.",
+                [{ text: "OK" }]
+            );
+            return;
+        }
+
         if (item.url_original) {
             HistoryManager.addVisit({
                 id: item.id,
@@ -299,7 +346,7 @@ const JurisprudenceScreen = ({ navigation }) => {
 
     // Lógica para determinar qué vista principal mostrar
     let MainView;
-    if (loading && data.length === 0) {
+    if (loading && rawData.length === 0) {
         MainView = (
             <View style={styles.center}>
                 <ActivityIndicator animating={true} color={COLORS.primary} size="large" />
@@ -313,6 +360,9 @@ const JurisprudenceScreen = ({ navigation }) => {
                 <Text style={styles.errorTitle}>Error de Configuración</Text>
                 <Text style={styles.errorText}>
                     Esta consulta requiere un índice compuesto en Firebase.
+                    {selectedYear !== 'Todos' && selectedSala !== 'all' && (
+                        `\n(Filtro: ${selectedSala} + Año ${selectedYear})`
+                    )}
                 </Text>
                 <Button
                     mode="contained"
@@ -325,16 +375,23 @@ const JurisprudenceScreen = ({ navigation }) => {
         );
     } else {
         MainView = (
-            <FlatList
-                data={data}
+
+            <SectionList
+                sections={sections}
                 renderItem={renderItem}
+                renderSectionHeader={({ section: { title } }) => (
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>{title}</Text>
+                    </View>
+                )}
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.list}
                 onEndReached={() => fetchJurisprudence(false)}
                 onEndReachedThreshold={0.5}
                 onRefresh={() => fetchJurisprudence(true)}
                 refreshing={refreshing}
-                // Optimizaciones de rendimiento para listas largas
+                stickySectionHeadersEnabled={true} // Títulos flotantes
+                // Optimizaciones
                 initialNumToRender={7}
                 maxToRenderPerBatch={10}
                 windowSize={10}
@@ -342,7 +399,7 @@ const JurisprudenceScreen = ({ navigation }) => {
                 ListEmptyComponent={
                     !loading ? (
                         <View style={styles.center}>
-                            <Text>No se encontraron sentencias en esta sala.</Text>
+                            <Text>No se encontraron sentencias con estos filtros.</Text>
                         </View>
                     ) : null
                 }
@@ -363,23 +420,66 @@ const JurisprudenceScreen = ({ navigation }) => {
                 <Text style={{ fontSize: 10, color: '#666', paddingHorizontal: 10, marginBottom: 5 }}>
                     * Busca por N° Sentencia, Expediente o Palabras Clave (Ej: "custodia compartido")
                 </Text>
-                <FlatList
-                    horizontal
-                    data={SALAS}
-                    showsHorizontalScrollIndicator={false}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.chipsContainer}
-                    renderItem={({ item }) => (
-                        <Chip
-                            selected={selectedSala === item.id}
-                            onPress={() => setSelectedSala(item.id)}
-                            style={styles.chip}
-                            showSelectedOverlay
+                <View>
+                    <FlatList
+                        horizontal
+                        data={SALAS}
+                        showsHorizontalScrollIndicator={false}
+                        keyExtractor={(item) => item.id}
+                        contentContainerStyle={styles.chipsContainer}
+                        renderItem={({ item }) => (
+                            <Chip
+                                selected={selectedSala === item.id}
+                                onPress={() => setSelectedSala(item.id)}
+                                style={styles.chip}
+                                showSelectedOverlay
+                            >
+                                {item.label}
+                            </Chip>
+                        )}
+                    />
+                    {/* Selector de Años (Menú Desplegable) */}
+                    <View style={styles.yearFilterContainer}>
+                        <Menu
+                            visible={yearMenuVisible}
+                            onDismiss={() => setYearMenuVisible(false)}
+                            anchor={
+                                <Button
+                                    mode="outlined"
+                                    onPress={() => setYearMenuVisible(true)}
+                                    style={styles.yearButton}
+                                    icon="calendar"
+                                    compact
+                                >
+                                    {selectedYear === 'Todos' ? 'Filtrar Año' : `Año: ${selectedYear}`}
+                                </Button>
+                            }
+                            contentStyle={{ maxHeight: 300 }} // Limitar altura para scroll
                         >
-                            {item.label}
-                        </Chip>
-                    )}
-                />
+                            <ScrollView style={{ maxHeight: 300 }}>
+                                {YEARS.map((year) => (
+                                    <Menu.Item
+                                        key={year}
+                                        onPress={() => {
+                                            setSelectedYear(year);
+                                            setYearMenuVisible(false);
+                                        }}
+                                        title={year}
+                                        leadingIcon={selectedYear === year ? "check" : undefined}
+                                    />
+                                ))}
+                            </ScrollView>
+                        </Menu>
+                        {selectedYear !== 'Todos' && (
+                            <IconButton
+                                icon="close-circle"
+                                size={20}
+                                onPress={() => setSelectedYear('Todos')}
+                                style={{ margin: 0 }}
+                            />
+                        )}
+                    </View>
+                </View>
             </View>
             {MainView}
         </View>
@@ -485,6 +585,28 @@ const styles = StyleSheet.create({
     },
     leftActions: {
         flexDirection: 'row',
+    },
+    sectionHeader: {
+        backgroundColor: '#f5f5f5', // Mismo que el fondo para que parezca separado
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        marginBottom: 5,
+        borderLeftWidth: 4,
+        borderLeftColor: COLORS.primary,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.primary,
+    },
+    yearFilterContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 5,
+        paddingHorizontal: 5
+    },
+    yearButton: {
+        borderColor: COLORS.primary,
     }
 });
 

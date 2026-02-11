@@ -1,0 +1,45 @@
+name: Gacetas Sync Bot
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # Run daily at 8 AM UTC
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Year to sync (Optional, e.g. 2000)'
+        required: false
+        default: ''
+
+jobs:
+  sync_gacetas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Create Service Account Key
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > serviceAccountKey.json
+
+      - name: Run Gacetas Scraper
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+        run: |
+          if [ -n "${{ github.event.inputs.year }}" ]; then
+            echo "Running for year: ${{ github.event.inputs.year }}"
+            node scripts/getGacetas.js --year=${{ github.event.inputs.year }}
+          else
+            echo "Running smart backfill (2 years/day)..."
+            node scripts/getGacetas.js --mode=backfill
+          fi

@@ -14,7 +14,7 @@ const LawsListScreen = ({ route, navigation }) => {
         loadLaws();
     }, [category]);
 
-    const loadLaws = async () => {
+    const loadLaws = async (forceRefresh = false) => {
         try {
             setLoading(true);
             setError(null);
@@ -23,10 +23,10 @@ const LawsListScreen = ({ route, navigation }) => {
             if (category === LAW_CATEGORIES.LEYES ||
                 category === LAW_CATEGORIES.LEYES_ORGANICAS ||
                 category === LAW_CATEGORIES.CONVENIOS) {
-                console.log(`📂 Cargando leyes por parent_category: ${category}`);
-                data = await getLawsByParentCategory(category);
+                console.log(`📂 Cargando leyes por parent_category: ${category} (Force: ${forceRefresh})`);
+                data = await getLawsByParentCategory(category, forceRefresh);
             } else {
-                data = await getLawsByCategory(category);
+                data = await getLawsByCategory(category, forceRefresh);
             }
 
             setLaws(data);
@@ -126,7 +126,7 @@ const LawsListScreen = ({ route, navigation }) => {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContainer}
                 refreshing={loading}
-                onRefresh={loadLaws}
+                onRefresh={() => loadLaws(true)}
             />
         </View>
     );

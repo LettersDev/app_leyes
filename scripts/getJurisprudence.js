@@ -327,7 +327,9 @@ async function saveToFirestore(s, salaId) {
             // Guardamos keywords para búsqueda eficiente: where('keywords', 'array-contains', 'termino')
             keywords: keywords.slice(0, 50), // Límite de seguridad
             searchable_text: `${s.SSENTNUMERO} ${s.SSENTEXPEDIENTE} ${s.SSENTDECISION || ''}`.toLowerCase(),
-            url_original: `http://historico.tsj.gob.ve/decisiones/${s.SSALADIR}/${s.NOMBREMES?.trim()}/${s.SSENTNOMBREDOC}`,
+            url_original: s.SSENTNOMBREDOC && s.SSENTNOMBREDOC !== 'null'
+                ? `http://historico.tsj.gob.ve/decisiones/${s.SSALADIR}/${s.NOMBREMES?.trim()}/${s.SSENTNOMBREDOC}`
+                : null, // Si es null, el front debería deshabilitar el botón o no intentar abrirlo
             timestamp: new Date().toISOString()
         };
 

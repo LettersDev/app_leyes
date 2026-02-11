@@ -42,23 +42,33 @@ export const getAllLaws = async () => {
 /**
  * Obtener leyes por categoría - LOCAL FIRST
  */
-export const getLawsByCategory = async (category) => {
+export const getLawsByCategory = async (category, forceRefresh = false) => {
     try {
-        // Intentar índice local primero
-        const localLaws = await LawsIndexService.getLawsByCategoryLocal(category);
-        if (localLaws && localLaws.length > 0) {
-            return localLaws;
+        // Intentar índice local primero (si no se requiere refresco forzado)
+        if (!forceRefresh) {
+            const localLaws = await LawsIndexService.getLawsByCategoryLocal(category);
+            if (localLaws && localLaws.length > 0) {
+                return localLaws;
+            }
         }
 
-        // Fallback a Firebase
+        // Fetch from Firebase (either because forceRefresh or local index is empty)
+        console.log(`Fetching ${category} from Firebase (Force: ${forceRefresh})`);
         const lawsRef = collection(db, LAWS_COLLECTION);
         const q = query(lawsRef, where('category', '==', category));
         const snapshot = await getDocs(q);
 
-        return snapshot.docs.map(doc => ({
+        const data = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+
+        // Si fue forzado, deberíamos avisar al servicio de índice que algo cambió
+        if (forceRefresh) {
+            await LawsIndexService.checkAndUpdateIndex();
+        }
+
+        return data;
     } catch (error) {
         console.error('Error al obtener leyes por categoría:', error);
         throw error;
@@ -68,23 +78,32 @@ export const getLawsByCategory = async (category) => {
 /**
  * Obtener leyes por categoría padre (Agrupación) - LOCAL FIRST
  */
-export const getLawsByParentCategory = async (parentCategory) => {
+export const getLawsByParentCategory = async (parentCategory, forceRefresh = false) => {
     try {
         // Intentar índice local primero
-        const localLaws = await LawsIndexService.getLawsByParentCategoryLocal(parentCategory);
-        if (localLaws && localLaws.length > 0) {
-            return localLaws;
+        if (!forceRefresh) {
+            const localLaws = await LawsIndexService.getLawsByParentCategoryLocal(parentCategory);
+            if (localLaws && localLaws.length > 0) {
+                return localLaws;
+            }
         }
 
-        // Fallback a Firebase
+        // Fetch from Firebase
+        console.log(`Fetching ${parentCategory} from Firebase (Force: ${forceRefresh})`);
         const lawsRef = collection(db, LAWS_COLLECTION);
         const q = query(lawsRef, where('parent_category', '==', parentCategory));
         const snapshot = await getDocs(q);
 
-        return snapshot.docs.map(doc => ({
+        const data = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+
+        if (forceRefresh) {
+            await LawsIndexService.checkAndUpdateIndex();
+        }
+
+        return data;
     } catch (error) {
         console.error('Error al obtener leyes por categoría padre:', error);
         throw error;

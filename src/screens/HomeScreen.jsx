@@ -90,7 +90,7 @@ const HomeScreen = ({ navigation }) => {
             icon: 'newspaper',
             description: 'Gaceta Oficial de la República',
             color: '#D97706',
-            navigateTo: 'LawsList',
+            navigateTo: 'Gacetas',
         },
         {
             id: LAW_CATEGORIES.CONVENIOS,
@@ -107,6 +107,8 @@ const HomeScreen = ({ navigation }) => {
             navigation.navigate('CodesList');
         } else if (category.navigateTo === 'Jurisprudence') {
             navigation.navigate('Jurisprudence');
+        } else if (category.navigateTo === 'Gacetas') {
+            navigation.navigate('Gacetas');
         } else if (category.navigateTo === 'LawsList' && category.id === LAW_CATEGORIES.LEYES) {
             navigation.navigate('LawsCategorySelector');
         } else {

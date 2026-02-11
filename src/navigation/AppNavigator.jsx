@@ -11,6 +11,7 @@ import LawsCategorySelectorScreen from '../screens/LawsCategorySelectorScreen';
 import LawDetailScreen from '../screens/LawDetailScreen';
 import SearchScreen from '../screens/SearchScreen';
 import JurisprudenceScreen from '../screens/JurisprudenceScreen';
+import GacetasScreen from '../screens/GacetasScreen';
 import JurisprudenceDetailScreen from '../screens/JurisprudenceDetailScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
@@ -98,6 +99,11 @@ const AppNavigator = () => {
                     name="Jurisprudence"
                     component={JurisprudenceScreen}
                     options={{ title: 'Jurisprudencia TSJ' }}
+                />
+                <Stack.Screen
+                    name="Gacetas"
+                    component={GacetasScreen}
+                    options={{ title: 'Gaceta Oficial' }}
                 />
                 <Stack.Screen
                     name="Favorites"
