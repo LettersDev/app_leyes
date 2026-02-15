@@ -66,7 +66,7 @@ const FavoritesManager = {
         try {
             const result = await Share.share({
                 title: title,
-                message: `${message}${url ? `\n\nVer más en: ${url}` : ''}\n\nEnviado desde AppLeyes 🇻🇪`,
+                message: `${message}${url ? `\n\nVer más en: ${url}` : ''}\n\nEnviado desde TuLey 🇻🇪`,
             });
             return result;
         } catch (error) {

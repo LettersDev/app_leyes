@@ -426,7 +426,7 @@ const LawDetailScreen = ({ route }) => {
     };
 
     const handleShareLaw = () => {
-        const message = `Te comparto la ${law.title} desde AppLeyes.`;
+        const message = `Te comparto la ${law.title} desde TuLey.`;
         FavoritesManager.shareContent(law.title, message);
     };
 
