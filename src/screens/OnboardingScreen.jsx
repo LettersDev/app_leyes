@@ -34,6 +34,13 @@ const SLIDES = [
         description: 'Guarda artículos importantes y compártelos al instante vía WhatsApp con tus colegas y clientes.',
         icon: 'star',
         color: '#FFD700'
+    },
+    {
+        id: '5',
+        title: 'Aviso Legal',
+        description: 'Esta aplicación NO es un producto oficial del gobierno de Venezuela. El contenido es de carácter informativo y referencial. Para efectos legales formales, consulte siempre las fuentes oficiales (Gaceta Oficial, TSJ).',
+        icon: 'shield-alert-outline',
+        color: '#6B7280'
     }
 ];
 

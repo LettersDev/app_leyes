@@ -2,7 +2,7 @@
   "expo": {
     "name": "TuLey",
     "slug": "tuley",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -37,9 +37,7 @@
       ]
     ],
     "extra": {
-      "eas": {
-        "projectId": "43681606-bd13-4324-b728-e963ba42cf75"
-      }
+      "eas": {}
     }
   }
 }

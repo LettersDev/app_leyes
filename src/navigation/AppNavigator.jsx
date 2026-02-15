@@ -76,7 +76,7 @@ const AppNavigator = () => {
                 <Stack.Screen
                     name="LawsCategorySelector"
                     component={LawsCategorySelectorScreen}
-                    options={{ title: 'Leye y Reglamentos' }}
+                    options={{ title: 'Leyes y Reglamentos' }}
                 />
                 <Stack.Screen
                     name="LawsList"

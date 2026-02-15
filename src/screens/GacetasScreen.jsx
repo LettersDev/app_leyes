@@ -53,6 +53,13 @@ const GacetasScreen = ({ navigation }) => {
     // Generate years 2000-2026
     const YEARS = Array.from({ length: 27 }, (_, i) => (2026 - i).toString());
 
+    // Helper para normalizar texto (quitar acentos y minúsculas)
+    const normalizeText = (text) => {
+        if (!text) return '';
+        return text.toString().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    };
+
     const fetchGacetas = async (isReset = false) => {
         if (loading) return;
         setLoading(true);
@@ -66,37 +73,32 @@ const GacetasScreen = ({ navigation }) => {
             }
 
             const constraints = [];
+            const term = searchQuery.trim();
+            const isTextSearch = term && isNaN(parseInt(term));
 
-            // Search Logic
-            if (searchQuery.trim()) {
-                const term = searchQuery.toLowerCase().trim();
-                // Simple search by number_display exact match or year
-                // Note: Firestore text search is limited. 
-                // We'll rely on client side filtering if needed or exact number match
-                // Try to parse number
+            // Si es búsqueda numérica, filtrar en Firestore
+            if (term && !isTextSearch) {
                 const num = parseInt(term);
-                if (!isNaN(num)) {
-                    constraints.push(where('numero', '==', num));
-                } else {
-                    // Fallback: This might require different indexing or strategy
-                    // For now, let's assume search is mainly by Number or exact date
-                }
+                constraints.push(where('numero', '==', num));
             }
 
             // Year Filter
             if (selectedYear !== 'Todos') {
                 constraints.push(where('ano', '==', parseInt(selectedYear)));
-
-                // When filtering by a specific year, we want ALL gacetas for that year (~250), so we increase limit significantly
-                constraints.push(orderBy('numero', 'desc')); // Order by number is better than fecha for Gacetas
+                constraints.push(orderBy('numero', 'desc'));
                 constraints.push(limit(300));
-            } else {
+            } else if (!isTextSearch) {
                 constraints.push(orderBy('ano', 'desc'));
                 constraints.push(orderBy('numero', 'desc'));
-                constraints.push(limit(20)); // Keep limit small for infinite scroll of "Todos"
+                constraints.push(limit(20));
+            } else {
+                // Para búsqueda por texto, traer un lote grande para filtrar client-side
+                constraints.push(orderBy('ano', 'desc'));
+                constraints.push(orderBy('numero', 'desc'));
+                constraints.push(limit(200));
             }
 
-            if (!isReset && lastDoc) {
+            if (!isReset && lastDoc && !isTextSearch) {
                 constraints.push(startAfter(lastDoc));
             }
 
@@ -110,12 +112,24 @@ const GacetasScreen = ({ navigation }) => {
                     setRawData([]);
                 }
             } else {
-                setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+                if (!isTextSearch) {
+                    setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+                }
 
-                const newItems = querySnapshot.docs.map(doc => ({
+                let newItems = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+
+                // Filtrado client-side por texto (título o subtítulo)
+                if (isTextSearch) {
+                    const normTerm = normalizeText(term);
+                    newItems = newItems.filter(item =>
+                        normalizeText(item.titulo).includes(normTerm) ||
+                        normalizeText(item.subtitulo).includes(normTerm)
+                    );
+                    setHasMore(false);
+                }
 
                 const allItems = isReset ? newItems : [...rawData, ...newItems];
                 setRawData(allItems);
@@ -242,7 +256,7 @@ const GacetasScreen = ({ navigation }) => {
         <View style={styles.container}>
             <View style={styles.headerContainer}>
                 <Searchbar
-                    placeholder="Buscar por N° Gaceta..."
+                    placeholder="Buscar por N° o título..."
                     onChangeText={setSearchQuery}
                     value={searchQuery}
                     onSubmitEditing={onSearch}

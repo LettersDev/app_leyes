@@ -238,6 +238,13 @@ const HomeScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 ))}
             </View>
+
+            <View style={styles.disclaimerFooter}>
+                <Text style={styles.disclaimerText}>
+                    Esta aplicación NO es un producto oficial del gobierno. El contenido es informativo y referencial.
+                </Text>
+                <Text style={styles.versionText}>TuLey v1.1.0</Text>
+            </View>
         </ScrollView>
     );
 };
@@ -398,6 +405,24 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
         marginTop: 10,
         borderRadius: 12,
+    },
+    disclaimerFooter: {
+        paddingHorizontal: 24,
+        paddingVertical: 20,
+        marginTop: 10,
+        alignItems: 'center',
+    },
+    disclaimerText: {
+        fontSize: 11,
+        color: '#94A3B8',
+        textAlign: 'center',
+        lineHeight: 16,
+        fontStyle: 'italic',
+    },
+    versionText: {
+        fontSize: 10,
+        color: '#CBD5E1',
+        marginTop: 8,
     },
 });
 

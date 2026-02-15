@@ -76,7 +76,10 @@ const SearchScreen = ({ navigation }) => {
         return (
             <TouchableOpacity
                 onPress={() => isJurisprudence
-                    ? console.log("Navigate to Jurisprudence Detail", item.id) // TODO: Implement Detail Screen
+                    ? navigation.navigate('JurisprudenceDetail', {
+                        url: item.url_original,
+                        title: `Sentencia Exp: ${item.expediente}`
+                    })
                     : navigation.navigate('LawDetail', { lawId: item.id })
                 }
             >

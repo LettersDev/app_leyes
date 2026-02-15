@@ -35,6 +35,11 @@ const FavoritesScreen = ({ navigation }) => {
                 url: item.data.url_original,
                 title: `Sentencia Exp: ${item.data.expediente}`
             });
+        } else if (item.type === 'gaceta') {
+            navigation.navigate('JurisprudenceDetail', {
+                url: item.data.url_original,
+                title: item.title || 'Gaceta Oficial'
+            });
         }
     };
 
