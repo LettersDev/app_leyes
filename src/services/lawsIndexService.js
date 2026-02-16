@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 const LAWS_INDEX_FILE = `${FileSystem.documentDirectory}laws_index.json`;
@@ -8,7 +8,8 @@ const LAWS_COLLECTION = 'laws';
 const STORAGE_KEYS = {
     LAST_SYNC: 'laws_index_last_sync',
     HAS_NEW_LAWS: 'has_new_laws',
-    KNOWN_LAW_IDS: 'known_law_ids'
+    KNOWN_LAW_IDS: 'known_law_ids',
+    SERVER_TIMESTAMP: 'laws_server_timestamp'
 };
 
 // Códigos principales para pre-descarga
@@ -222,29 +223,68 @@ const LawsIndexService = {
 
     /**
      * Check for new laws and update index if needed
+     * OPTIMIZADO: Lee UN solo documento (system/metadata) en vez de toda la colección.
+     * Costo: 1 lectura (antes: ~90 lecturas)
      */
     checkAndUpdateIndex: async () => {
         try {
-            // Get current law count from Firebase
+            // 1. Leer el documento de metadata global (1 sola lectura)
+            const metaRef = doc(db, 'system', 'metadata');
+            const metaSnap = await getDoc(metaRef);
+
+            if (!metaSnap.exists()) {
+                // Si no existe el documento de metadata, hacer check legacy (compatibilidad)
+                console.log('No metadata doc found, using legacy check...');
+                return await LawsIndexService._legacyCheckAndUpdate();
+            }
+
+            const serverData = metaSnap.data();
+            const serverTimestamp = serverData.lawsLastUpdated;
+
+            // 2. Comparar con el timestamp local guardado
+            const localTimestamp = await AsyncStorage.getItem(STORAGE_KEYS.SERVER_TIMESTAMP);
+
+            if (localTimestamp === serverTimestamp) {
+                // No hay cambios, no gastar más lecturas
+                console.log('Laws index up to date (metadata match).');
+                await AsyncStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
+                return { hasNewLaws: false, newCount: 0 };
+            }
+
+            // 3. Hay cambios! Descargar el índice completo
+            console.log('Laws updated on server, downloading new index...');
+            await AsyncStorage.setItem(STORAGE_KEYS.HAS_NEW_LAWS, 'true');
+            await LawsIndexService.downloadFullIndex();
+
+            // 4. Guardar el nuevo timestamp del servidor
+            await AsyncStorage.setItem(STORAGE_KEYS.SERVER_TIMESTAMP, serverTimestamp);
+
+            return { hasNewLaws: true, newCount: serverData.lastUploadCount || 0 };
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+            return { hasNewLaws: false, newCount: 0, error: true };
+        }
+    },
+
+    /**
+     * Legacy check (fallback si no existe system/metadata)
+     * Se mantiene para compatibilidad hasta que se corra seedDatabase.js
+     */
+    _legacyCheckAndUpdate: async () => {
+        try {
             const lawsRef = collection(db, LAWS_COLLECTION);
             const snapshot = await getDocs(lawsRef);
             const remoteLawIds = snapshot.docs.map(doc => doc.id);
 
-            // Get known law IDs
             const knownIdsStr = await AsyncStorage.getItem(STORAGE_KEYS.KNOWN_LAW_IDS);
             const knownIds = knownIdsStr ? JSON.parse(knownIdsStr) : [];
 
-            // Check for new laws
             const newLaws = remoteLawIds.filter(id => !knownIds.includes(id));
-
-            // Check for deleted laws
             const deletedLaws = knownIds.filter(id => !remoteLawIds.includes(id));
 
             if (newLaws.length > 0 || deletedLaws.length > 0) {
                 console.log(`Index update needed: ${newLaws.length} new, ${deletedLaws.length} deleted.`);
                 await AsyncStorage.setItem(STORAGE_KEYS.HAS_NEW_LAWS, 'true');
-
-                // Re-download full index
                 await LawsIndexService.downloadFullIndex();
                 return { hasNewLaws: true, newCount: newLaws.length };
             }
@@ -252,7 +292,7 @@ const LawsIndexService = {
             await AsyncStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
             return { hasNewLaws: false, newCount: 0 };
         } catch (error) {
-            console.error('Error checking for updates:', error);
+            console.error('Error in legacy check:', error);
             return { hasNewLaws: false, newCount: 0, error: true };
         }
     },

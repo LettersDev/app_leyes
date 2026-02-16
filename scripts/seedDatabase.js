@@ -106,6 +106,22 @@ async function uploadLaw(lawData) {
     console.log(`   ✅ ¡Ley completada!`);
 }
 
+/**
+ * Actualiza el documento global de metadata para que la app
+ * detecte cambios con UNA SOLA lectura (en vez de leer toda la colección).
+ */
+async function updateMetadata(uploadedCount, totalLaws) {
+    console.log(`\n📡 Actualizando metadata global (system/metadata)...`);
+    const metaRef = doc(db, 'system', 'metadata');
+    await setDoc(metaRef, {
+        lawsLastUpdated: new Date().toISOString(),
+        lawsCount: totalLaws,
+        lastUploadCount: uploadedCount,
+        schemaVersion: SCHEMA_VERSION
+    }, { merge: true });
+    console.log(`   ✅ Metadata actualizada. Las apps detectarán los cambios.`);
+}
+
 async function run() {
     console.log('\n╔═══════════════════════════════════════╗');
     console.log('║   CARGA RESILIENTE DE LEYES (WEB)     ║');
@@ -136,6 +152,7 @@ async function run() {
 
     let uploadedCount = 0;
     let skippedCount = 0;
+    let totalLaws = 0;
 
     for (const file of files) {
         const fileName = path.basename(file);
@@ -144,6 +161,7 @@ async function run() {
 
         try {
             const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+            totalLaws += data.length;
             for (const lawData of data) {
                 const newHash = getLawHash(lawData);
                 const isSame = await lawExistsAndIsSame(lawData.category, newHash);
@@ -159,6 +177,11 @@ async function run() {
         } catch (error) {
             console.error(`❌ Error en archivo ${fileName}: ${error.message}`);
         }
+    }
+
+    // Actualizar metadata global si hubo cambios
+    if (uploadedCount > 0) {
+        await updateMetadata(uploadedCount, totalLaws);
     }
 
     const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);

@@ -3,6 +3,30 @@ import { db } from '../config/firebase';
 
 const COLLECTION_NAME = 'jurisprudence';
 
+// Cache de búsquedas recientes para evitar lecturas repetidas
+const searchCache = new Map();
+const CACHE_MAX_SIZE = 10;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
+function getCachedResult(key) {
+    const entry = searchCache.get(key);
+    if (entry && (Date.now() - entry.timestamp) < CACHE_TTL_MS) {
+        console.log(`[Cache HIT] jurisprudence search: "${key}"`);
+        return entry.data;
+    }
+    if (entry) searchCache.delete(key); // Expirado
+    return null;
+}
+
+function setCachedResult(key, data) {
+    // Evitar que el cache crezca sin límite
+    if (searchCache.size >= CACHE_MAX_SIZE) {
+        const oldestKey = searchCache.keys().next().value;
+        searchCache.delete(oldestKey);
+    }
+    searchCache.set(key, { data, timestamp: Date.now() });
+}
+
 export const JurisprudenceService = {
     /**
      * Buscar sentencias en Firestore
@@ -13,6 +37,10 @@ export const JurisprudenceService = {
      */
     searchSentences: async (searchText) => {
         try {
+            // Verificar cache primero (0 lecturas Firebase)
+            const cached = getCachedResult(searchText);
+            if (cached) return cached;
+
             const results = [];
             const colRef = collection(db, COLLECTION_NAME);
 
@@ -83,6 +111,8 @@ export const JurisprudenceService = {
                     });
                 }
             }
+            // Guardar en cache antes de retornar
+            setCachedResult(searchText, results);
             return results;
         } catch (error) {
             console.error("Error searching jurisprudence:", error);

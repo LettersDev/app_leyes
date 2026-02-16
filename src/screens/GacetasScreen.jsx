@@ -86,16 +86,16 @@ const GacetasScreen = ({ navigation }) => {
             if (selectedYear !== 'Todos') {
                 constraints.push(where('ano', '==', parseInt(selectedYear)));
                 constraints.push(orderBy('numero', 'desc'));
-                constraints.push(limit(300));
+                constraints.push(limit(30)); // Optimizado: era 300, ahora pagina con scroll infinito
             } else if (!isTextSearch) {
                 constraints.push(orderBy('ano', 'desc'));
                 constraints.push(orderBy('numero', 'desc'));
                 constraints.push(limit(20));
             } else {
-                // Para búsqueda por texto, traer un lote grande para filtrar client-side
+                // Para búsqueda por texto, traer un lote para filtrar client-side
                 constraints.push(orderBy('ano', 'desc'));
                 constraints.push(orderBy('numero', 'desc'));
-                constraints.push(limit(200));
+                constraints.push(limit(50)); // Optimizado: era 200
             }
 
             if (!isReset && lastDoc && !isTextSearch) {
