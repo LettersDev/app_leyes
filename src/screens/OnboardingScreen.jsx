@@ -37,10 +37,10 @@ const SLIDES = [
     },
     {
         id: '5',
-        title: 'Aviso Legal',
-        description: 'Esta aplicación NO es un producto oficial del gobierno de Venezuela. El contenido es de carácter informativo y referencial. Para efectos legales formales, consulte siempre las fuentes oficiales (Gaceta Oficial, TSJ).',
-        icon: 'shield-alert-outline',
-        color: '#6B7280'
+        title: 'Aviso de No Afiliación',
+        description: 'TuLey NO representa a ninguna entidad gubernamental. La información mostrada proviene de fuentes públicas oficiales (TSJ, Gaceta Oficial) para facilitar su acceso, pero no sustituye los documentos oficiales.',
+        icon: 'shield-alert',
+        color: '#EF4444'
     }
 ];
 

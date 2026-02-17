@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Card, Title, Paragraph, IconButton, Avatar, Surface, Banner } from 'react-native-paper';
+import { Card, Title, Paragraph, IconButton, Avatar, Surface, Banner, Portal, Dialog, Button } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import HistoryManager from '../utils/historyManager';
 import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES, GRADIENTS } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
@@ -10,6 +11,7 @@ import LawsIndexService from '../services/lawsIndexService';
 const HomeScreen = ({ navigation }) => {
     const [history, setHistory] = useState([]);
     const [hasNewLaws, setHasNewLaws] = useState(false);
+    const [showDisclaimer, setShowDisclaimer] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
@@ -17,6 +19,30 @@ const HomeScreen = ({ navigation }) => {
             checkNewLaws();
         }, [])
     );
+
+    useEffect(() => {
+        checkDisclaimer();
+    }, []);
+
+    const checkDisclaimer = async () => {
+        try {
+            const hasSeenDisclaimer = await AsyncStorage.getItem('@disclaimer_seen_v2');
+            if (!hasSeenDisclaimer) {
+                setShowDisclaimer(true);
+            }
+        } catch (error) {
+            console.error('Error checking disclaimer:', error);
+        }
+    };
+
+    const acceptDisclaimer = async () => {
+        try {
+            await AsyncStorage.setItem('@disclaimer_seen_v2', 'true');
+            setShowDisclaimer(false);
+        } catch (error) {
+            console.error('Error saving disclaimer:', error);
+        }
+    };
 
     const loadHistory = async () => {
         const h = await HistoryManager.getHistory();
@@ -120,132 +146,161 @@ const HomeScreen = ({ navigation }) => {
     };
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            {hasNewLaws && (
-                <Banner
-                    visible={hasNewLaws}
-                    icon="new-box"
-                    actions={[
-                        { label: 'Entendido', onPress: dismissNewLawsBanner }
-                    ]}
-                    style={styles.newLawsBanner}
+        <View style={{ flex: 1 }}>
+            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+                {hasNewLaws && (
+                    <Banner
+                        visible={hasNewLaws}
+                        icon="new-box"
+                        actions={[
+                            { label: 'Entendido', onPress: dismissNewLawsBanner }
+                        ]}
+                        style={styles.newLawsBanner}
+                    >
+                        ¡Nuevas leyes disponibles! Revisa las categorías para ver las actualizaciones.
+                    </Banner>
+                )}
+                <LinearGradient
+                    colors={GRADIENTS.legal}
+                    style={styles.header}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                 >
-                    ¡Nuevas leyes disponibles! Revisa las categorías para ver las actualizaciones.
-                </Banner>
-            )}
-            <LinearGradient
-                colors={GRADIENTS.legal}
-                style={styles.header}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-            >
-                <View style={styles.headerTopRow}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.greeting}>Hola, Bienvenido</Text>
-                        <Text style={styles.title}>TuLey</Text>
-                        <View style={styles.titleUnderline} />
+                    <View style={styles.headerTopRow}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.greeting}>Hola, Bienvenido</Text>
+                            <Text style={styles.title}>TuLey</Text>
+                            <View style={styles.titleUnderline} />
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Favorites')}
+                            style={styles.favoritesButton}
+                        >
+                            <IconButton
+                                icon="star"
+                                iconColor="#FFD700"
+                                size={28}
+                                style={{ margin: 0 }}
+                            />
+                        </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('Favorites')}
-                        style={styles.favoritesButton}
-                    >
-                        <IconButton
-                            icon="star"
-                            iconColor="#FFD700"
-                            size={28}
-                            style={{ margin: 0 }}
-                        />
-                    </TouchableOpacity>
-                </View>
-                <Text style={styles.subtitle}>
-                    Tu guía legal digital en Venezuela
-                </Text>
-            </LinearGradient>
+                    <Text style={styles.subtitle}>
+                        Tu guía legal digital en Venezuela
+                    </Text>
+                </LinearGradient>
 
-            <TouchableOpacity
-                style={styles.searchButton}
-                onPress={() => navigation.navigate('Search')}
-            >
-                <IconButton icon="magnify" size={24} iconColor={COLORS.textSecondary} />
-                <Text style={styles.searchText}>Buscar leyes...</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.searchButton}
+                    onPress={() => navigation.navigate('Search')}
+                >
+                    <IconButton icon="magnify" size={24} iconColor={COLORS.textSecondary} />
+                    <Text style={styles.searchText}>Buscar leyes...</Text>
+                </TouchableOpacity>
 
-            {history.length > 0 && (
-                <View style={styles.historySection}>
-                    <Text style={styles.sectionTitle}>Continuar leyendo</Text>
-                    <FlatList
-                        horizontal
-                        data={history}
-                        keyExtractor={(item, index) => `hist-${item.id}-${index}`}
-                        showsHorizontalScrollIndicator={false}
-                        renderItem={({ item }) => (
-                            <View style={styles.historyCardContainer}>
-                                <TouchableOpacity onPress={() => handleHistoryPress(item)} style={{ flex: 1 }}>
-                                    <Surface elevation={2} style={styles.historyCard}>
-                                        <View style={styles.historyContent}>
-                                            <Avatar.Icon
-                                                size={40}
-                                                icon={item.type === 'juris' ? 'gavel' : 'book-outline'}
-                                                style={{ backgroundColor: item.type === 'juris' ? COLORS.error : COLORS.accent }}
-                                            />
-                                            <View style={styles.historyInfo}>
-                                                <Text style={styles.historyTitle} numberOfLines={1}>{item.title}</Text>
-                                                <Text style={styles.historySubtitle} numberOfLines={1}>{item.subtitle}</Text>
+                {history.length > 0 && (
+                    <View style={styles.historySection}>
+                        <Text style={styles.sectionTitle}>Continuar leyendo</Text>
+                        <FlatList
+                            horizontal
+                            data={history}
+                            keyExtractor={(item, index) => `hist-${item.id}-${index}`}
+                            showsHorizontalScrollIndicator={false}
+                            renderItem={({ item }) => (
+                                <View style={styles.historyCardContainer}>
+                                    <TouchableOpacity onPress={() => handleHistoryPress(item)} style={{ flex: 1 }}>
+                                        <Surface elevation={2} style={styles.historyCard}>
+                                            <View style={styles.historyContent}>
+                                                <Avatar.Icon
+                                                    size={40}
+                                                    icon={item.type === 'juris' ? 'gavel' : 'book-outline'}
+                                                    style={{ backgroundColor: item.type === 'juris' ? COLORS.error : COLORS.accent }}
+                                                />
+                                                <View style={styles.historyInfo}>
+                                                    <Text style={styles.historyTitle} numberOfLines={1}>{item.title}</Text>
+                                                    <Text style={styles.historySubtitle} numberOfLines={1}>{item.subtitle}</Text>
+                                                </View>
                                             </View>
-                                        </View>
-                                    </Surface>
-                                </TouchableOpacity>
-                                <IconButton
-                                    icon="close-circle"
-                                    size={20}
-                                    iconColor="#EF4444"
-                                    style={styles.removeHistoryButton}
-                                    onPress={() => handleRemoveHistory(item.id)}
-                                />
-                            </View>
-                        )}
-                        contentContainerStyle={styles.historyList}
-                    />
-                </View>
-            )}
-
-            <View style={styles.categoriesContainer}>
-                <Text style={styles.sectionTitle}>Categorías</Text>
-
-                {categories.map((category) => (
-                    <TouchableOpacity
-                        key={category.id}
-                        onPress={() => handleCategoryPress(category)}
-                        activeOpacity={0.8}
-                    >
-                        <Surface elevation={1} style={styles.categoryCard}>
-                            <View style={styles.cardContent}>
-                                <LinearGradient
-                                    colors={[category.color, category.color + 'CC']}
-                                    style={styles.iconContainer}
-                                >
-                                    <IconButton icon={category.icon} size={28} iconColor="#fff" style={{ margin: 0 }} />
-                                </LinearGradient>
-                                <View style={styles.categoryInfo}>
-                                    <Text style={styles.categoryTitle}>{category.name}</Text>
-                                    <Text style={styles.categoryDescription} numberOfLines={1}>
-                                        {category.description}
-                                    </Text>
+                                        </Surface>
+                                    </TouchableOpacity>
+                                    <IconButton
+                                        icon="close-circle"
+                                        size={20}
+                                        iconColor="#EF4444"
+                                        style={styles.removeHistoryButton}
+                                        onPress={() => handleRemoveHistory(item.id)}
+                                    />
                                 </View>
-                                <IconButton icon="chevron-right" size={20} iconColor={COLORS.textSecondary} />
-                            </View>
-                        </Surface>
-                    </TouchableOpacity>
-                ))}
-            </View>
+                            )}
+                            contentContainerStyle={styles.historyList}
+                        />
+                    </View>
+                )}
 
-            <View style={styles.disclaimerFooter}>
-                <Text style={styles.disclaimerText}>
-                    Esta aplicación NO es un producto oficial del gobierno. El contenido es informativo y referencial.
-                </Text>
-                <Text style={styles.versionText}>TuLey v1.1.0</Text>
-            </View>
-        </ScrollView>
+                <View style={styles.categoriesContainer}>
+                    <Text style={styles.sectionTitle}>Categorías</Text>
+
+                    {categories.map((category) => (
+                        <TouchableOpacity
+                            key={category.id}
+                            onPress={() => handleCategoryPress(category)}
+                            activeOpacity={0.8}
+                        >
+                            <Surface elevation={1} style={styles.categoryCard}>
+                                <View style={styles.cardContent}>
+                                    <LinearGradient
+                                        colors={[category.color, category.color + 'CC']}
+                                        style={styles.iconContainer}
+                                    >
+                                        <IconButton icon={category.icon} size={28} iconColor="#fff" style={{ margin: 0 }} />
+                                    </LinearGradient>
+                                    <View style={styles.categoryInfo}>
+                                        <Text style={styles.categoryTitle}>{category.name}</Text>
+                                        <Text style={styles.categoryDescription} numberOfLines={1}>
+                                            {category.description}
+                                        </Text>
+                                    </View>
+                                    <IconButton icon="chevron-right" size={20} iconColor={COLORS.textSecondary} />
+                                </View>
+                            </Surface>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                <View style={styles.disclaimerFooter}>
+                    <Text style={styles.disclaimerText}>
+                        Esta aplicación NO representa a ninguna entidad gubernamental.
+                        {'\n'}Fuentes: TSJ, Asamblea Nacional, Gaceta Oficial.
+                    </Text>
+                    <Text style={styles.versionText}>TuLey v1.1.0</Text>
+                </View>
+            </ScrollView>
+
+            <Portal>
+                <Dialog visible={showDisclaimer} onDismiss={acceptDisclaimer} style={{ backgroundColor: '#fff', borderRadius: 16 }}>
+                    <Dialog.Icon icon="shield-alert" color={COLORS.error} size={40} />
+                    <Dialog.Title style={{ textAlign: 'center', color: COLORS.primary, fontSize: 20 }}>Aviso Legal Importante</Dialog.Title>
+                    <Dialog.Content>
+                        <Paragraph style={{ textAlign: 'center', marginBottom: 10, fontSize: 16, fontWeight: 'bold' }}>
+                            TuLey NO representa a ninguna entidad gubernamental.
+                        </Paragraph>
+                        <Paragraph style={{ textAlign: 'center', fontSize: 14, color: COLORS.textSecondary }}>
+                            La información mostrada en esta aplicación proviene de fuentes públicas oficiales para facilitar su consulta, pero no sustituye a los documentos oficiales.
+                        </Paragraph>
+                        <Paragraph style={{ textAlign: 'center', marginTop: 15, fontSize: 12, color: '#64748B' }}>
+                            Fuentes utilizadas:
+                            {'\n'}• Tribunal Supremo de Justicia (tsj.gob.ve)
+                            {'\n'}• Gaceta Oficial de la República
+                            {'\n'}• Asamblea Nacional
+                        </Paragraph>
+                    </Dialog.Content>
+                    <Dialog.Actions style={{ justifyContent: 'center', paddingBottom: 20 }}>
+                        <Button mode="contained" onPress={acceptDisclaimer} style={{ paddingHorizontal: 20, borderRadius: 20 }}>
+                            Entendido, Aceptar
+                        </Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+        </View>
     );
 };
 

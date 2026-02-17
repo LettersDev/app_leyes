@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.lettersdev.tuley",
-      "usesCleartextTraffic": true
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"
