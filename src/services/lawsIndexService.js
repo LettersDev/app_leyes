@@ -259,10 +259,26 @@ const LawsIndexService = {
             // 4. Guardar el nuevo timestamp del servidor
             await AsyncStorage.setItem(STORAGE_KEYS.SERVER_TIMESTAMP, serverTimestamp);
 
-            return { hasNewLaws: true, newCount: serverData.lastUploadCount || 0 };
+            return {
+                hasNewLaws: true,
+                newCount: serverData.lastUploadCount || 0,
+                latestAppVersion: serverData.latestAppVersion
+            };
         } catch (error) {
             console.error('Error checking for updates:', error);
             return { hasNewLaws: false, newCount: 0, error: true };
+        }
+    },
+
+    /**
+     * Get current app version from app.json (via Expo Constants or hardcoded)
+     */
+    getCurrentAppVersion: () => {
+        try {
+            const appJson = require('../../app.json');
+            return appJson.expo.version;
+        } catch (e) {
+            return '1.1.0'; // Fallback
         }
     },
 

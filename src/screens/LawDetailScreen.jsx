@@ -475,52 +475,67 @@ const LawDetailScreen = ({ route }) => {
     };
 
     const renderHeader = () => (
-        <LinearGradient
-            colors={GRADIENTS.legal}
-            style={styles.headerFlat}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-        >
-            <View style={styles.badgeRow}>
-                <View style={styles.premiumBadge}>
-                    <Text style={styles.premiumBadgeText}>{law.type?.replace('_', ' ').toUpperCase()}</Text>
+        <View>
+            <LinearGradient
+                colors={GRADIENTS.legal}
+                style={styles.headerFlat}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+            >
+                <View style={styles.badgeRow}>
+                    <View style={styles.premiumBadge}>
+                        <Text style={styles.premiumBadgeText}>{law.type?.replace('_', ' ').toUpperCase()}</Text>
+                    </View>
                 </View>
-            </View>
-            <Title style={styles.titleFlat}>{law.title}</Title>
-            <View style={styles.headerInfoFlat}>
-                {law.itemCount && (
-                    <Text style={styles.itemCountFlat}>{law.itemCount} artículos</Text>
-                )}
-                {law.date && <Text style={styles.dateFlat}> • {formatDate(law.date)}</Text>}
-            </View>
-            <View style={styles.actionButtonsFlat}>
-                <IconButton
-                    icon={favoriteIds.has(lawId) ? "star" : "star-outline"}
-                    iconColor={favoriteIds.has(lawId) ? "#FFD700" : "#fff"}
-                    size={24}
-                    onPress={toggleFavoriteLaw}
-                />
-                <IconButton
-                    icon="share-variant"
-                    iconColor="#fff"
-                    size={24}
-                    onPress={handleShareLaw}
-                />
-                <IconButton
-                    icon={isOfflineAvailable ? "check-circle" : "download"}
-                    iconColor={isOfflineAvailable ? "#4ADE80" : "#fff"}
-                    size={24}
-                    onPress={isOfflineAvailable ? handleRemoveOffline : handleDownloadContent}
-                    disabled={isDownloadingContent}
-                />
-                <IconButton
-                    icon="format-size"
-                    iconColor="#fff"
-                    size={24}
-                    onPress={() => setSettingsVisible(true)}
-                />
-            </View>
-        </LinearGradient>
+                <Title style={styles.titleFlat}>{law.title}</Title>
+                <View style={styles.headerInfoFlat}>
+                    {law.itemCount && (
+                        <Text style={styles.itemCountFlat}>{law.itemCount} artículos</Text>
+                    )}
+                    {law.date && <Text style={styles.dateFlat}> • {formatDate(law.date)}</Text>}
+                </View>
+                <View style={styles.actionButtonsFlat}>
+                    <IconButton
+                        icon={favoriteIds.has(lawId) ? "star" : "star-outline"}
+                        iconColor={favoriteIds.has(lawId) ? "#FFD700" : "#fff"}
+                        size={24}
+                        onPress={toggleFavoriteLaw}
+                    />
+                    <IconButton
+                        icon="share-variant"
+                        iconColor="#fff"
+                        size={24}
+                        onPress={handleShareLaw}
+                    />
+                    <View style={!isOfflineAvailable ? styles.downloadHighlight : null}>
+                        <IconButton
+                            icon={isOfflineAvailable ? "check-circle" : "download"}
+                            iconColor={isOfflineAvailable ? "#4ADE80" : (isDownloadingContent ? "#94A3B8" : "#fff")}
+                            size={24}
+                            onPress={isOfflineAvailable ? handleRemoveOffline : handleDownloadContent}
+                            disabled={isDownloadingContent}
+                        />
+                    </View>
+                    <IconButton
+                        icon="format-size"
+                        iconColor="#fff"
+                        size={24}
+                        onPress={() => setSettingsVisible(true)}
+                    />
+                </View>
+            </LinearGradient>
+
+            {!isOfflineAvailable && !isSearching && (
+                <Surface style={styles.offlineBanner} elevation={1}>
+                    <IconButton icon="information" iconColor={COLORS.accent} size={20} style={{ margin: 0 }} />
+                    <View style={{ flex: 1, marginLeft: 5 }}>
+                        <Text style={styles.offlineBannerText}>
+                            Esta ley no está descargada. <Text style={{ fontWeight: 'bold' }}>Presiona el botón de descarga</Text> para acceder sin internet en el futuro.
+                        </Text>
+                    </View>
+                </Surface>
+            )}
+        </View>
     );
 
     const renderItem = useCallback(({ item, index }) => {
@@ -795,6 +810,27 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#92400E',
         fontStyle: 'italic',
+    },
+    offlineBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFBEB',
+        padding: 12,
+        margin: 15,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#FEF3C7',
+    },
+    offlineBannerText: {
+        fontSize: 13,
+        color: '#92400E',
+        lineHeight: 18,
+    },
+    downloadHighlight: {
+        backgroundColor: 'rgba(217, 119, 6, 0.3)',
+        borderRadius: 20,
+        borderWidth: 1.5,
+        borderColor: '#F59E0B',
     },
 });
 

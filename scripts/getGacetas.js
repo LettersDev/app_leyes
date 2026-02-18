@@ -44,13 +44,10 @@ const backfillArg = args.find(arg => arg.startsWith('--mode=backfill'));
 const IS_BACKFILL = !!backfillArg;
 
 async function getGacetas() {
-    console.log(`\n📜 Iniciando Scraper de Gacetas Oficiales (Modo Seguro)...`);
-    if (TARGET_YEAR) console.log(`   📅 Filtrando por año: ${TARGET_YEAR}`);
-    if (IS_BACKFILL) console.log(`   🔄 Modo Backfill Inteligente: Buscando años incompletos desde 2000...`);
+    console.log(`\n📜 Iniciando Scraper de Gacetas Oficiales (SmartSync)...`);
 
     // Limits
-    const MAX_WRITES = IS_BACKFILL ? 600 : 500; // Slightly higher for backfill (2 years * ~250 = 500)
-    let writesCount = 0;
+    const MAX_WRITES = IS_BACKFILL ? 600 : 500;
 
     const url = 'http://www.tsj.gob.ve/gaceta-oficial';
     const params = {
@@ -64,47 +61,40 @@ async function getGacetas() {
     };
 
     try {
-        // 1. Fetch Existing IDs and Calculate Counts per Year
-        console.log("   💾 Verificando base de datos existente...");
-        const snapshot = await getDocs(collection(db, 'gacetas'));
-        const existingIds = new Set(snapshot.docs.map(d => d.id));
-
-        // Calculate counts per year in DB
-        const dbCounts = {};
-        snapshot.docs.forEach(d => {
-            const data = d.data();
-            if (data.ano) {
-                dbCounts[data.ano] = (dbCounts[data.ano] || 0) + 1;
-            }
-        });
-        console.log(`   📊 Registros existentes en DB: ${existingIds.size}`);
-
-        // Determine Start Years for Backfill
+        const currentYear = new Date().getFullYear();
         let targetYears = [];
-        if (IS_BACKFILL) {
-            let found = 0;
-            // Scan from 2000 to current year
-            const currentYear = new Date().getFullYear();
-            for (let y = 2000; y <= currentYear; y++) {
-                const count = dbCounts[y] || 0;
-                // Threshold: If year has < 150 gacetas, assume incomplete (since avg is ~250)
-                // 2026 is exception
-                if (count < 150 && y < currentYear) {
-                    targetYears.push(y);
-                    found++;
-                    if (found >= 2) break; // Process max 2 years per run
-                }
+
+        // 1. Determine Target Years based on mode/args
+        if (TARGET_YEAR) {
+            targetYears = [TARGET_YEAR];
+            console.log(`   📅 Modo: Manual | Año objetivo: ${TARGET_YEAR}`);
+        } else if (IS_BACKFILL) {
+            // Smart Backfill Progress
+            const configRef = doc(db, 'sync_monitor', 'gacetas_sync');
+            const configSnap = await getDoc(configRef);
+            let lastHistoricalYearSynced = 1999;
+
+            if (configSnap.exists()) {
+                lastHistoricalYearSynced = configSnap.data().lastHistoricalYearSynced || 1999;
             }
 
-            if (targetYears.length === 0) {
-                console.log("   ✅ Todos los años históricos (2000-2025) parecen completos.");
-                console.log("   Buscaremos novedades del año actual.");
-                targetYears.push(currentYear);
+            const nextYear = lastHistoricalYearSynced + 1;
+
+            // Step 1: Always include Current Year and Previous Year for safety
+            targetYears = [currentYear, currentYear - 1];
+
+            // Step 2: Add one historical year if not yet complete
+            if (nextYear < currentYear - 1) {
+                targetYears.push(nextYear);
+                console.log(`   🔄 Modo: SmartSync | Recientes + Año Histórico: ${nextYear}`);
             } else {
-                console.log(`   🎯 Años seleccionados para backfill: ${targetYears.join(', ')}`);
+                console.log(`   ✨ Modo: SmartSync | Toda la historia (2000+) está sincronizada.`);
             }
+        } else {
+            // Default: Just recent
+            targetYears = [currentYear, currentYear - 1];
+            console.log(`   📅 Modo: Recientes (Hoy/Ayer)`);
         }
-
 
         // 2. Fetch Remote List
         console.log("   🔍 Obteniendo lista del TSJ...");
@@ -121,50 +111,71 @@ async function getGacetas() {
             const list = res.data.coleccion.GACETA;
             console.log(`   🌐 Total en TSJ: ${list.length}`);
 
-            // 3. Filter New Items
-            const newItems = list.filter(g => {
-                // Parse date for year filter
-                const [day, month, year] = g.sgacefecha.split('/');
-                const gYear = parseInt(year);
+            // 3. Filter and Deduplicate
+            // We check only documents for the target years to be efficient
+            console.log(`   💾 Verificando duplicados en DB para años: ${targetYears.join(', ')}...`);
 
-                if (TARGET_YEAR && gYear !== TARGET_YEAR) return false;
-                if (IS_BACKFILL && !targetYears.includes(gYear)) return false;
-
-                const num = parseInt(g.sgacenumero.replace(/\./g, ''));
-                if (isNaN(num)) return false;
-                const id = `gaceta-${num}`;
-                return !existingIds.has(id);
+            // Filter list by target years first
+            const matchedItems = list.filter(g => {
+                if (!g.sgacefecha) return false;
+                const year = parseInt(g.sgacefecha.split('/')[2]);
+                return targetYears.includes(year);
             });
+
+            if (matchedItems.length === 0) {
+                console.log("   ✅ No hay gacetas en el TSJ para los años seleccionados.");
+                return;
+            }
+
+            // check each one in DB (chunked to avoid long await)
+            const newItems = [];
+            for (const g of matchedItems) {
+                const num = parseInt(g.sgacenumero.replace(/\./g, ''));
+                if (isNaN(num)) continue;
+                const id = `gaceta-${num}`;
+
+                // Note: We check if doc exists to avoid unnecessary writes
+                const docRef = doc(db, 'gacetas', id);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists()) {
+                    newItems.push(g);
+                }
+            }
 
             console.log(`   ✨ Nuevas para importar: ${newItems.length}`);
 
             if (newItems.length === 0) {
-                console.log("   ✅ Todo está sincronizado. No se requieren escrituras.");
-                return;
-            }
-
-            // 4. Sort by date desc (to prioritize recent) or asc?
-            // Let's verify we process new ones.
-            // Usually we want the *newest* if we are limited.
-            // But if it's a backfill, maybe chunks?
-            // Let's just process the first N of the filtered list.
-
-            const toProcess = newItems.slice(0, MAX_WRITES);
-            console.log(`   🚀 Procesando ${toProcess.length} registros (Límite diario: ${MAX_WRITES})...`);
-
-            const chunkSize = 50;
-            for (let i = 0; i < toProcess.length; i += chunkSize) {
-                const chunk = toProcess.slice(i, i + chunkSize);
-                await Promise.all(chunk.map(g => saveGaceta(g)));
-                writesCount += chunk.length;
-                console.log(`      Sincronizados: ${writesCount} / ${toProcess.length}`);
-            }
-
-            if (newItems.length > MAX_WRITES) {
-                console.log(`\n⚠️ Se alcanzó el límite de escritura. Faltan ${newItems.length - MAX_WRITES} gacetas.`);
-                console.log(`   Ejecuta el script nuevamente mañana.`);
+                console.log("   ✅ Todo está sincronizado.");
             } else {
-                console.log(`\n✨ Sincronización completa.`);
+                const toProcess = newItems.slice(0, MAX_WRITES);
+                console.log(`   🚀 Procesando ${toProcess.length} registros...`);
+
+                let writesCount = 0;
+                const chunkSize = 25;
+                for (let i = 0; i < toProcess.length; i += chunkSize) {
+                    const chunk = toProcess.slice(i, i + chunkSize);
+                    await Promise.all(chunk.map(g => saveGaceta(g)));
+                    writesCount += chunk.length;
+                    console.log(`      Sincronizados: ${writesCount} / ${toProcess.length}`);
+                }
+            }
+
+            // 4. Update Progress if in backfill mode and we processed the year
+            if (IS_BACKFILL && !TARGET_YEAR) {
+                const configRef = doc(db, 'sync_monitor', 'gacetas_sync');
+                const configSnap = await getDoc(configRef);
+                const currentStored = configSnap.exists() ? configSnap.data().lastHistoricalYearSynced || 1999 : 1999;
+
+                // If we were targeting currentStored + 1 and we successfully finished checking the list
+                const nextYearToMark = currentStored + 1;
+                if (nextYearToMark < currentYear - 1) {
+                    await setDoc(configRef, {
+                        lastHistoricalYearSynced: nextYearToMark,
+                        lastUpdate: new Date().toISOString()
+                    }, { merge: true });
+                    console.log(`\n✅ Progreso guardado: Registros históricos hasta ${nextYearToMark} verificados.`);
+                }
             }
 
         } else {

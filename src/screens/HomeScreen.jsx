@@ -12,11 +12,12 @@ const HomeScreen = ({ navigation }) => {
     const [history, setHistory] = useState([]);
     const [hasNewLaws, setHasNewLaws] = useState(false);
     const [showDisclaimer, setShowDisclaimer] = useState(false);
+    const [updateAvailable, setUpdateAvailable] = useState(null); // { latestVersion: string }
 
     useFocusEffect(
         useCallback(() => {
             loadHistory();
-            checkNewLaws();
+            checkUpdates();
         }, [])
     );
 
@@ -49,9 +50,31 @@ const HomeScreen = ({ navigation }) => {
         setHistory(h);
     };
 
-    const checkNewLaws = async () => {
-        const hasNew = await LawsIndexService.hasNewLawsNotification();
-        setHasNewLaws(hasNew);
+    const checkUpdates = async () => {
+        // 1. Check laws (existing logic but getting full result)
+        const updateResult = await LawsIndexService.checkAndUpdateIndex();
+
+        if (updateResult.hasNewLaws) {
+            setHasNewLaws(true);
+        }
+
+        // 2. Check App Version
+        if (updateResult.latestAppVersion) {
+            const currentVersion = LawsIndexService.getCurrentAppVersion();
+            if (isVersionLower(currentVersion, updateResult.latestAppVersion)) {
+                setUpdateAvailable({ latestVersion: updateResult.latestAppVersion });
+            }
+        }
+    };
+
+    const isVersionLower = (current, latest) => {
+        const c = current.split('.').map(Number);
+        const l = latest.split('.').map(Number);
+        for (let i = 0; i < 3; i++) {
+            if (l[i] > (c[i] || 0)) return true;
+            if (l[i] < (c[i] || 0)) return false;
+        }
+        return false;
     };
 
     const dismissNewLawsBanner = async () => {
@@ -276,6 +299,37 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
 
             <Portal>
+                {/* Modal de Actualización Disponible */}
+                <Dialog
+                    visible={!!updateAvailable}
+                    onDismiss={() => setUpdateAvailable(null)}
+                    style={{ backgroundColor: '#fff', borderRadius: 16 }}
+                >
+                    <Dialog.Icon icon="update" color={COLORS.accent} size={40} />
+                    <Dialog.Title style={{ textAlign: 'center', color: COLORS.primary }}>
+                        Actualización Disponible
+                    </Dialog.Title>
+                    <Dialog.Content>
+                        <Paragraph style={{ textAlign: 'center' }}>
+                            Hay una nueva versión de <Text style={{ fontWeight: 'bold' }}>TuLey ({updateAvailable?.latestVersion})</Text> disponible en el Play Store con mejoras y correcciones.
+                        </Paragraph>
+                    </Dialog.Content>
+                    <Dialog.Actions style={{ flexDirection: 'column', gap: 10, paddingBottom: 20 }}>
+                        <Button
+                            mode="contained"
+                            onPress={() => {
+                                // Enlace real al Play Store cuando lo tengas
+                                // Linking.openURL('market://details?id=com.lettersdev.tuley');
+                                setUpdateAvailable(null);
+                            }}
+                            style={{ width: '80%', borderRadius: 20 }}
+                        >
+                            Actualizar Ahora
+                        </Button>
+                        <Button onPress={() => setUpdateAvailable(null)}>Más tarde</Button>
+                    </Dialog.Actions>
+                </Dialog>
+
                 <Dialog visible={showDisclaimer} onDismiss={acceptDisclaimer} style={{ backgroundColor: '#fff', borderRadius: 16 }}>
                     <Dialog.Icon icon="shield-alert" color={COLORS.error} size={40} />
                     <Dialog.Title style={{ textAlign: 'center', color: COLORS.primary, fontSize: 20 }}>Aviso Legal Importante</Dialog.Title>

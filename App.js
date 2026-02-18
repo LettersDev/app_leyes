@@ -60,26 +60,18 @@ export default function App() {
   const ensurePriorityLawsDownloaded = async () => {
     try {
       console.log('App: Auto-download check started (background)');
-      // 1. Get all codes
-      const allCodes = await LawsIndexService.getAllCodesLocal() || [];
-      const codeIds = allCodes.map(c => c.id);
 
-      // 2. Ensure Constitution is included
-      if (!codeIds.includes('constitucion')) {
-        codeIds.unshift('constitucion');
-      }
+      // SOLO descargar la Constitución automáticamente
+      const lawId = 'constitucion';
+      const isOffline = await OfflineService.isLawOffline(lawId);
 
-      // 3. Download only if not exists
-      for (const lawId of codeIds) {
-        const isOffline = await OfflineService.isLawOffline(lawId);
-        if (!isOffline) {
-          console.log(`Auto-downloading missing law: ${lawId}`);
-          try {
-            await downloadLawContent(lawId);
-            console.log(`Successfully downloaded ${lawId}`);
-          } catch (e) {
-            console.log(`Could not download ${lawId}:`, e.message);
-          }
+      if (!isOffline) {
+        console.log(`Auto-downloading essential law: ${lawId}`);
+        try {
+          await downloadLawContent(lawId);
+          console.log(`Successfully downloaded ${lawId}`);
+        } catch (e) {
+          console.log(`Could not download ${lawId}:`, e.message);
         }
       }
       console.log('App: Auto-download check finished');
