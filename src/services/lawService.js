@@ -344,7 +344,9 @@ export const downloadLawContent = async (lawId) => {
 
         return await OfflineService.saveLaw(lawId, fullData);
     } catch (error) {
-        console.error('Error downloading law content:', error);
+        if (!error.message || !error.message.toLowerCase().includes('network')) {
+            console.error('Error downloading law content:', error);
+        }
         return false;
     }
 };

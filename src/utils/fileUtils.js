@@ -22,13 +22,12 @@ export const downloadFile = async (url, fileName) => {
         );
 
         const { uri } = await downloadResumable.downloadAsync();
-        console.log('Archivo descargado en:', uri);
-
-        Alert.alert('Éxito', 'El documento se ha descargado correctamente para acceso offline.');
         return uri;
     } catch (error) {
-        console.error('Error al descargar archivo:', error);
-        Alert.alert('Error', 'No se pudo descargar el archivo.');
+        if (!error.message || !error.message.toLowerCase().includes('network')) {
+            console.error('Error al descargar archivo:', error);
+            Alert.alert('Error', 'No se pudo descargar el archivo. Verifica tu conexión.');
+        }
         return null;
     }
 };

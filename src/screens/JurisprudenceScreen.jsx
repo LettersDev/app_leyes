@@ -216,10 +216,12 @@ const JurisprudenceScreen = ({ navigation }) => {
 
             processAndSetData(rows, isNewSearch);
         } catch (error) {
-            if (error.message !== 'OFFLINE_ERROR') {
+            if (error.message === 'OFFLINE_ERROR') {
+                setIndexError('OFFLINE_ERROR');
+            } else {
                 console.error('Error fetching jurisprudence:', error);
+                setIndexError(true);
             }
-            setIndexError(true);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -323,10 +325,18 @@ const JurisprudenceScreen = ({ navigation }) => {
     } else if (indexError) {
         MainView = (
             <View style={styles.center}>
-                <IconButton icon="wifi-off" size={60} iconColor={COLORS.textSecondary} />
-                <Title style={{ textAlign: 'center', marginBottom: 10 }}>Sin Conexión</Title>
+                <IconButton
+                    icon={indexError === 'OFFLINE_ERROR' ? "wifi-off" : "alert-circle"}
+                    size={60}
+                    iconColor={indexError === 'OFFLINE_ERROR' ? COLORS.textSecondary : COLORS.error}
+                />
+                <Title style={{ textAlign: 'center', marginBottom: 10 }}>
+                    {indexError === 'OFFLINE_ERROR' ? 'Sin Conexión' : 'Error de Conexión'}
+                </Title>
                 <Paragraph style={{ textAlign: 'center', color: COLORS.textSecondary, marginBottom: 20 }}>
-                    No se pudo cargar la jurisprudencia. Verifica tu conexión a internet para buscar o ver sentencias recientes.
+                    {indexError === 'OFFLINE_ERROR'
+                        ? 'No se pudo cargar la jurisprudencia. Verifica tu conexión a internet.'
+                        : 'Error al cargar jurisprudencia. Por favor, intenta de nuevo.'}
                 </Paragraph>
                 <Button
                     mode="contained"
