@@ -17,9 +17,8 @@ import {
     Menu,
     Divider
 } from 'react-native-paper';
-import { supabase } from '../config/supabase';
-import { COLORS } from '../utils/constants';
 import JurisprudenceService from '../services/jurisprudenceService';
+import { COLORS } from '../utils/constants';
 
 const SALAS = [
     { id: 'all', label: 'Todas' },
@@ -197,31 +196,15 @@ const JurisprudenceScreen = ({ navigation }) => {
                 setSections([]);
                 setLastTimestamp(null);
                 setHasMore(true);
+                setIndexError(false);
             }
 
-            let q = supabase.from('jurisprudence').select('*');
-
-            // Filtros
-            if (selectedSala === 'recent') {
-                const recentDates = getLastNDaysStrings(7);
-                q = q.in('fecha', recentDates);
-            } else if (selectedSala !== 'all') {
-                q = q.eq('sala', selectedSala);
-            }
-
-            if (selectedYear !== 'Todos') {
-                q = q.eq('ano', parseInt(selectedYear));
-            }
-
-            // Keyset cursor: traer récords anteriores al timestamp del último
-            if (cursor) {
-                q = q.lt('timestamp', cursor);
-            }
-
-            q = q.order('timestamp', { ascending: false }).limit(PAGE_SIZE);
-
-            const { data: newData, error } = await q;
-            if (error) throw error;
+            const newData = await JurisprudenceService.fetchSentences({
+                selectedSala,
+                selectedYear,
+                lastTimestamp: cursor,
+                pageSize: PAGE_SIZE
+            });
 
             const rows = newData || [];
 

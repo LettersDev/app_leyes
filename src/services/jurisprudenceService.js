@@ -111,11 +111,47 @@ export const JurisprudenceService = {
             if (error) throw error;
             return (data || []).map(row => ({ ...row, type: 'jurisprudencia' }));
         } catch (error) {
-            if (error.message === 'Network request failed') {
+            if (error.message && error.message.toLowerCase().includes('network')) {
                 throw new Error('OFFLINE_ERROR');
             }
             console.error('Error fetching recent jurisprudence:', error);
             return [];
+        }
+    },
+
+    fetchSentences: async (filters = {}) => {
+        const { selectedSala, selectedYear, lastTimestamp, pageSize = 20 } = filters;
+        try {
+            let q = supabase.from(COLLECTION_NAME).select('*');
+
+            if (selectedSala === 'recent') {
+                // Última semana (Lógica simplificada para el servicio)
+                const lastWeek = new Date();
+                lastWeek.setDate(lastWeek.getDate() - 7);
+                q = q.gte('timestamp', lastWeek.toISOString());
+            } else if (selectedSala && selectedSala !== 'all') {
+                q = q.eq('sala', selectedSala);
+            }
+
+            if (selectedYear && selectedYear !== 'Todos') {
+                q = q.eq('ano', parseInt(selectedYear));
+            }
+
+            if (lastTimestamp) {
+                q = q.lt('timestamp', lastTimestamp);
+            }
+
+            q = q.order('timestamp', { ascending: false }).limit(pageSize);
+
+            const { data, error } = await q;
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            if (error.message && error.message.toLowerCase().includes('network')) {
+                throw new Error('OFFLINE_ERROR');
+            }
+            console.error('Error fetching jurisprudence in service:', error);
+            throw error;
         }
     }
 };

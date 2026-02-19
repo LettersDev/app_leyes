@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../config/supabase';
+import { LAW_CATEGORIES } from '../utils/constants';
 
 const LAWS_INDEX_FILE = `${FileSystem.documentDirectory}laws_index.json`;
 const STORAGE_KEYS = {
@@ -282,6 +283,48 @@ const LawsIndexService = {
                     const combined = Array.from(new Set([...currentUpdated, ...Array.from(updatedCats)]));
                     await AsyncStorage.setItem(STORAGE_KEYS.UPDATED_CATEGORIES, JSON.stringify(combined));
                 }
+            }
+
+            // 6. ADICIONAL: Verificar Gacetas y Jurisprudencia (NUEVO)
+            // Esto permite que el punto rojo aparezca en Jurisprudencia y Gacetas
+            try {
+                const previousSync = await AsyncStorage.getItem(STORAGE_KEYS.LAST_SYNC);
+                if (previousSync) {
+                    const prevDate = new Date(previousSync).toISOString();
+
+                    // Check Gacetas
+                    const { data: latestGaceta } = await supabase
+                        .from('gacetas')
+                        .select('timestamp')
+                        .gt('timestamp', prevDate)
+                        .limit(1);
+
+                    if (latestGaceta && latestGaceta.length > 0) {
+                        const currentUpdated = JSON.parse(await AsyncStorage.getItem(STORAGE_KEYS.UPDATED_CATEGORIES) || '[]');
+                        if (!currentUpdated.includes(LAW_CATEGORIES.GACETA)) {
+                            currentUpdated.push(LAW_CATEGORIES.GACETA);
+                            await AsyncStorage.setItem(STORAGE_KEYS.UPDATED_CATEGORIES, JSON.stringify(currentUpdated));
+                        }
+                    }
+
+                    // Check Jurisprudence
+                    const { data: latestJuris } = await supabase
+                        .from('jurisprudence')
+                        .select('timestamp')
+                        .gt('timestamp', prevDate)
+                        .limit(1);
+
+                    if (latestJuris && latestJuris.length > 0) {
+                        const currentUpdated = JSON.parse(await AsyncStorage.getItem(STORAGE_KEYS.UPDATED_CATEGORIES) || '[]');
+                        if (!currentUpdated.includes(LAW_CATEGORIES.TSJ)) {
+                            currentUpdated.push(LAW_CATEGORIES.TSJ);
+                            await AsyncStorage.setItem(STORAGE_KEYS.UPDATED_CATEGORIES, JSON.stringify(currentUpdated));
+                        }
+                    }
+                }
+            } catch (err) {
+                console.log('Error checking non-law updates:', err);
+                // No lanzamos error para no romper el flujo principal de leyes
             }
 
             // 5. Guardar el nuevo timestamp del servidor
