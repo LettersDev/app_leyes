@@ -1,21 +1,12 @@
 require('dotenv').config();
 const axios = require('axios');
 const https = require('https');
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, doc, setDoc, getDoc, getDocs } = require('firebase/firestore');
+const { createClient } = require('@supabase/supabase-js');
 
-// Configuración de Firebase
-const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Configuración Supabase
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const agent = new https.Agent({ rejectUnauthorized: false });
 
@@ -39,15 +30,20 @@ const args = process.argv.slice(2);
 const yearArg = args.find(arg => arg.startsWith('--year='));
 const TARGET_YEAR = yearArg ? parseInt(yearArg.split('=')[1]) : null;
 
-// Backfill Mode
 const backfillArg = args.find(arg => arg.startsWith('--mode=backfill'));
+const fullArg = args.find(arg => arg.startsWith('--mode=full'));
 const IS_BACKFILL = !!backfillArg;
+const IS_FULL = !!fullArg;
 
 async function getGacetas() {
     console.log(`\n📜 Iniciando Scraper de Gacetas Oficiales (SmartSync)...`);
 
-    // Limits
-    const MAX_WRITES = IS_BACKFILL ? 600 : 500;
+    if (!supabaseUrl || !supabaseKey) {
+        console.error('❌ Faltan variables SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env');
+        return;
+    }
+
+    const MAX_WRITES = (IS_BACKFILL || IS_FULL) ? 2000 : 500;
 
     const url = 'http://www.tsj.gob.ve/gaceta-oficial';
     const params = {
@@ -64,26 +60,27 @@ async function getGacetas() {
         const currentYear = new Date().getFullYear();
         let targetYears = [];
 
-        // 1. Determine Target Years based on mode/args
         if (TARGET_YEAR) {
             targetYears = [TARGET_YEAR];
             console.log(`   📅 Modo: Manual | Año objetivo: ${TARGET_YEAR}`);
+        } else if (IS_FULL) {
+            console.log(`   🚀 Modo: Full | Sincronizando toda la base de datos disponible.`);
         } else if (IS_BACKFILL) {
-            // Smart Backfill Progress
-            const configRef = doc(db, 'sync_monitor', 'gacetas_sync');
-            const configSnap = await getDoc(configRef);
+            // Smart Backfill Progress desde sync_monitor
             let lastHistoricalYearSynced = 1999;
+            const { data: syncData } = await supabase
+                .from('sync_monitor')
+                .select('data')
+                .eq('id', 'gacetas_sync')
+                .maybeSingle();
 
-            if (configSnap.exists()) {
-                lastHistoricalYearSynced = configSnap.data().lastHistoricalYearSynced || 1999;
+            if (syncData) {
+                lastHistoricalYearSynced = syncData.data?.lastHistoricalYearSynced || 1999;
             }
 
             const nextYear = lastHistoricalYearSynced + 1;
-
-            // Step 1: Always include Current Year and Previous Year for safety
             targetYears = [currentYear, currentYear - 1];
 
-            // Step 2: Add one historical year if not yet complete
             if (nextYear < currentYear - 1) {
                 targetYears.push(nextYear);
                 console.log(`   🔄 Modo: SmartSync | Recientes + Año Histórico: ${nextYear}`);
@@ -91,12 +88,11 @@ async function getGacetas() {
                 console.log(`   ✨ Modo: SmartSync | Toda la historia (2000+) está sincronizada.`);
             }
         } else {
-            // Default: Just recent
             targetYears = [currentYear, currentYear - 1];
             console.log(`   📅 Modo: Recientes (Hoy/Ayer)`);
         }
 
-        // 2. Fetch Remote List
+        // Fetch Remote List
         console.log("   🔍 Obteniendo lista del TSJ...");
         const res = await fetchWithRetry(url, {
             params,
@@ -111,12 +107,9 @@ async function getGacetas() {
             const list = res.data.coleccion.GACETA;
             console.log(`   🌐 Total en TSJ: ${list.length}`);
 
-            // 3. Filter and Deduplicate
-            // We check only documents for the target years to be efficient
-            console.log(`   💾 Verificando duplicados en DB para años: ${targetYears.join(', ')}...`);
-
-            // Filter list by target years first
+            // Filter by target years (skipped in FULL mode)
             const matchedItems = list.filter(g => {
+                if (IS_FULL) return true;
                 if (!g.sgacefecha) return false;
                 const year = parseInt(g.sgacefecha.split('/')[2]);
                 return targetYears.includes(year);
@@ -127,21 +120,36 @@ async function getGacetas() {
                 return;
             }
 
-            // check each one in DB (chunked to avoid long await)
-            const newItems = [];
-            for (const g of matchedItems) {
-                const num = parseInt(g.sgacenumero.replace(/\./g, ''));
-                if (isNaN(num)) continue;
-                const id = `gaceta-${num}`;
+            // Verificar duplicados en Supabase (OPIMIZADO: Lectura en bloque)
+            console.log(`   💾 Verificando duplicados en DB...`);
 
-                // Note: We check if doc exists to avoid unnecessary writes
-                const docRef = doc(db, 'gacetas', id);
-                const docSnap = await getDoc(docRef);
+            const existingIds = new Set();
+            let page = 0;
+            const PAGE_SIZE_DB = 1000;
+            let hasMoreDB = true;
 
-                if (!docSnap.exists()) {
-                    newItems.push(g);
+            while (hasMoreDB) {
+                const { data, error } = await supabase
+                    .from('gacetas')
+                    .select('id')
+                    .range(page * PAGE_SIZE_DB, (page + 1) * PAGE_SIZE_DB - 1);
+
+                if (error) throw error;
+                (data || []).forEach(row => existingIds.add(row.id));
+
+                if (!data || data.length < PAGE_SIZE_DB) {
+                    hasMoreDB = false;
+                } else {
+                    page++;
                 }
             }
+
+            const newItems = matchedItems.filter(g => {
+                const num = parseInt(g.sgacenumero.replace(/\./g, ''));
+                if (isNaN(num)) return false;
+                const id = `gaceta-${num}`;
+                return !existingIds.has(id);
+            });
 
             console.log(`   ✨ Nuevas para importar: ${newItems.length}`);
 
@@ -161,19 +169,25 @@ async function getGacetas() {
                 }
             }
 
-            // 4. Update Progress if in backfill mode and we processed the year
+            // Actualizar progreso en backfill mode
             if (IS_BACKFILL && !TARGET_YEAR) {
-                const configRef = doc(db, 'sync_monitor', 'gacetas_sync');
-                const configSnap = await getDoc(configRef);
-                const currentStored = configSnap.exists() ? configSnap.data().lastHistoricalYearSynced || 1999 : 1999;
+                const { data: syncData } = await supabase
+                    .from('sync_monitor')
+                    .select('data')
+                    .eq('id', 'gacetas_sync')
+                    .maybeSingle();
 
-                // If we were targeting currentStored + 1 and we successfully finished checking the list
+                const currentStored = syncData?.data?.lastHistoricalYearSynced || 1999;
                 const nextYearToMark = currentStored + 1;
+
                 if (nextYearToMark < currentYear - 1) {
-                    await setDoc(configRef, {
-                        lastHistoricalYearSynced: nextYearToMark,
-                        lastUpdate: new Date().toISOString()
-                    }, { merge: true });
+                    await supabase
+                        .from('sync_monitor')
+                        .upsert({
+                            id: 'gacetas_sync',
+                            data: { lastHistoricalYearSynced: nextYearToMark, lastUpdate: new Date().toISOString() },
+                            updated_at: new Date().toISOString()
+                        });
                     console.log(`\n✅ Progreso guardado: Registros históricos hasta ${nextYearToMark} verificados.`);
                 }
             }
@@ -190,27 +204,23 @@ async function getGacetas() {
 async function saveGaceta(g) {
     if (!g.sgacenumero || !g.sgacefecha) return;
 
-    const num = parseInt(g.sgacenumero.replace(/\./g, '')); // Remove dots just in case
+    const num = parseInt(g.sgacenumero.replace(/\./g, ''));
     if (isNaN(num)) return;
 
     const id = `gaceta-${num}`;
-    const docRef = doc(db, 'gacetas', id);
 
-    // Construct URL logic from analysis
     let folder = 'gaceta_ext';
     if (num > 30000) folder = 'gaceta';
-
-    // Clean params for URL
     const url = `http://historico.tsj.gob.ve/${folder}/blanco.asp?nrogaceta=${g.sgacenumero}`;
 
-    // Parse Date for sorting/filtering
-    // sgacefecha format: DD/MM/YYYY
     const [day, month, year] = g.sgacefecha.split('/');
     const dateObj = new Date(`${year}-${month}-${day}`);
 
-    const metadata = {
+    const summary = g.sgacedescripcion || g.sgacesumario || '';
+
+    const row = {
         id: id,
-        numero: num, // Integer for sorting
+        numero: num,
         numero_display: g.sgacenumero,
         fecha: g.sgacefecha,
         ano: parseInt(year),
@@ -218,14 +228,18 @@ async function saveGaceta(g) {
         dia: parseInt(day),
         timestamp: dateObj.toISOString(),
         url_original: url,
-        titulo: `Gaceta Oficial N° ${g.sgacenumero}`,
+        titulo: summary ? `${summary.substring(0, 100)}...` : `Gaceta Oficial N° ${g.sgacenumero}`,
         subtitulo: `Publicado el ${g.sgacefecha}`,
-        tipo: num > 30000 ? 'Ordinaria' : 'Extraordinaria/Antigua' // Heuristic
+        sumario: summary,
+        tipo: num > 30000 ? 'Ordinaria' : 'Extraordinaria/Antigua'
     };
 
     try {
-        await setDoc(docRef, metadata, { merge: true });
-        // console.log(`      Saved: ${id}`); // Verbose
+        const { error } = await supabase
+            .from('gacetas')
+            .upsert(row);
+
+        if (error) throw error;
     } catch (e) {
         console.error(`      Error saving ${id}: ${e.message}`);
     }

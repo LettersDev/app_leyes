@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Card, Title, Paragraph, IconButton, Avatar, Surface, Banner, Portal, Dialog, Button } from 'react-native-paper';
+import { Card, Title, Paragraph, IconButton, Avatar, Surface, Banner, Portal, Dialog, Button, Badge } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HistoryManager from '../utils/historyManager';
@@ -13,11 +13,13 @@ const HomeScreen = ({ navigation }) => {
     const [hasNewLaws, setHasNewLaws] = useState(false);
     const [showDisclaimer, setShowDisclaimer] = useState(false);
     const [updateAvailable, setUpdateAvailable] = useState(null); // { latestVersion: string }
+    const [updatedCategories, setUpdatedCategories] = useState([]);
 
     useFocusEffect(
         useCallback(() => {
             loadHistory();
             checkUpdates();
+            loadUpdatedCategories();
         }, [])
     );
 
@@ -50,12 +52,18 @@ const HomeScreen = ({ navigation }) => {
         setHistory(h);
     };
 
+    const loadUpdatedCategories = async () => {
+        const cats = await LawsIndexService.getUpdatedCategories();
+        setUpdatedCategories(cats);
+    };
+
     const checkUpdates = async () => {
         // 1. Check laws (existing logic but getting full result)
         const updateResult = await LawsIndexService.checkAndUpdateIndex();
 
         if (updateResult.hasNewLaws) {
             setHasNewLaws(true);
+            setUpdatedCategories(updateResult.updatedCategories || []);
         }
 
         // 2. Check App Version
@@ -151,7 +159,13 @@ const HomeScreen = ({ navigation }) => {
         },
     ];
 
-    const handleCategoryPress = (category) => {
+    const handleCategoryPress = async (category) => {
+        // Limpiar badge si existe
+        if (updatedCategories.includes(category.id)) {
+            await LawsIndexService.clearCategoryNotification(category.id);
+            setUpdatedCategories(prev => prev.filter(c => c !== category.id));
+        }
+
         if (category.navigateTo === 'CodesList') {
             navigation.navigate('CodesList');
         } else if (category.navigateTo === 'Jurisprudence') {
@@ -275,6 +289,13 @@ const HomeScreen = ({ navigation }) => {
                                         style={styles.iconContainer}
                                     >
                                         <IconButton icon={category.icon} size={28} iconColor="#fff" style={{ margin: 0 }} />
+                                        {updatedCategories.includes(category.id) && (
+                                            <Badge
+                                                visible={true}
+                                                size={12}
+                                                style={styles.categoryBadge}
+                                            />
+                                        )}
                                     </LinearGradient>
                                     <View style={styles.categoryInfo}>
                                         <Text style={styles.categoryTitle}>{category.name}</Text>
@@ -532,6 +553,14 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: '#CBD5E1',
         marginTop: 8,
+    },
+    categoryBadge: {
+        position: 'absolute',
+        top: 2,
+        right: 2,
+        backgroundColor: '#EF4444', // Red-500
+        borderWidth: 2,
+        borderColor: '#fff',
     },
 });
 

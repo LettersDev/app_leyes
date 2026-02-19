@@ -17,8 +17,7 @@ import {
     Menu,
     Divider
 } from 'react-native-paper';
-import { db } from '../config/firebase';
-import { collection, query, where, getDocs, orderBy, limit, startAfter } from 'firebase/firestore';
+import { supabase } from '../config/supabase';
 import { COLORS } from '../utils/constants';
 import JurisprudenceService from '../services/jurisprudenceService';
 
@@ -141,8 +140,8 @@ const JurisprudenceScreen = ({ navigation }) => {
     const [selectedYear, setSelectedYear] = useState('Todos');
     const [yearMenuVisible, setYearMenuVisible] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [sections, setSections] = useState([]); // Usamos sections para SectionList
-    const [lastDoc, setLastDoc] = useState(null);
+    const [sections, setSections] = useState([]);
+    const [lastTimestamp, setLastTimestamp] = useState(null);  // keyset cursor
     const [refreshing, setRefreshing] = useState(false);
     const [indexError, setIndexError] = useState(false);
     const [hasMore, setHasMore] = useState(true);
@@ -173,14 +172,11 @@ const JurisprudenceScreen = ({ navigation }) => {
     const fetchJurisprudence = async (isNewSearch = false) => {
         if (loading || (!isNewSearch && !hasMore)) return;
 
-        // Bloqueo de seguridad
-        if (!isNewSearch && !lastDoc && !searchQuery) return;
-
         setLoading(true);
         setIndexError(false);
 
         try {
-            // MODO BÚSQUEDA: Usar JurisprudenceService (Multi-filtro)
+            // MODO BÚSQUEDA
             if (searchQuery.trim()) {
                 if (isNewSearch) {
                     const results = await JurisprudenceService.searchSentences(searchQuery.trim());
@@ -192,67 +188,53 @@ const JurisprudenceScreen = ({ navigation }) => {
                 return;
             }
 
-            // MODO NAVEGACIÓN (Por Sala/Recientes/Año)
+            // MODO NAVEGACIÓN — Keyset pagination por timestamp
+            const PAGE_SIZE = 20;
+            const cursor = isNewSearch ? null : lastTimestamp;
+
             if (isNewSearch) {
                 setRawData([]);
                 setSections([]);
-                setLastDoc(null);
+                setLastTimestamp(null);
                 setHasMore(true);
             }
 
-            let q = collection(db, 'jurisprudence');
-            const constraints = [];
+            let q = supabase.from('jurisprudence').select('*');
 
-            // 1. Filtro por Sala o Recientes
+            // Filtros
             if (selectedSala === 'recent') {
                 const recentDates = getLastNDaysStrings(7);
-                constraints.push(where('fecha', 'in', recentDates));
+                q = q.in('fecha', recentDates);
             } else if (selectedSala !== 'all') {
-                constraints.push(where('sala', '==', selectedSala));
+                q = q.eq('sala', selectedSala);
             }
 
-            // 2. Filtro por Año
             if (selectedYear !== 'Todos') {
-                constraints.push(where('ano', '==', parseInt(selectedYear)));
-                // Al filtrar por igualdad, ordenamos por timestamp
-                constraints.push(orderBy('timestamp', 'desc'));
-            } else {
-                // Orden por defecto: Año Descendente
-                constraints.push(orderBy('ano', 'desc'));
-                constraints.push(orderBy('timestamp', 'desc'));
+                q = q.eq('ano', parseInt(selectedYear));
             }
 
-            constraints.push(limit(20));
-
-            // Aplicar cursor si es scroll infinito
-            if (!isNewSearch && lastDoc) {
-                constraints.push(startAfter(lastDoc));
+            // Keyset cursor: traer récords anteriores al timestamp del último
+            if (cursor) {
+                q = q.lt('timestamp', cursor);
             }
 
-            const finalQ = query(q, ...constraints);
-            const querySnapshot = await getDocs(finalQ);
+            q = q.order('timestamp', { ascending: false }).limit(PAGE_SIZE);
 
-            const newData = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const { data: newData, error } = await q;
+            if (error) throw error;
 
-            if (isNewSearch) {
-                processAndSetData(newData, true);
-            } else {
-                processAndSetData(newData, false);
+            const rows = newData || [];
+
+            // Actualizar cursor con el timestamp del último elemento
+            if (rows.length > 0) {
+                setLastTimestamp(rows[rows.length - 1].timestamp);
             }
+            if (rows.length < PAGE_SIZE) setHasMore(false);
 
-            if (querySnapshot.size < 20) {
-                setHasMore(false);
-            }
-
-            setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+            processAndSetData(rows, isNewSearch);
         } catch (error) {
-            console.error("Error fetching jurisprudence:", error);
-            if (error.message.includes('requires an index')) {
-                setIndexError(true);
-            }
+            console.error('Error fetching jurisprudence:', error);
+            setIndexError(true);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -357,9 +339,9 @@ const JurisprudenceScreen = ({ navigation }) => {
         MainView = (
             <View style={styles.center}>
                 <IconButton icon="alert-circle" size={48} iconColor={theme.colors.error} />
-                <Text style={styles.errorTitle}>Error de Configuración</Text>
+                <Text style={styles.errorTitle}>Error de Conexión</Text>
                 <Text style={styles.errorText}>
-                    Esta consulta requiere un índice compuesto en Firebase.
+                    No se pudo cargar la jurisprudencia. Verifica tu conexión a internet.
                     {selectedYear !== 'Todos' && selectedSala !== 'all' && (
                         `\n(Filtro: ${selectedSala} + Año ${selectedYear})`
                     )}

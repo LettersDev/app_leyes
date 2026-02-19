@@ -1,10 +1,25 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Card, Title, Paragraph, IconButton } from 'react-native-paper';
+import { Card, Title, Paragraph, IconButton, Badge } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import LawsIndexService from '../services/lawsIndexService';
 import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES, GRADIENTS } from '../utils/constants';
 
 const LawsCategorySelectorScreen = ({ navigation }) => {
+    const [updatedCategories, setUpdatedCategories] = React.useState([]);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            loadUpdatedCategories();
+        }, [])
+    );
+
+    const loadUpdatedCategories = async () => {
+        const cats = await LawsIndexService.getUpdatedCategories();
+        setUpdatedCategories(cats);
+    };
+
     const selectorCategories = [
         {
             id: LAW_CATEGORIES.LEYES,
@@ -22,7 +37,13 @@ const LawsCategorySelectorScreen = ({ navigation }) => {
         },
     ];
 
-    const handlePress = (cat) => {
+    const handlePress = async (cat) => {
+        // Limpiar badge si existe
+        if (updatedCategories.includes(cat.id)) {
+            await LawsIndexService.clearCategoryNotification(cat.id);
+            setUpdatedCategories(prev => prev.filter(c => c !== cat.id));
+        }
+
         navigation.navigate('LawsList', {
             category: cat.id,
             categoryName: cat.name,
@@ -50,6 +71,13 @@ const LawsCategorySelectorScreen = ({ navigation }) => {
                                     style={styles.iconContainer}
                                 >
                                     <IconButton icon={cat.icon} size={32} iconColor="#fff" />
+                                    {updatedCategories.includes(cat.id) && (
+                                        <Badge
+                                            visible={true}
+                                            size={14}
+                                            style={styles.categoryBadge}
+                                        />
+                                    )}
                                 </LinearGradient>
                                 <View style={styles.textContainer}>
                                     <Title style={styles.title}>{cat.name}</Title>
@@ -148,6 +176,14 @@ const styles = StyleSheet.create({
         color: COLORS.primary,
         fontStyle: 'italic',
         lineHeight: 18,
+    },
+    categoryBadge: {
+        position: 'absolute',
+        top: 2,
+        right: 2,
+        backgroundColor: '#EF4444',
+        borderWidth: 2,
+        borderColor: '#fff',
     },
 });
 

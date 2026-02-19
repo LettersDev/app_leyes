@@ -1,15 +1,14 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { collection, getDocs, query, orderBy, limit, where, doc, getDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { supabase } from '../config/supabase';
 
 const LAWS_INDEX_FILE = `${FileSystem.documentDirectory}laws_index.json`;
-const LAWS_COLLECTION = 'laws';
 const STORAGE_KEYS = {
     LAST_SYNC: 'laws_index_last_sync',
     HAS_NEW_LAWS: 'has_new_laws',
     KNOWN_LAW_IDS: 'known_law_ids',
-    SERVER_TIMESTAMP: 'laws_server_timestamp'
+    SERVER_TIMESTAMP: 'laws_server_timestamp',
+    UPDATED_CATEGORIES: 'updated_categories'
 };
 
 // Códigos principales para pre-descarga
@@ -26,12 +25,11 @@ const PRIORITY_CODES = [
 /**
  * lawsIndexService.js
  * Manages a lightweight local index of all laws for offline-first search and browsing.
- * This dramatically reduces Firebase reads by keeping search data local.
+ * Dramatically reduces Supabase reads by keeping search data local.
  */
 const LawsIndexService = {
     /**
      * Initialize the laws index - call on app start
-     * Downloads index if not present or outdated
      */
     initialize: async () => {
         try {
@@ -69,18 +67,20 @@ const LawsIndexService = {
     },
 
     /**
-     * Download the full laws index from Firebase
+     * Download the full laws index from Supabase
      * Only downloads metadata, not article content
      */
     downloadFullIndex: async () => {
         try {
-            const lawsRef = collection(db, LAWS_COLLECTION);
-            const snapshot = await getDocs(lawsRef);
+            const { data: laws, error } = await supabase
+                .from('laws')
+                .select('*');
 
-            const laws = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            if (error) throw error;
+            if (!laws || laws.length === 0) {
+                console.log('⚠️ Supabase returned 0 laws. Skipping index overwrite.');
+                return false;
+            }
 
             const indexData = {
                 version: '1.0.0',
@@ -99,6 +99,7 @@ const LawsIndexService = {
             await AsyncStorage.setItem(STORAGE_KEYS.KNOWN_LAW_IDS, JSON.stringify(lawIds));
             await AsyncStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
             await AsyncStorage.setItem(STORAGE_KEYS.HAS_NEW_LAWS, 'false');
+            await AsyncStorage.setItem(STORAGE_KEYS.UPDATED_CATEGORIES, JSON.stringify([]));
 
             console.log(`Laws index downloaded: ${laws.length} laws`);
             return true;
@@ -156,20 +157,15 @@ const LawsIndexService = {
 
     /**
      * Get all codes (Códigos) from local index
-     * Supports both old format (category starts with 'codigo_') and new format (parent_category === 'codigos')
      */
     getAllCodesLocal: async () => {
         const laws = await LawsIndexService.getAllLawsLocal();
         if (!laws) return null;
 
         return laws.filter(law => {
-            // New format: has parent_category = 'codigos'
             if (law.parent_category === 'codigos') return true;
-
-            // Old format: category starts with 'codigo_' and type is 'Código'
             if (law.category && law.category.startsWith('codigo_') && law.type === 'Código') return true;
 
-            // Also include if category matches known code patterns
             const codeCategories = [
                 'codigo_civil', 'codigo_penal', 'codigo_comercio',
                 'codigo_procedimiento_civil', 'codigo_organico_procesal_penal',
@@ -199,7 +195,7 @@ const LawsIndexService = {
 
         return laws.filter(law =>
             normalizeText(law.title).includes(searchNorm) ||
-            normalizeText(law.searchableText).includes(searchNorm)
+            normalizeText(law.searchable_text).includes(searchNorm)
         );
     },
 
@@ -222,30 +218,33 @@ const LawsIndexService = {
     },
 
     /**
-     * Check for new laws and update index if needed
-     * OPTIMIZADO: Lee UN solo documento (system/metadata) en vez de toda la colección.
+     * Check for new laws and update index if needed.
+     * OPTIMIZADO: Lee UN solo row (app_metadata) en vez de toda la tabla.
      * Costo: 1 lectura (antes: ~90 lecturas)
      */
     checkAndUpdateIndex: async () => {
         try {
-            // 1. Leer el documento de metadata global (1 sola lectura)
-            const metaRef = doc(db, 'system', 'metadata');
-            const metaSnap = await getDoc(metaRef);
+            // 1. Leer el row de metadata global (1 sola lectura)
+            const { data: serverData, error } = await supabase
+                .from('app_metadata')
+                .select('laws_last_updated, last_upload_count, latest_app_version')
+                .eq('id', 'singleton')
+                .maybeSingle();
 
-            if (!metaSnap.exists()) {
-                // Si no existe el documento de metadata, hacer check legacy (compatibilidad)
-                console.log('No metadata doc found, using legacy check...');
+            if (error) throw error;
+
+            if (!serverData) {
+                // Si no existe el row de metadata, hacer check legacy
+                console.log('No metadata row found, using legacy check...');
                 return await LawsIndexService._legacyCheckAndUpdate();
             }
 
-            const serverData = metaSnap.data();
-            const serverTimestamp = serverData.lawsLastUpdated;
+            const serverTimestamp = serverData.laws_last_updated;
 
             // 2. Comparar con el timestamp local guardado
             const localTimestamp = await AsyncStorage.getItem(STORAGE_KEYS.SERVER_TIMESTAMP);
 
             if (localTimestamp === serverTimestamp) {
-                // No hay cambios, no gastar más lecturas
                 console.log('Laws index up to date (metadata match).');
                 await AsyncStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
                 return { hasNewLaws: false, newCount: 0 };
@@ -254,15 +253,45 @@ const LawsIndexService = {
             // 3. Hay cambios! Descargar el índice completo
             console.log('Laws updated on server, downloading new index...');
             await AsyncStorage.setItem(STORAGE_KEYS.HAS_NEW_LAWS, 'true');
+
+            // Guardar el previous sync para comparar
+            const previousSync = await AsyncStorage.getItem(STORAGE_KEYS.LAST_SYNC);
+
+            // Descargar el nuevo índice ACTUALIZADO
             await LawsIndexService.downloadFullIndex();
 
-            // 4. Guardar el nuevo timestamp del servidor
-            await AsyncStorage.setItem(STORAGE_KEYS.SERVER_TIMESTAMP, serverTimestamp);
+            // 4. Identificar qué categorías tienen novedades (usando el índice recién descargado)
+            const laws = await LawsIndexService.getAllLawsLocal();
+            const updatedCats = new Set();
+
+            if (previousSync && laws) {
+                const prevDate = new Date(previousSync);
+
+                laws.forEach(law => {
+                    const lawDate = new Date(law.last_updated);
+                    if (lawDate > prevDate) {
+                        if (law.parent_category) updatedCats.add(law.parent_category);
+                        if (law.category) updatedCats.add(law.category);
+                    }
+                });
+
+                if (updatedCats.size > 0) {
+                    const currentUpdated = JSON.parse(await AsyncStorage.getItem(STORAGE_KEYS.UPDATED_CATEGORIES) || '[]');
+                    const combined = Array.from(new Set([...currentUpdated, ...Array.from(updatedCats)]));
+                    await AsyncStorage.setItem(STORAGE_KEYS.UPDATED_CATEGORIES, JSON.stringify(combined));
+                }
+            }
+
+            // 5. Guardar el nuevo timestamp del servidor
+            if (serverTimestamp) {
+                await AsyncStorage.setItem(STORAGE_KEYS.SERVER_TIMESTAMP, serverTimestamp);
+            }
 
             return {
                 hasNewLaws: true,
-                newCount: serverData.lastUploadCount || 0,
-                latestAppVersion: serverData.latestAppVersion
+                newCount: serverData.last_upload_count || 0,
+                updatedCategories: Array.from(updatedCats),
+                latestAppVersion: serverData.latest_app_version
             };
         } catch (error) {
             console.error('Error checking for updates:', error);
@@ -271,7 +300,7 @@ const LawsIndexService = {
     },
 
     /**
-     * Get current app version from app.json (via Expo Constants or hardcoded)
+     * Get current app version from app.json
      */
     getCurrentAppVersion: () => {
         try {
@@ -283,14 +312,16 @@ const LawsIndexService = {
     },
 
     /**
-     * Legacy check (fallback si no existe system/metadata)
-     * Se mantiene para compatibilidad hasta que se corra seedDatabase.js
+     * Legacy check (fallback si no existe app_metadata)
      */
     _legacyCheckAndUpdate: async () => {
         try {
-            const lawsRef = collection(db, LAWS_COLLECTION);
-            const snapshot = await getDocs(lawsRef);
-            const remoteLawIds = snapshot.docs.map(doc => doc.id);
+            const { data: laws, error } = await supabase
+                .from('laws')
+                .select('id');
+
+            if (error) throw error;
+            const remoteLawIds = (laws || []).map(l => l.id);
 
             const knownIdsStr = await AsyncStorage.getItem(STORAGE_KEYS.KNOWN_LAW_IDS);
             const knownIds = knownIdsStr ? JSON.parse(knownIdsStr) : [];
@@ -333,6 +364,31 @@ const LawsIndexService = {
             await AsyncStorage.setItem(STORAGE_KEYS.HAS_NEW_LAWS, 'false');
         } catch (error) {
             console.error('Error clearing notification:', error);
+        }
+    },
+
+    /**
+     * Get list of categories that have new content
+     */
+    getUpdatedCategories: async () => {
+        try {
+            const data = await AsyncStorage.getItem(STORAGE_KEYS.UPDATED_CATEGORIES);
+            return data ? JSON.parse(data) : [];
+        } catch (error) {
+            return [];
+        }
+    },
+
+    /**
+     * Clear notification for a specific category
+     */
+    clearCategoryNotification: async (category) => {
+        try {
+            const current = JSON.parse(await AsyncStorage.getItem(STORAGE_KEYS.UPDATED_CATEGORIES) || '[]');
+            const filtered = current.filter(c => c !== category);
+            await AsyncStorage.setItem(STORAGE_KEYS.UPDATED_CATEGORIES, JSON.stringify(filtered));
+        } catch (error) {
+            console.error('Error clearing category notification:', error);
         }
     },
 

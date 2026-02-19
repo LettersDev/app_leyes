@@ -16,8 +16,7 @@ import {
     Menu,
     Divider
 } from 'react-native-paper';
-import { db } from '../config/firebase';
-import { collection, query, where, getDocs, orderBy, limit, startAfter } from 'firebase/firestore';
+import { supabase } from '../config/supabase';
 import { COLORS } from '../utils/constants';
 
 const GacetasScreen = ({ navigation }) => {
@@ -27,7 +26,8 @@ const GacetasScreen = ({ navigation }) => {
     const [yearMenuVisible, setYearMenuVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [sections, setSections] = useState([]);
-    const [lastDoc, setLastDoc] = useState(null);
+    const [pageOffset, setPageOffset] = useState(0);
+    const [lastNumero, setLastNumero] = useState(null);  // keyset cursor
     const [refreshing, setRefreshing] = useState(false);
     const [indexError, setIndexError] = useState(false);
     const [hasMore, setHasMore] = useState(true);
@@ -66,81 +66,68 @@ const GacetasScreen = ({ navigation }) => {
         setIndexError(false);
         try {
             if (isReset) {
-                setLastDoc(null);
+                setLastNumero(null);
                 setSections([]);
                 setRawData([]);
                 setHasMore(true);
             }
 
-            const constraints = [];
+            const PAGE_SIZE = 25;
             const term = searchQuery.trim();
             const isTextSearch = term && isNaN(parseInt(term));
+            const cursor = isReset ? null : lastNumero;
 
-            // Si es búsqueda numérica, filtrar en Firestore
-            if (term && !isTextSearch) {
-                const num = parseInt(term);
-                constraints.push(where('numero', '==', num));
+            let q = supabase.from('gacetas').select('*');
+
+            // 1. Búsqueda por texto (FTS) — NUEVO
+            if (isTextSearch) {
+                console.log(`[FTS Gacetas] Buscando: "${term}"`);
+                q = q.textSearch('fts', term, {
+                    config: 'spanish',
+                    type: 'websearch'
+                });
+                setHasMore(false); // FTS no paginado por ahora (trae top matches)
             }
-
-            // Year Filter
-            if (selectedYear !== 'Todos') {
-                constraints.push(where('ano', '==', parseInt(selectedYear)));
-                constraints.push(orderBy('numero', 'desc'));
-                constraints.push(limit(30)); // Optimizado: era 300, ahora pagina con scroll infinito
-            } else if (!isTextSearch) {
-                constraints.push(orderBy('ano', 'desc'));
-                constraints.push(orderBy('numero', 'desc'));
-                constraints.push(limit(20));
-            } else {
-                // Para búsqueda por texto, traer un lote para filtrar client-side
-                constraints.push(orderBy('ano', 'desc'));
-                constraints.push(orderBy('numero', 'desc'));
-                constraints.push(limit(50)); // Optimizado: era 200
-            }
-
-            if (!isReset && lastDoc && !isTextSearch) {
-                constraints.push(startAfter(lastDoc));
-            }
-
-            const q = query(collection(db, 'gacetas'), ...constraints);
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
+            // 2. Búsqueda numérica exacta
+            else if (term && !isNaN(parseInt(term))) {
+                q = q.eq('numero', parseInt(term));
                 setHasMore(false);
-                if (isReset) {
-                    setSections([]);
-                    setRawData([]);
+            }
+            // 3. Navegación normal (con filtros y keyset)
+            else {
+                if (selectedYear !== 'Todos') {
+                    q = q.eq('ano', parseInt(selectedYear));
                 }
+                if (cursor) {
+                    q = q.lt('numero', cursor);
+                }
+                q = q.order('numero', { ascending: false }).limit(PAGE_SIZE);
+            }
+
+            const { data, error } = await q;
+            if (error) throw error;
+
+            const newItems = data || [];
+
+            if (!isTextSearch && !term) {
+                // Actualizar cursor solo en navegación normal
+                if (newItems.length > 0) {
+                    setLastNumero(newItems[newItems.length - 1].numero);
+                }
+                if (newItems.length < PAGE_SIZE) setHasMore(false);
+            }
+
+            if (newItems.length === 0 && isReset) {
+                setSections([]);
+                setRawData([]);
             } else {
-                if (!isTextSearch) {
-                    setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-                }
-
-                let newItems = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-
-                // Filtrado client-side por texto (título o subtítulo)
-                if (isTextSearch) {
-                    const normTerm = normalizeText(term);
-                    newItems = newItems.filter(item =>
-                        normalizeText(item.titulo).includes(normTerm) ||
-                        normalizeText(item.subtitulo).includes(normTerm)
-                    );
-                    setHasMore(false);
-                }
-
                 const allItems = isReset ? newItems : [...rawData, ...newItems];
                 setRawData(allItems);
-
                 processAndSetData(allItems);
             }
         } catch (error) {
-            console.error("Error fetching gacetas:", error);
-            if (error.message.includes('index')) {
-                setIndexError(true);
-            }
+            console.error('Error fetching gacetas:', error);
+            setIndexError(true);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -317,8 +304,7 @@ const GacetasScreen = ({ navigation }) => {
             ) : indexError ? (
                 <View style={styles.errorContainer}>
                     <IconButton icon="alert-circle" size={48} iconColor={COLORS.error} />
-                    <Text style={styles.errorText}>Se requiere crear un índice nuevo en Firestore.</Text>
-                    <Text style={styles.errorSubtext}>Revisa la consola de Firebase.</Text>
+                    <Text style={styles.errorText}>Error al cargar Gacetas. Verifica tu conexión.</Text>
                     <Button mode="contained" onPress={() => fetchGacetas(true)} style={{ marginTop: 10 }}>Retry</Button>
                 </View>
             ) : (

@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator }
 import { Card, Title, Paragraph, Chip } from 'react-native-paper';
 import { getLawsByCategory, getLawsByParentCategory } from '../services/lawService';
 import { COLORS, LAW_CATEGORIES } from '../utils/constants';
+import LawsIndexService from '../services/lawsIndexService';
 
 const LawsListScreen = ({ route, navigation }) => {
     const { category, categoryName } = route.params;
     const [laws, setLaws] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [lastSyncDate, setLastSyncDate] = useState(null);
 
     useEffect(() => {
         loadLaws();
@@ -30,6 +32,10 @@ const LawsListScreen = ({ route, navigation }) => {
             }
 
             setLaws(data);
+
+            // Cargar fecha de última sincronización para comparar
+            const lsd = await LawsIndexService.getLastSyncTime();
+            setLastSyncDate(lsd);
         } catch (err) {
             setError('Error al cargar las leyes. Por favor, intenta de nuevo.');
             console.error(err);
@@ -65,6 +71,15 @@ const LawsListScreen = ({ route, navigation }) => {
                                 textStyle={styles.chipText}
                             >
                                 {item.type}
+                            </Chip>
+                        )}
+                        {lastSyncDate && item.last_updated && new Date(item.last_updated) > lastSyncDate && (
+                            <Chip
+                                mode="flat"
+                                style={styles.newChip}
+                                textStyle={styles.newChipText}
+                            >
+                                NUEVA
                             </Chip>
                         )}
                     </View>
@@ -181,6 +196,18 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
         paddingHorizontal: 4,
         paddingVertical: 1,
+    },
+    newChip: {
+        backgroundColor: '#EF4444',
+        height: 20,
+        borderRadius: 4,
+        marginLeft: 8,
+    },
+    newChipText: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        color: '#fff',
+        lineHeight: 12,
     },
     date: {
         fontSize: 14,

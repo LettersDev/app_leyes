@@ -1,4 +1,4 @@
-// Categorías de leyes (nombres simples para Firebase)
+// Categorías de leyes (nombres simples para la DB)
 export const LAW_CATEGORIES = {
     CONSTITUCION: 'constitucion',
     CODIGOS: 'codigos', // Categoría padre solo para UI

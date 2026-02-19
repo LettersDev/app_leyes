@@ -1,51 +1,35 @@
 require('dotenv').config();
-const { initializeApp } = require('firebase/app');
-const {
-    getFirestore,
-    collection,
-    doc,
-    getDoc,
-    setDoc,
-    writeBatch,
-    serverTimestamp
-} = require('firebase/firestore');
+const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-// --- CONFIGURACIÓN ---
-const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID
-};
+// --- CONFIGURACIÓN SUPABASE ---
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BATCH_SIZE = 400; // Un poco menos de 500 para seguridad
+const BATCH_SIZE = 400;
 const DELAY_MS = 200;
-const SCHEMA_VERSION = "v4_cleaned_text"; // Forzar recarga con texto limpio
-
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const SCHEMA_VERSION = "v5_unique_ids";
 
 // --- UTILIDADES ---
 
 function getLawHash(law) {
-    // Generar un hash simple basado en título, conteo de artículos, fecha y versión del esquema
     const articleCount = law.content?.articles?.length || 0;
     return `${law.title}_${articleCount}_${law.date}_${SCHEMA_VERSION}`;
 }
 
 async function lawExistsAndIsSame(category, newHash) {
     try {
-        const docRef = doc(db, 'laws', category);
-        const docSnap = await getDoc(docRef);
+        const { data, error } = await supabase
+            .from('laws')
+            .select('hash')
+            .eq('id', category)
+            .maybeSingle();
 
-        if (docSnap.exists()) {
-            const existingHash = docSnap.data().hash;
-            return existingHash === newHash;
+        if (error) throw error;
+        if (data) {
+            return data.hash === newHash;
         }
     } catch (e) {
         console.error(`⚠️ Error al verificar existencia: ${e.message}`);
@@ -62,75 +46,95 @@ async function uploadLaw(lawData) {
     console.log(`\n📚 ${metadata.title}`);
     console.log(`   Artículos: ${articles.length}`);
 
-    // 1. Guardar Metadatos de la Ley
-    console.log(`   ⏳ Guardando metadatos...`);
-    const lawRef = doc(db, 'laws', category);
-    await setDoc(lawRef, {
-        ...metadata,
-        itemCount: articles.length,
-        isLargeLaw: articles.length > 500,
-        lastUpdated: serverTimestamp(),
-        hash: hash
-    });
+    // 1. Guardar Metadatos de la Ley (upsert) - SIN HASH TODAVÍA
+    console.log(`   ⏳ Guardando metadatos base...`);
+    const { error: lawError } = await supabase
+        .from('laws')
+        .upsert({
+            id: category,
+            ...metadata,
+            item_count: articles.length,
+            is_large_law: articles.length > 500,
+            last_updated: new Date().toISOString()
+            // No guardamos el hash todavía para que si falla la subida de items, se reintente
+        });
 
-    // 2. Guardar Artículos en Subcolección (por lotes)
-    const itemsRef = collection(db, 'laws', category, 'items');
+    if (lawError) throw lawError;
+
+    // 2. Guardar Artículos en tabla law_items (por lotes)
     const totalBatches = Math.ceil(articles.length / BATCH_SIZE);
 
     for (let i = 0; i < articles.length; i += BATCH_SIZE) {
-        const batch = writeBatch(db);
         const currentBatch = articles.slice(i, i + BATCH_SIZE);
         const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
 
-        currentBatch.forEach((item, j) => {
-            const index = i + j; // Índice global en la ley
-            const itemId = item.type === 'header' ? `header_${index}` : `art_${item.number || index}`;
-            const itemDocRef = doc(itemsRef, itemId);
-
-            batch.set(itemDocRef, {
+        const rows = currentBatch.map((item, j) => {
+            const index = i + j;
+            // Usamos el índice para garantizar unicidad y evitar el error ON CONFLICT
+            const itemId = `${item.type}_${index}`;
+            return {
+                id: itemId,
+                law_id: category,
                 ...item,
                 index: index,
-                lawCategory: category,
-                lastUpdated: serverTimestamp()
-            });
+                law_category: category,
+                last_updated: new Date().toISOString()
+            };
         });
 
         console.log(`   ⏳ Subiendo lote ${batchNumber}/${totalBatches} (${currentBatch.length} items)...`);
-        await batch.commit();
+
+        const { error: itemsError } = await supabase
+            .from('law_items')
+            .upsert(rows, { onConflict: 'law_id,id' });
+
+        if (itemsError) throw itemsError;
 
         if (i + BATCH_SIZE < articles.length) {
             await new Promise(resolve => setTimeout(resolve, DELAY_MS));
         }
     }
 
+    // 3. ACTUALIZAR HASH - Solo si todo lo anterior tuvo éxito
+    console.log(`   ⏳ Finalizando (actualizando hash)...`);
+    await supabase.from('laws').update({ hash: hash }).eq('id', category);
+
     console.log(`   ✅ ¡Ley completada!`);
 }
 
 /**
- * Actualiza el documento global de metadata para que la app
- * detecte cambios con UNA SOLA lectura (en vez de leer toda la colección).
+ * Actualiza el row de metadata para que la app detecte cambios con UNA SOLA lectura.
  */
 async function updateMetadata(uploadedCount, totalLaws) {
-    console.log(`\n📡 Actualizando metadata global (system/metadata)...`);
-    const metaRef = doc(db, 'system', 'metadata');
-    await setDoc(metaRef, {
-        lawsLastUpdated: new Date().toISOString(),
-        lawsCount: totalLaws,
-        lastUploadCount: uploadedCount,
-        schemaVersion: SCHEMA_VERSION
-    }, { merge: true });
+    console.log(`\n📡 Actualizando metadata global (app_metadata)...`);
+    const { error } = await supabase
+        .from('app_metadata')
+        .upsert({
+            id: 'singleton',
+            laws_last_updated: new Date().toISOString(),
+            laws_count: totalLaws,
+            last_upload_count: uploadedCount,
+            schema_version: SCHEMA_VERSION,
+            updated_at: new Date().toISOString()
+        });
+
+    if (error) throw error;
     console.log(`   ✅ Metadata actualizada. Las apps detectarán los cambios.`);
 }
 
 async function run() {
     console.log('\n╔═══════════════════════════════════════╗');
-    console.log('║   CARGA RESILIENTE DE LEYES (WEB)     ║');
+    console.log('║   CARGA RESILIENTE DE LEYES (SUPABASE) ║');
     console.log('╚═══════════════════════════════════════╝\n');
+
+    if (!supabaseUrl || !supabaseKey) {
+        console.error('❌ Faltan variables SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env');
+        return;
+    }
 
     const startTime = Date.now();
     const dataDir = path.join(__dirname, '../data');
 
-    // Leer archivo específico o todos los archivos *_full.json
     const specificFileName = process.argv[2];
     let files = [];
 
@@ -195,8 +199,4 @@ async function run() {
 
 run().catch(err => {
     console.error('❌ ERROR CRÍTICO:', err.message);
-    if (err.message.includes('permission-denied')) {
-        console.log('\n💡 TIP: Revisa las Reglas de Seguridad en la Consola de Firebase.');
-        console.log('Deben permitir escritura: "allow read, write: if true;"');
-    }
 });

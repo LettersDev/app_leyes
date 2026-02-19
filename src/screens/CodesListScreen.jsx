@@ -24,6 +24,7 @@ const DEFAULT_COLORS = ['#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B', '
 const CodesListScreen = ({ navigation }) => {
     const [codes, setCodes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [lastSyncDate, setLastSyncDate] = useState(null);
 
     useEffect(() => {
         loadCodes();
@@ -34,13 +35,13 @@ const CodesListScreen = ({ navigation }) => {
             // Cargar códigos desde el índice local (soporta ambos formatos)
             let allCodes = await LawsIndexService.getAllCodesLocal();
 
-            // Si no hay índice local, intentar con Firebase
+            // Si no hay índice local, intentar con Supabase
             if (!allCodes || allCodes.length === 0) {
                 allCodes = await getLawsByParentCategory('codigos');
             }
 
             // Formatear para mostrar
-            const formattedCodes = allCodes.map((code, index) => {
+            const formattedCodes = (allCodes || []).map((code, index) => {
                 const iconConfig = CODE_ICONS[code.category] || {
                     icon: 'book-open-variant',
                     color: DEFAULT_COLORS[index % DEFAULT_COLORS.length]
@@ -57,10 +58,15 @@ const CodesListScreen = ({ navigation }) => {
                     icon: iconConfig.icon,
                     color: iconConfig.color,
                     articles: articleCount > 0 ? `${articleCount} artículos` : '',
+                    last_updated: code.last_updated
                 };
             });
 
             setCodes(formattedCodes);
+
+            // Cargar fecha de última sincronización
+            const lsd = await LawsIndexService.getLastSyncTime();
+            setLastSyncDate(lsd);
         } catch (error) {
             console.error('Error loading codes:', error);
         } finally {
@@ -105,7 +111,12 @@ const CodesListScreen = ({ navigation }) => {
                                     <IconButton icon={code.icon} size={28} iconColor="#fff" />
                                 </View>
                                 <View style={styles.codeInfo}>
-                                    <Title style={styles.codeTitle}>{code.name}</Title>
+                                    <View style={styles.titleRow}>
+                                        <Title style={styles.codeTitle}>{code.name}</Title>
+                                        {lastSyncDate && code.last_updated && new Date(code.last_updated) > lastSyncDate && (
+                                            <View style={styles.newIndicator} />
+                                        )}
+                                    </View>
                                     <Paragraph style={styles.codeDescription}>
                                         {code.description}
                                     </Paragraph>
@@ -189,6 +200,17 @@ const styles = StyleSheet.create({
         color: COLORS.primary,
         fontWeight: '500',
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    newIndicator: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#EF4444',
+        marginLeft: 8,
+    }
 });
 
 export default CodesListScreen;

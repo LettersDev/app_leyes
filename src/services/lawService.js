@@ -1,9 +1,6 @@
-import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, startAt, endAt } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { supabase } from '../config/supabase';
 import OfflineService from './offlineService';
 import LawsIndexService from './lawsIndexService';
-
-const LAWS_COLLECTION = 'laws';
 
 const normalizeText = (text) => {
     if (!text) return '';
@@ -14,25 +11,22 @@ const normalizeText = (text) => {
 
 /**
  * Obtener todas las leyes - LOCAL FIRST
- * Primero intenta obtener del índice local, solo usa Firebase si no hay índice
+ * Primero intenta obtener del índice local, solo usa Supabase si no hay índice
  */
 export const getAllLaws = async () => {
     try {
-        // Intentar índice local primero (sin consumir Firebase reads)
         const localLaws = await LawsIndexService.getAllLawsLocal();
         if (localLaws && localLaws.length > 0) {
             return localLaws;
         }
 
-        // Fallback a Firebase si no hay índice local
-        console.log('No local index, fetching from Firebase...');
-        const lawsRef = collection(db, LAWS_COLLECTION);
-        const snapshot = await getDocs(lawsRef);
+        console.log('No local index, fetching from Supabase...');
+        const { data, error } = await supabase
+            .from('laws')
+            .select('*');
 
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        if (error) throw error;
+        return data || [];
     } catch (error) {
         console.error('Error al obtener leyes:', error);
         throw error;
@@ -44,7 +38,6 @@ export const getAllLaws = async () => {
  */
 export const getLawsByCategory = async (category, forceRefresh = false) => {
     try {
-        // Intentar índice local primero (si no se requiere refresco forzado)
         if (!forceRefresh) {
             const localLaws = await LawsIndexService.getLawsByCategoryLocal(category);
             if (localLaws && localLaws.length > 0) {
@@ -52,23 +45,19 @@ export const getLawsByCategory = async (category, forceRefresh = false) => {
             }
         }
 
-        // Fetch from Firebase (either because forceRefresh or local index is empty)
-        console.log(`Fetching ${category} from Firebase (Force: ${forceRefresh})`);
-        const lawsRef = collection(db, LAWS_COLLECTION);
-        const q = query(lawsRef, where('category', '==', category));
-        const snapshot = await getDocs(q);
+        console.log(`Fetching ${category} from Supabase (Force: ${forceRefresh})`);
+        const { data, error } = await supabase
+            .from('laws')
+            .select('*')
+            .eq('category', category);
 
-        const data = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        if (error) throw error;
 
-        // Si fue forzado, deberíamos avisar al servicio de índice que algo cambió
         if (forceRefresh) {
             await LawsIndexService.checkAndUpdateIndex();
         }
 
-        return data;
+        return data || [];
     } catch (error) {
         console.error('Error al obtener leyes por categoría:', error);
         throw error;
@@ -80,7 +69,6 @@ export const getLawsByCategory = async (category, forceRefresh = false) => {
  */
 export const getLawsByParentCategory = async (parentCategory, forceRefresh = false) => {
     try {
-        // Intentar índice local primero
         if (!forceRefresh) {
             const localLaws = await LawsIndexService.getLawsByParentCategoryLocal(parentCategory);
             if (localLaws && localLaws.length > 0) {
@@ -88,27 +76,25 @@ export const getLawsByParentCategory = async (parentCategory, forceRefresh = fal
             }
         }
 
-        // Fetch from Firebase
-        console.log(`Fetching ${parentCategory} from Firebase (Force: ${forceRefresh})`);
-        const lawsRef = collection(db, LAWS_COLLECTION);
-        const q = query(lawsRef, where('parent_category', '==', parentCategory));
-        const snapshot = await getDocs(q);
+        console.log(`Fetching ${parentCategory} from Supabase (Force: ${forceRefresh})`);
+        const { data, error } = await supabase
+            .from('laws')
+            .select('*')
+            .eq('parent_category', parentCategory);
 
-        const data = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        if (error) throw error;
 
         if (forceRefresh) {
             await LawsIndexService.checkAndUpdateIndex();
         }
 
-        return data;
+        return data || [];
     } catch (error) {
         console.error('Error al obtener leyes por categoría padre:', error);
         throw error;
     }
 };
+
 export const getLawById = async (lawId) => {
     try {
         // Intentar local primero
@@ -117,17 +103,15 @@ export const getLawById = async (lawId) => {
             return offlineLaw.metadata;
         }
 
-        const lawRef = doc(db, LAWS_COLLECTION, lawId);
-        const snapshot = await getDoc(lawRef);
+        const { data, error } = await supabase
+            .from('laws')
+            .select('*')
+            .eq('id', lawId)
+            .maybeSingle();
 
-        if (snapshot.exists()) {
-            return {
-                id: snapshot.id,
-                ...snapshot.data()
-            };
-        } else {
-            throw new Error('Ley no encontrada');
-        }
+        if (error) throw error;
+        if (!data) throw new Error('Ley no encontrada');
+        return data;
     } catch (error) {
         console.error('Error al obtener ley:', error);
         throw error;
@@ -142,25 +126,21 @@ export const getLawItems = async (lawId, lastIndex = -1, pageSize = 50) => {
         // Intentar local primero
         const offlineLaw = await OfflineService.getLaw(lawId);
         if (offlineLaw && offlineLaw.items) {
-            // Filtrar y paginar el array local
             return offlineLaw.items
                 .filter(item => item.index > lastIndex)
                 .slice(0, pageSize);
         }
 
-        const itemsRef = collection(db, LAWS_COLLECTION, lawId, 'items');
-        const q = query(
-            itemsRef,
-            where('index', '>', lastIndex),
-            orderBy('index', 'asc'),
-            limit(pageSize)
-        );
+        const { data, error } = await supabase
+            .from('law_items')
+            .select('*')
+            .eq('law_id', lawId)
+            .gt('index', lastIndex)
+            .order('index', { ascending: true })
+            .limit(pageSize);
 
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        if (error) throw error;
+        return data || [];
     } catch (error) {
         console.error('Error al obtener items de la ley:', error);
         throw error;
@@ -172,21 +152,16 @@ export const getLawItems = async (lawId, lastIndex = -1, pageSize = 50) => {
  */
 export const getLawItemByNumber = async (lawId, articleNumber) => {
     try {
-        const itemsRef = collection(db, LAWS_COLLECTION, lawId, 'items');
-        const q = query(
-            itemsRef,
-            where('number', '==', parseInt(articleNumber)),
-            limit(1)
-        );
+        const { data, error } = await supabase
+            .from('law_items')
+            .select('*')
+            .eq('law_id', lawId)
+            .eq('number', parseInt(articleNumber))
+            .limit(1)
+            .maybeSingle();
 
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-            return {
-                id: snapshot.docs[0].id,
-                ...snapshot.docs[0].data()
-            };
-        }
-        return null;
+        if (error) throw error;
+        return data || null;
     } catch (error) {
         console.error('Error al buscar artículo por número:', error);
         throw error;
@@ -198,26 +173,30 @@ export const getLawItemByNumber = async (lawId, articleNumber) => {
  */
 export const searchLawItemsByText = async (lawId, searchText) => {
     try {
-        let items;
-        // Intentar local primero
+        // Local-first
         const offlineLaw = await OfflineService.getLaw(lawId);
         if (offlineLaw && offlineLaw.items) {
-            items = offlineLaw.items;
-        } else {
-            const itemsRef = collection(db, LAWS_COLLECTION, lawId, 'items');
-            const snapshot = await getDocs(itemsRef);
-            items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const searchNorm = normalizeText(searchText);
+            return offlineLaw.items
+                .filter(item =>
+                    normalizeText(item.text).includes(searchNorm) ||
+                    normalizeText(item.title).includes(searchNorm)
+                )
+                .sort((a, b) => (a.index || 0) - (b.index || 0))
+                .slice(0, 50);
         }
 
-        const searchNorm = normalizeText(searchText);
-        const results = items
-            .filter(item =>
-                normalizeText(item.text).includes(searchNorm) ||
-                normalizeText(item.title).includes(searchNorm)
-            )
-            .sort((a, b) => (a.index || 0) - (b.index || 0));
+        // Supabase: búsqueda ilike (rápido, soporta acentos via unaccent si está configurado)
+        const { data, error } = await supabase
+            .from('law_items')
+            .select('*')
+            .eq('law_id', lawId)
+            .ilike('text', `%${searchText}%`)
+            .order('index', { ascending: true })
+            .limit(50);
 
-        return results.slice(0, 50);
+        if (error) throw error;
+        return data || [];
     } catch (error) {
         console.error('Error en búsqueda interna:', error);
         throw error;
@@ -239,19 +218,16 @@ export const getLawItemsAround = async (lawId, articleNumber, windowSize = 2) =>
                 .sort((a, b) => (a.number || 0) - (b.number || 0));
         }
 
-        const itemsRef = collection(db, LAWS_COLLECTION, lawId, 'items');
-        const q = query(
-            itemsRef,
-            where('number', '>=', num - windowSize),
-            where('number', '<=', num + windowSize),
-            orderBy('number', 'asc')
-        );
+        const { data, error } = await supabase
+            .from('law_items')
+            .select('*')
+            .eq('law_id', lawId)
+            .gte('number', num - windowSize)
+            .lte('number', num + windowSize)
+            .order('number', { ascending: true });
 
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        if (error) throw error;
+        return data || [];
     } catch (error) {
         console.error('Error al obtener artículos vecinos:', error);
         throw error;
@@ -260,25 +236,28 @@ export const getLawItemsAround = async (lawId, articleNumber, windowSize = 2) =>
 
 /**
  * Buscar leyes por texto (Global) - LOCAL FIRST
- * Esta función ahora es instantánea al usar el índice local
  */
 export const searchLaws = async (searchText) => {
     try {
-        // Intentar búsqueda local primero (0 Firebase reads)
+        // Local-first: indexado local (0 lecturas Supabase)
         const localResults = await LawsIndexService.searchLawsLocal(searchText);
         if (localResults !== null) {
             return localResults;
         }
 
-        // Fallback a búsqueda en Firebase (solo si no hay índice)
-        console.log('No local index for search, using Firebase...');
-        const allLaws = await getAllLaws();
-        const searchNorm = normalizeText(searchText);
+        // Fallback: FTS en Supabase con stemming en español
+        console.log('[FTS] Buscando leyes en Supabase:', searchText);
+        const { data, error } = await supabase
+            .from('laws')
+            .select('id, title, category, parent_category, item_count, is_large_law')
+            .textSearch('fts', searchText, {
+                type: 'websearch',
+                config: 'spanish'
+            })
+            .limit(30);
 
-        return allLaws.filter(law =>
-            normalizeText(law.title).includes(searchNorm) ||
-            normalizeText(law.searchableText).includes(searchNorm)
-        );
+        if (error) throw error;
+        return data || [];
     } catch (error) {
         console.error('Error al buscar leyes:', error);
         throw error;
@@ -290,18 +269,14 @@ export const searchLaws = async (searchText) => {
  */
 export const getRecentUpdates = async (limitCount = 10) => {
     try {
-        const lawsRef = collection(db, LAWS_COLLECTION);
-        const q = query(
-            lawsRef,
-            orderBy('lastUpdated', 'desc'),
-            limit(limitCount)
-        );
-        const snapshot = await getDocs(q);
+        const { data, error } = await supabase
+            .from('laws')
+            .select('*')
+            .order('last_updated', { ascending: false })
+            .limit(limitCount);
 
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        if (error) throw error;
+        return data || [];
     } catch (error) {
         console.error('Error al obtener actualizaciones recientes:', error);
         throw error;
@@ -313,16 +288,30 @@ export const getRecentUpdates = async (limitCount = 10) => {
  */
 export const downloadLawContent = async (lawId) => {
     try {
-        const metadata = await getLawById(lawId);
-        const itemsRef = collection(db, LAWS_COLLECTION, lawId, 'items');
-        const q = query(itemsRef, orderBy('index', 'asc'));
+        // Primero intentar offline
+        const offlineLaw = await OfflineService.getLaw(lawId);
+        if (offlineLaw && offlineLaw.items && offlineLaw.items.length > 0) {
+            console.log(`[Offline] ${lawId} ya descargada.`);
+            return true;
+        }
 
-        const snapshot = await getDocs(q);
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Una sola query con JOIN: law + todos sus artículos
+        const { data, error } = await supabase
+            .from('laws')
+            .select('*, law_items(*)')
+            .eq('id', lawId)
+            .single();
+
+        if (error) throw error;
+
+        const { law_items: items, ...metadata } = data;
+
+        // Ordenar artículos por índice
+        const sortedItems = (items || []).sort((a, b) => (a.index || 0) - (b.index || 0));
 
         const fullData = {
             metadata,
-            items,
+            items: sortedItems,
             downloadedAt: new Date().toISOString()
         };
 

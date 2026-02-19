@@ -1,24 +1,15 @@
 /**
  * setVersion.js
- * Script para actualizar la versión de la app en Firestore manualmente.
- * 
+ * Script para actualizar la versión de la app en Supabase manualmente.
+ *
  * Uso: node scripts/setVersion.js 1.1.1
  */
 require('dotenv').config();
-const { initializeApp } = require('firebase/app');
-const { getFirestore, doc, updateDoc } = require('firebase/firestore');
+const { createClient } = require('@supabase/supabase-js');
 
-const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function setVersion(newVersion) {
     if (!newVersion) {
@@ -26,16 +17,20 @@ async function setVersion(newVersion) {
         return;
     }
 
-    console.log(`🚀 Actualizando latestAppVersion a: ${newVersion}...`);
+    console.log(`🚀 Actualizando latest_app_version a: ${newVersion}...`);
 
     try {
-        const metaRef = doc(db, 'system', 'metadata');
-        await updateDoc(metaRef, {
-            latestAppVersion: newVersion,
-            updatedAt: new Date().toISOString()
-        });
+        const { error } = await supabase
+            .from('app_metadata')
+            .update({
+                latest_app_version: newVersion,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', 'singleton');
 
-        console.log('✅ Versión actualizada exitosamente en Firestore.');
+        if (error) throw error;
+
+        console.log('✅ Versión actualizada exitosamente en Supabase.');
         console.log('📡 Los usuarios verán el aviso de actualización al abrir la app.');
     } catch (error) {
         console.error('❌ Error al actualizar:', error.message);

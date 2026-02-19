@@ -52,7 +52,7 @@ export default function App() {
       setIsInitializing(false);
     } catch (error) {
       console.error('Error initializing app:', error);
-      // Continue anyway, app will work with Firebase fallback
+      // Continue anyway, app will work with Supabase fallback
       setIsInitializing(false);
     }
   };
