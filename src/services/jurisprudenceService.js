@@ -92,6 +92,9 @@ export const JurisprudenceService = {
             setCachedResult(searchText, results);
             return results;
         } catch (error) {
+            if (error.message && error.message.toLowerCase().includes('network')) {
+                throw new Error('OFFLINE_ERROR');
+            }
             console.error('Error searching jurisprudence:', error);
             return [];
         }
@@ -108,6 +111,9 @@ export const JurisprudenceService = {
             if (error) throw error;
             return (data || []).map(row => ({ ...row, type: 'jurisprudencia' }));
         } catch (error) {
+            if (error.message === 'Network request failed') {
+                throw new Error('OFFLINE_ERROR');
+            }
             console.error('Error fetching recent jurisprudence:', error);
             return [];
         }

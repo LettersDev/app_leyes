@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Card, Title, Paragraph, Chip } from 'react-native-paper';
+import { Card, Title, Paragraph, Chip, IconButton, Button } from 'react-native-paper';
 import { getLawsByCategory, getLawsByParentCategory } from '../services/lawService';
 import { COLORS, LAW_CATEGORIES } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
@@ -37,8 +37,12 @@ const LawsListScreen = ({ route, navigation }) => {
             const lsd = await LawsIndexService.getLastSyncTime();
             setLastSyncDate(lsd);
         } catch (err) {
-            setError('Error al cargar las leyes. Por favor, intenta de nuevo.');
-            console.error(err);
+            if (err.message === 'OFFLINE_ERROR') {
+                setError('OFFLINE_ERROR');
+            } else {
+                setError('Error al cargar las leyes. Por favor, intenta de nuevo.');
+                console.error(err);
+            }
         } finally {
             setLoading(false);
         }
@@ -110,6 +114,25 @@ const LawsListScreen = ({ route, navigation }) => {
     }
 
     if (error) {
+        if (error === 'OFFLINE_ERROR') {
+            return (
+                <View style={styles.centerContainer}>
+                    <IconButton icon="wifi-off" size={60} iconColor={COLORS.textSecondary} />
+                    <Title style={{ textAlign: 'center', marginBottom: 10 }}>Sin Conexión</Title>
+                    <Paragraph style={{ textAlign: 'center', color: COLORS.textSecondary, marginBottom: 20 }}>
+                        No se pudieron cargar las leyes de esta categoría. Por favor, verifica tu internet.
+                    </Paragraph>
+                    <Button
+                        mode="contained"
+                        onPress={() => loadLaws()}
+                        style={{ borderRadius: 20 }}
+                    >
+                        Reintentar
+                    </Button>
+                </View>
+            );
+        }
+
         return (
             <View style={styles.centerContainer}>
                 <Text style={styles.errorText}>{error}</Text>

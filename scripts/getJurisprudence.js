@@ -119,20 +119,41 @@ async function getSessionCookies() {
 
 async function executeSync(mode, year, roomIds, cookieStr) {
     let allSuccess = true;
+    let currentCookies = cookieStr;
+
     for (const salaId of roomIds) {
         const salaInfo = SALA_MAP[salaId];
         console.log(`\n🏛️ Procesando: ${salaInfo.name}...`);
-        try {
-            if (mode === 'historical' && year) {
-                await syncHistoricalYear(salaId, year, cookieStr);
-            } else {
-                const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                await syncDay(salaId, today, cookieStr);
+
+        let attempts = 0;
+        let roomSuccess = false;
+
+        while (attempts < 2 && !roomSuccess) {
+            try {
+                if (mode === 'historical' && year) {
+                    await syncHistoricalYear(salaId, year, currentCookies);
+                } else {
+                    const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    await syncDay(salaId, today, currentCookies);
+                }
+                roomSuccess = true;
+            } catch (error) {
+                attempts++;
+                console.error(`   ❌ Error en sala ${salaInfo.short} (Intento ${attempts}/2): ${error.message}`);
+
+                if (attempts < 2) {
+                    console.log(`   🔄 Refrescando sesión y reintentando sala...`);
+                    await new Promise(r => setTimeout(r, 5000));
+                    currentCookies = await getSessionCookies();
+                    if (!currentCookies) break;
+                } else {
+                    allSuccess = false;
+                }
             }
-        } catch (error) {
-            console.error(`   ❌ Error en sala ${salaInfo.short}: ${error.message}`);
-            allSuccess = false;
         }
+
+        // Pequeño respiro entre salas para evitar bloqueos
+        await new Promise(r => setTimeout(r, 1000));
     }
     return allSuccess;
 }
@@ -142,6 +163,7 @@ async function executeSyncManualDate(fecha, roomIds, cookieStr) {
         const salaInfo = SALA_MAP[salaId];
         try {
             await syncDay(salaId, fecha, cookieStr);
+            await new Promise(r => setTimeout(r, 1000));
         } catch (error) {
             console.error(`   ❌ Error en sala ${salaInfo.short}: ${error.message}`);
         }
@@ -167,7 +189,7 @@ async function runAutoSync(roomIds) {
     }
 
     const nextYear = lastYearSynced + 1;
-    const cookieStr = await getSessionCookies();
+    let cookieStr = await getSessionCookies();
     if (!cookieStr) return;
 
     // 1. Siempre sincronizar ÚLTIMOS 2 DÍAS
@@ -189,16 +211,20 @@ async function runAutoSync(roomIds) {
     // 2. Si aún falta historia, avanzar un año por ejecución
     if (nextYear < currentYear) {
         console.log(`\n⏳ [SmartSync] Paso 2: Avanzando historia. Sincronizando año: ${nextYear}`);
-        await executeSync('historical', nextYear, roomIds, cookieStr);
+        const success = await executeSync('historical', nextYear, roomIds, cookieStr);
 
-        await supabase
-            .from('sync_monitor')
-            .upsert({
-                id: 'historical_sync',
-                data: { lastYearSynced: nextYear, lastUpdate: new Date().toISOString() },
-                updated_at: new Date().toISOString()
-            });
-        console.log(`\n✅ [SmartSync] Año ${nextYear} completado y guardado en DB.`);
+        if (success) {
+            await supabase
+                .from('sync_monitor')
+                .upsert({
+                    id: 'historical_sync',
+                    data: { lastYearSynced: nextYear, lastUpdate: new Date().toISOString() },
+                    updated_at: new Date().toISOString()
+                });
+            console.log(`\n✅ [SmartSync] Año ${nextYear} completado y guardado en DB.`);
+        } else {
+            console.error(`\n⚠️ [SmartSync] El año ${nextYear} tuvo fallos. Se reintentará en la próxima ejecución.`);
+        }
     } else {
         console.log(`\n✨ [SmartSync] Toda la historia está al día (hasta ${lastYearSynced}).`);
     }
@@ -244,6 +270,8 @@ async function syncDay(salaId, fecha, cookies) {
 
         for (const s of sentencias) {
             await saveToDB(s, salaId);
+            // Pequeño delay entre sentencias
+            await new Promise(r => setTimeout(r, 200));
         }
     } else {
         console.log(`   📭 No hay sentencias publicadas este día.`);
@@ -264,7 +292,6 @@ async function saveToDB(s, salaId) {
             .maybeSingle();
 
         if (existing) {
-            console.log(`      ⏩️ Saltado (Existe): ${s.SSENTNUMERO}`);
             return;
         }
 
@@ -341,12 +368,12 @@ async function syncHistoricalYear(salaId, year, cookies) {
 
         for (const dia of diasValidos) {
             await syncDay(salaId, dia.FECHA, cookies);
+            await new Promise(r => setTimeout(r, 1000));
         }
     } else {
         // Verificar si es un error silencioso de Liferay
         if (!response.data || !response.data.coleccion) {
-            console.warn(`   ⚠️ Respuesta sospechosa para año ${year}:`, JSON.stringify(response.data).substring(0, 100));
-            throw new Error(`Respuesta inválida del servidor para el año ${year}`);
+            throw new Error(`Respuesta inválida o vacía del servidor para el año ${year}`);
         }
         console.log(`   📭 No se encontraron días con actividad para el año ${year}.`);
     }
@@ -377,15 +404,19 @@ myArgs.forEach(arg => {
 
 // Modos extendidos para ejecución manual
 async function runFullSync(roomIds, forceRepair = false, startY = 2000, endY = new Date().getFullYear()) {
-    const cookieStr = await getSessionCookies();
+    let cookieStr = await getSessionCookies();
     if (!cookieStr) return;
 
     for (let y = startY; y <= endY; y++) {
         console.log(`\n🚀 [FullSync] Iniciando año ${y}...`);
+
+        // Refrescar sesión al inicio de cada año para evitar expiraciones largas
+        cookieStr = await getSessionCookies();
+
         const success = await executeSync('historical', y.toString(), roomIds, cookieStr);
 
         if (!success) {
-            console.error(`\n❌ Error crítico en el año ${y}. Deteniendo sincronización para evitar saltos.`);
+            console.error(`\n❌ Error crítico persistente en el año ${y}. Deteniendo para evitar saltos.`);
             process.exit(1);
         }
 
@@ -398,6 +429,10 @@ async function runFullSync(roomIds, forceRepair = false, startY = 2000, endY = n
                     updated_at: new Date().toISOString()
                 });
         }
+
+        // Espera de seguridad entre años
+        console.log(`\n⏳ Esperando 10s para el siguiente año...`);
+        await new Promise(r => setTimeout(r, 10000));
     }
 }
 

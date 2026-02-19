@@ -35,7 +35,9 @@ const SearchScreen = ({ navigation }) => {
             setResults([...jurisprudenceData, ...lawsData]);
             setSearched(true);
         } catch (error) {
-            console.error('Error en búsqueda:', error);
+            if (error.message !== 'OFFLINE_ERROR') {
+                console.error('Error en búsqueda:', error);
+            }
             setResults([]);
         } finally {
             setLoading(false);

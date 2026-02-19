@@ -243,8 +243,12 @@ const LawDetailScreen = ({ route }) => {
             const uri = await checkIfFileExists(lawId);
             setLocalUri(uri);
         } catch (err) {
-            setError('Error al cargar la ley. Por favor, intenta de nuevo.');
-            console.error(err);
+            if (err.message === 'OFFLINE_ERROR') {
+                setError('OFFLINE_ERROR');
+            } else {
+                setError('Error al cargar la ley. Por favor, intenta de nuevo.');
+                console.error(err);
+            }
         } finally {
             setLoading(false);
         }
@@ -580,9 +584,29 @@ const LawDetailScreen = ({ route }) => {
     }
 
     if (error || !law) {
+        if (error === 'OFFLINE_ERROR') {
+            return (
+                <View style={[styles.centerContainer, { paddingHorizontal: 40 }]}>
+                    <IconButton icon="wifi-off" size={60} iconColor={COLORS.textSecondary} />
+                    <Title style={{ textAlign: 'center', marginBottom: 10 }}>Sin Conexión</Title>
+                    <Paragraph style={{ textAlign: 'center', color: COLORS.textSecondary, marginBottom: 20 }}>
+                        Esta ley no ha sido descargada para uso sin internet. Conéctate a una red para leerla o descargarla.
+                    </Paragraph>
+                    <Button
+                        mode="contained"
+                        onPress={() => loadInitialData()}
+                        style={{ borderRadius: 20 }}
+                    >
+                        Reintentar
+                    </Button>
+                </View>
+            );
+        }
+
         return (
             <View style={styles.centerContainer}>
                 <Text style={styles.errorText}>{error || 'Ley no encontrada'}</Text>
+                <Button onPress={() => loadInitialData()} style={{ marginTop: 10 }}>Reintentar</Button>
             </View>
         );
     }
@@ -708,7 +732,7 @@ const styles = StyleSheet.create({
     title: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 12, textAlign: 'left' },
     date: { fontSize: 14, color: '#E5E7EB', marginBottom: 4, textAlign: 'left' },
     metadata: { fontSize: 14, color: COLORS.secondary, fontWeight: '600', marginTop: 4, textAlign: 'left' },
-    contentContainer: { paddingHorizontal: 15, paddingVertical: 20 },
+    contentContainer: { paddingHorizontal: 20, paddingVertical: 20 },
     articleCard: {
         backgroundColor: '#fff',
         borderRadius: 16,
@@ -741,11 +765,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: COLORS.primary,
         flex: 1,
-        paddingRight: 10
+        paddingRight: 15, // Más espacio para que el título no toque los botones
     },
     articleText: {
         color: '#334155',
-        textAlign: 'justify',
+        textAlign: 'left', // Cambiado de justify a left para evitar el bug de recorte en Android
+        lineHeight: 22,    // Mejorar legibilidad con alineación a la izquierda
+        paddingHorizontal: 4,
     },
     divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 15 },
     headerContainer: {

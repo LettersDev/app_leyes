@@ -104,7 +104,9 @@ const LawsIndexService = {
             console.log(`Laws index downloaded: ${laws.length} laws`);
             return true;
         } catch (error) {
-            console.error('Error downloading laws index:', error);
+            if (!error.message || !error.message.toLowerCase().includes('network')) {
+                console.error('Error downloading laws index:', error);
+            }
             return false;
         }
     },
@@ -294,7 +296,9 @@ const LawsIndexService = {
                 latestAppVersion: serverData.latest_app_version
             };
         } catch (error) {
-            console.error('Error checking for updates:', error);
+            if (!error.message || !error.message.toLowerCase().includes('network')) {
+                console.error('Error checking for updates:', error);
+            }
             return { hasNewLaws: false, newCount: 0, error: true };
         }
     },
@@ -339,7 +343,9 @@ const LawsIndexService = {
             await AsyncStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
             return { hasNewLaws: false, newCount: 0 };
         } catch (error) {
-            console.error('Error in legacy check:', error);
+            if (!error.message || !error.message.toLowerCase().includes('network')) {
+                console.error('Error in legacy check:', error);
+            }
             return { hasNewLaws: false, newCount: 0, error: true };
         }
     },

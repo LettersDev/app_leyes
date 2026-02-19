@@ -16,8 +16,8 @@ import {
     Menu,
     Divider
 } from 'react-native-paper';
-import { supabase } from '../config/supabase';
 import { COLORS } from '../utils/constants';
+import GacetaService from '../services/gacetaService';
 
 const GacetasScreen = ({ navigation }) => {
     const theme = useTheme();
@@ -77,35 +77,12 @@ const GacetasScreen = ({ navigation }) => {
             const isTextSearch = term && isNaN(parseInt(term));
             const cursor = isReset ? null : lastNumero;
 
-            let q = supabase.from('gacetas').select('*');
-
-            // 1. Búsqueda por texto (FTS) — NUEVO
-            if (isTextSearch) {
-                console.log(`[FTS Gacetas] Buscando: "${term}"`);
-                q = q.textSearch('fts', term, {
-                    config: 'spanish',
-                    type: 'websearch'
-                });
-                setHasMore(false); // FTS no paginado por ahora (trae top matches)
-            }
-            // 2. Búsqueda numérica exacta
-            else if (term && !isNaN(parseInt(term))) {
-                q = q.eq('numero', parseInt(term));
-                setHasMore(false);
-            }
-            // 3. Navegación normal (con filtros y keyset)
-            else {
-                if (selectedYear !== 'Todos') {
-                    q = q.eq('ano', parseInt(selectedYear));
-                }
-                if (cursor) {
-                    q = q.lt('numero', cursor);
-                }
-                q = q.order('numero', { ascending: false }).limit(PAGE_SIZE);
-            }
-
-            const { data, error } = await q;
-            if (error) throw error;
+            const data = await GacetaService.fetchGacetas({
+                selectedYear,
+                lastNumero: cursor,
+                searchQuery: term,
+                pageSize: PAGE_SIZE
+            });
 
             const newItems = data || [];
 
@@ -126,8 +103,12 @@ const GacetasScreen = ({ navigation }) => {
                 processAndSetData(allItems);
             }
         } catch (error) {
-            console.error('Error fetching gacetas:', error);
-            setIndexError(true);
+            if (error.message === 'OFFLINE_ERROR') {
+                setIndexError('OFFLINE_ERROR');
+            } else {
+                console.error('Error fetching gacetas:', error);
+                setIndexError(true);
+            }
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -303,9 +284,26 @@ const GacetasScreen = ({ navigation }) => {
                 </View>
             ) : indexError ? (
                 <View style={styles.errorContainer}>
-                    <IconButton icon="alert-circle" size={48} iconColor={COLORS.error} />
-                    <Text style={styles.errorText}>Error al cargar Gacetas. Verifica tu conexión.</Text>
-                    <Button mode="contained" onPress={() => fetchGacetas(true)} style={{ marginTop: 10 }}>Retry</Button>
+                    <IconButton
+                        icon={indexError === 'OFFLINE_ERROR' ? "wifi-off" : "alert-circle"}
+                        size={60}
+                        iconColor={indexError === 'OFFLINE_ERROR' ? COLORS.textSecondary : COLORS.error}
+                    />
+                    <Title style={{ textAlign: 'center', marginBottom: 10 }}>
+                        {indexError === 'OFFLINE_ERROR' ? 'Sin Conexión' : 'Error de Conexión'}
+                    </Title>
+                    <Paragraph style={{ textAlign: 'center', color: COLORS.textSecondary, marginBottom: 20 }}>
+                        {indexError === 'OFFLINE_ERROR'
+                            ? 'No se pudieron cargar las gacetas. Por favor, verifica tu internet.'
+                            : 'Error al cargar Gacetas. Verifica tu conexión.'}
+                    </Paragraph>
+                    <Button
+                        mode="contained"
+                        onPress={() => fetchGacetas(true)}
+                        style={{ borderRadius: 20 }}
+                    >
+                        Reintentar
+                    </Button>
                 </View>
             ) : (
                 <SectionList

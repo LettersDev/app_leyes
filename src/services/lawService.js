@@ -28,6 +28,9 @@ export const getAllLaws = async () => {
         if (error) throw error;
         return data || [];
     } catch (error) {
+        if (error.message && error.message.toLowerCase().includes('network')) {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error al obtener leyes:', error);
         throw error;
     }
@@ -59,6 +62,9 @@ export const getLawsByCategory = async (category, forceRefresh = false) => {
 
         return data || [];
     } catch (error) {
+        if (error.message && error.message.toLowerCase().includes('network')) {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error al obtener leyes por categoría:', error);
         throw error;
     }
@@ -90,6 +96,9 @@ export const getLawsByParentCategory = async (parentCategory, forceRefresh = fal
 
         return data || [];
     } catch (error) {
+        if (error.message && error.message.toLowerCase().includes('network')) {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error al obtener leyes por categoría padre:', error);
         throw error;
     }
@@ -113,6 +122,9 @@ export const getLawById = async (lawId) => {
         if (!data) throw new Error('Ley no encontrada');
         return data;
     } catch (error) {
+        if (error.message && error.message.toLowerCase().includes('network')) {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error al obtener ley:', error);
         throw error;
     }
@@ -142,6 +154,9 @@ export const getLawItems = async (lawId, lastIndex = -1, pageSize = 50) => {
         if (error) throw error;
         return data || [];
     } catch (error) {
+        if (error.message && error.message.toLowerCase().includes('network')) {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error al obtener items de la ley:', error);
         throw error;
     }
@@ -163,6 +178,9 @@ export const getLawItemByNumber = async (lawId, articleNumber) => {
         if (error) throw error;
         return data || null;
     } catch (error) {
+        if (error.message && error.message.toLowerCase().includes('network')) {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error al buscar artículo por número:', error);
         throw error;
     }
@@ -198,6 +216,9 @@ export const searchLawItemsByText = async (lawId, searchText) => {
         if (error) throw error;
         return data || [];
     } catch (error) {
+        if (error.message && error.message.toLowerCase().includes('network')) {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error en búsqueda interna:', error);
         throw error;
     }
@@ -259,6 +280,9 @@ export const searchLaws = async (searchText) => {
         if (error) throw error;
         return data || [];
     } catch (error) {
+        if (error.message && error.message.toLowerCase().includes('network')) {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error al buscar leyes:', error);
         throw error;
     }
@@ -278,6 +302,9 @@ export const getRecentUpdates = async (limitCount = 10) => {
         if (error) throw error;
         return data || [];
     } catch (error) {
+        if (error.message === 'Network request failed') {
+            throw new Error('OFFLINE_ERROR');
+        }
         console.error('Error al obtener actualizaciones recientes:', error);
         throw error;
     }
