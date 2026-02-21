@@ -72,3 +72,4 @@ Thumbs.db
 # Data files
 *.md 
 *.txt
+*.sql

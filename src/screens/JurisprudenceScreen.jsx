@@ -15,7 +15,8 @@ import {
     useTheme,
     IconButton,
     Menu,
-    Divider
+    Divider,
+    Portal
 } from 'react-native-paper';
 import JurisprudenceService from '../services/jurisprudenceService';
 import { COLORS } from '../utils/constants';
@@ -140,7 +141,8 @@ const JurisprudenceScreen = ({ navigation }) => {
     const [yearMenuVisible, setYearMenuVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [sections, setSections] = useState([]);
-    const [lastTimestamp, setLastTimestamp] = useState(null);  // keyset cursor
+    const [lastFechaCorte, setLastFechaCorte] = useState(null);
+    const [lastId, setLastId] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const [indexError, setIndexError] = useState(false);
     const [hasMore, setHasMore] = useState(true);
@@ -187,14 +189,16 @@ const JurisprudenceScreen = ({ navigation }) => {
                 return;
             }
 
-            // MODO NAVEGACIÓN — Keyset pagination por timestamp
+            // MODO NAVEGACIÓN — Keyset pagination por fecha_corte
             const PAGE_SIZE = 20;
-            const cursor = isNewSearch ? null : lastTimestamp;
+            const cursorFecha = isNewSearch ? null : lastFechaCorte;
+            const cursorId = isNewSearch ? null : lastId;
 
             if (isNewSearch) {
                 setRawData([]);
                 setSections([]);
-                setLastTimestamp(null);
+                setLastFechaCorte(null);
+                setLastId(null);
                 setHasMore(true);
                 setIndexError(false);
             }
@@ -202,15 +206,18 @@ const JurisprudenceScreen = ({ navigation }) => {
             const newData = await JurisprudenceService.fetchSentences({
                 selectedSala,
                 selectedYear,
-                lastTimestamp: cursor,
+                lastFechaCorte: cursorFecha,
+                lastId: cursorId,
                 pageSize: PAGE_SIZE
             });
 
             const rows = newData || [];
 
-            // Actualizar cursor con el timestamp del último elemento
+            // Actualizar cursor
             if (rows.length > 0) {
-                setLastTimestamp(rows[rows.length - 1].timestamp);
+                const lastItem = rows[rows.length - 1];
+                setLastFechaCorte(lastItem.fecha_corte);
+                setLastId(lastItem.id);
             }
             if (rows.length < PAGE_SIZE) setHasMore(false);
 
@@ -428,7 +435,7 @@ const JurisprudenceScreen = ({ navigation }) => {
                                     {selectedYear === 'Todos' ? 'Filtrar Año' : `Año: ${selectedYear}`}
                                 </Button>
                             }
-                            contentStyle={{ maxHeight: 300 }} // Limitar altura para scroll
+                            contentStyle={{ maxHeight: 300, backgroundColor: '#fff' }}
                         >
                             <ScrollView style={{ maxHeight: 300 }}>
                                 {YEARS.map((year) => (

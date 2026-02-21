@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS public.jurisprudence (
     keywords        TEXT[] DEFAULT '{}',
     searchable_text TEXT,
     url_original    TEXT,
+    fecha_corte     DATE,
     timestamp       TIMESTAMPTZ DEFAULT NOW(),
     -- Full-Text Search vector (Spanish stemming — plurales, conjugaciones)
     fts             TSVECTOR GENERATED ALWAYS AS (
@@ -101,11 +102,11 @@ CREATE INDEX IF NOT EXISTS idx_jur_expediente   ON public.jurisprudence(expedien
 CREATE INDEX IF NOT EXISTS idx_jur_sala         ON public.jurisprudence(sala);
 CREATE INDEX IF NOT EXISTS idx_jur_ano          ON public.jurisprudence(ano);
 CREATE INDEX IF NOT EXISTS idx_jur_fecha        ON public.jurisprudence(fecha);
--- Keyset pagination index
-CREATE INDEX IF NOT EXISTS idx_jur_timestamp    ON public.jurisprudence(timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_jur_sala_ts      ON public.jurisprudence(sala, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_jur_ano_ts       ON public.jurisprudence(ano, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_jur_fecha_sala   ON public.jurisprudence(fecha, sala);
+-- Keyset pagination index (Ahora por fecha legal)
+CREATE INDEX IF NOT EXISTS idx_jur_fecha_corte  ON public.jurisprudence(fecha_corte DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_jur_sala_fc      ON public.jurisprudence(sala, fecha_corte DESC);
+CREATE INDEX IF NOT EXISTS idx_jur_ano_fc       ON public.jurisprudence(ano, fecha_corte DESC);
+CREATE INDEX IF NOT EXISTS idx_jur_fecha        ON public.jurisprudence(fecha);
 
 ALTER TABLE public.jurisprudence DISABLE ROW LEVEL SECURITY;
 

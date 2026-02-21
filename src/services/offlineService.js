@@ -2,6 +2,17 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 const OFFLINE_DIR = `${FileSystem.documentDirectory}offline_laws/`;
 
+// Mapping of laws included in the APK
+const BUNDLED_LAWS = {
+    'constitucion': require('../../assets/bundled_laws/constitucion.json'),
+    'codigo_civil': require('../../assets/bundled_laws/codigo_civil.json'),
+    'codigo_penal': require('../../assets/bundled_laws/codigo_penal.json'),
+    'codigo_comercio': require('../../assets/bundled_laws/codigo_comercio.json'),
+    'codigo_procedimiento_civil': require('../../assets/bundled_laws/codigo_procedimiento_civil.json'),
+    'copp': require('../../assets/bundled_laws/copp.json'),
+    'lottt': require('../../assets/bundled_laws/lottt.json')
+};
+
 /**
  * offlineService.js
  * Gestiona el almacenamiento local de las leyes (JSON) para lectura sin internet.
@@ -38,12 +49,20 @@ const OfflineService = {
      */
     getLaw: async (lawId) => {
         try {
+            // 1. Try local file system first (most up to date)
             const filePath = `${OFFLINE_DIR}${lawId}.json`;
             const fileInfo = await FileSystem.getInfoAsync(filePath);
             if (fileInfo.exists) {
                 const content = await FileSystem.readAsStringAsync(filePath);
                 return JSON.parse(content);
             }
+
+            // 2. Try bundled assets (fallback)
+            if (BUNDLED_LAWS[lawId]) {
+                console.log(`[Offline] Serving bundled law: ${lawId}`);
+                return BUNDLED_LAWS[lawId];
+            }
+
             return null;
         } catch (error) {
             console.error('Error reading law offline:', error);
@@ -72,6 +91,9 @@ const OfflineService = {
      * Verifica si una ley está disponible offline
      */
     isLawOffline: async (lawId) => {
+        // Check if bundled or on disk
+        if (BUNDLED_LAWS[lawId]) return true;
+
         const filePath = `${OFFLINE_DIR}${lawId}.json`;
         const fileInfo = await FileSystem.getInfoAsync(filePath);
         return fileInfo.exists;

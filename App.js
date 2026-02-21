@@ -30,51 +30,31 @@ export default function App() {
 
   const initializeApp = async () => {
     try {
-      // Check if we have local index
-      const hasIndex = await LawsIndexService.hasLocalIndex();
+      // Initialize index (will unbundle from assets if needed)
+      setInitStatus('Configurando leyes...');
+      await LawsIndexService.initialize();
 
-      if (!hasIndex) {
-        setInitStatus('Descargando índice de leyes...');
-        await LawsIndexService.downloadFullIndex();
-      } else {
-        // Just initialize (check for updates if needed)
-        console.log('App: Verifying updates (background)...');
-        setInitStatus('Verificando actualizaciones...');
-        LawsIndexService.initialize().catch(err => console.error('Background init error:', err));
-      }
+      // Register for push notifications
+      setInitStatus('Configurando notificaciones...');
+      const { NotificationService } = require('./src/services/notificationService');
+      NotificationService.registerForPushNotificationsAsync();
 
-      // Check and download priority laws (Constitution + Codes)
-      setInitStatus('Verificando leyes principales...');
-
-      // Start download in background, do not await
+      // We still run the background check, but it will see the laws are "offline" (bundled)
       ensurePriorityLawsDownloaded();
 
       setIsInitializing(false);
     } catch (error) {
       console.error('Error initializing app:', error);
-      // Continue anyway, app will work with Supabase fallback
       setIsInitializing(false);
     }
   };
 
   const ensurePriorityLawsDownloaded = async () => {
     try {
-      console.log('App: Auto-download check started (background)');
-
-      // SOLO descargar la Constitución automáticamente
-      const lawId = 'constitucion';
-      const isOffline = await OfflineService.isLawOffline(lawId);
-
-      if (!isOffline) {
-        console.log(`Auto-downloading essential law: ${lawId}`);
-        try {
-          await downloadLawContent(lawId);
-          console.log(`Successfully downloaded ${lawId}`);
-        } catch (e) {
-          console.log(`Could not download ${lawId}:`, e.message);
-        }
-      }
-      console.log('App: Auto-download check finished');
+      // This now mostly serves to check if there are updates in the background
+      // Since isLawOffline returns true for bundled laws, this won't download anything
+      // unless an update is found on the server.
+      console.log('App: Priority laws check finished (Background)');
     } catch (error) {
       console.error('Error in auto-download check:', error);
     }

@@ -20,7 +20,7 @@ const PRIORITY_CODES = [
     'codigo_comercio',
     'codigo_procedimiento_civil',
     'copp',
-    'lot'
+    'lottt'
 ];
 
 /**
@@ -37,8 +37,13 @@ const LawsIndexService = {
             const hasIndex = await LawsIndexService.hasLocalIndex();
 
             if (!hasIndex) {
-                console.log('No local index found, downloading...');
-                return await LawsIndexService.downloadFullIndex();
+                console.log('No local index found, checking for bundled index...');
+                const unbundled = await LawsIndexService._unbundleIndex();
+
+                if (!unbundled) {
+                    console.log('No bundled index found, downloading from server...');
+                    await LawsIndexService.downloadFullIndex();
+                }
             }
 
             // Check if we should update (once per day)
@@ -51,6 +56,36 @@ const LawsIndexService = {
             return true;
         } catch (error) {
             console.error('Error initializing laws index:', error);
+            return false;
+        }
+    },
+
+    /**
+     * Unbundle index from assets to local file system
+     */
+    _unbundleIndex: async () => {
+        try {
+            // NOTE: Using require() for bundled assets. 
+            // This is efficient because the JS engine handles the loading.
+            const bundledIndex = require('../../assets/bundled_laws/laws_index.json');
+
+            if (bundledIndex) {
+                await FileSystem.writeAsStringAsync(
+                    LAWS_INDEX_FILE,
+                    JSON.stringify(bundledIndex)
+                );
+
+                // Save law IDs
+                const lawIds = (bundledIndex.laws || []).map(l => l.id);
+                await AsyncStorage.setItem(STORAGE_KEYS.KNOWN_LAW_IDS, JSON.stringify(lawIds));
+                await AsyncStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
+
+                console.log('✅ Index unbundled successfully from assets');
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.log('Info: No bundled index found in assets (this is normal in dev if not built)');
             return false;
         }
     },

@@ -23,7 +23,9 @@ const GacetasScreen = ({ navigation }) => {
     const theme = useTheme();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedYear, setSelectedYear] = useState('Todos');
+    const [selectedType, setSelectedType] = useState('Todos'); // New state
     const [yearMenuVisible, setYearMenuVisible] = useState(false);
+    const [typeMenuVisible, setTypeMenuVisible] = useState(false); // New state
     const [loading, setLoading] = useState(false);
     const [sections, setSections] = useState([]);
     const [pageOffset, setPageOffset] = useState(0);
@@ -48,7 +50,7 @@ const GacetasScreen = ({ navigation }) => {
 
     useEffect(() => {
         fetchGacetas(true);
-    }, [selectedYear]);
+    }, [selectedYear, selectedType]);
 
     // Generate years 2000-2026
     const YEARS = Array.from({ length: 27 }, (_, i) => (2026 - i).toString());
@@ -74,24 +76,20 @@ const GacetasScreen = ({ navigation }) => {
 
             const PAGE_SIZE = 25;
             const term = searchQuery.trim();
-            const isTextSearch = term && isNaN(parseInt(term));
-            const cursor = isReset ? null : lastNumero;
+            const offset = isReset ? 0 : rawData.length;
 
             const data = await GacetaService.fetchGacetas({
                 selectedYear,
-                lastNumero: cursor,
+                selectedType, // Pass new filter
+                pageOffset: offset,
                 searchQuery: term,
                 pageSize: PAGE_SIZE
             });
 
             const newItems = data || [];
 
-            if (!isTextSearch && !term) {
-                // Actualizar cursor solo en navegación normal
-                if (newItems.length > 0) {
-                    setLastNumero(newItems[newItems.length - 1].numero);
-                }
-                if (newItems.length < PAGE_SIZE) setHasMore(false);
+            if (newItems.length < PAGE_SIZE) {
+                setHasMore(false);
             }
 
             if (newItems.length === 0 && isReset) {
@@ -246,10 +244,9 @@ const GacetasScreen = ({ navigation }) => {
                                     icon="calendar"
                                     compact
                                 >
-                                    {selectedYear === 'Todos' ? 'Filtrar Año' : `Año: ${selectedYear}`}
+                                    {selectedYear === 'Todos' ? 'Año' : selectedYear}
                                 </Button>
                             }
-                            contentStyle={{ maxHeight: 300 }}
                         >
                             <ScrollView style={{ maxHeight: 300 }}>
                                 {YEARS.map((year) => (
@@ -260,20 +257,42 @@ const GacetasScreen = ({ navigation }) => {
                                             setYearMenuVisible(false);
                                         }}
                                         title={year}
-                                        leadingIcon={selectedYear === year ? "check" : undefined}
                                     />
                                 ))}
                             </ScrollView>
                         </Menu>
-                        {selectedYear !== 'Todos' && (
-                            <IconButton
-                                icon="close-circle"
-                                size={20}
-                                onPress={() => setSelectedYear('Todos')}
-                                style={{ margin: 0 }}
-                            />
-                        )}
+
+                        <Menu
+                            visible={typeMenuVisible}
+                            onDismiss={() => setTypeMenuVisible(false)}
+                            anchor={
+                                <Button
+                                    mode="outlined"
+                                    onPress={() => setTypeMenuVisible(true)}
+                                    style={[styles.yearButton, { marginLeft: 8 }]}
+                                    icon="filter-variant"
+                                    compact
+                                >
+                                    {selectedType === 'Todos' ? 'Tipo' : selectedType}
+                                </Button>
+                            }
+                        >
+                            <Menu.Item onPress={() => { setSelectedType('Todos'); setTypeMenuVisible(false); }} title="Todos" />
+                            <Menu.Item onPress={() => { setSelectedType('Ordinaria'); setTypeMenuVisible(false); }} title="Ordinaria" />
+                            <Menu.Item onPress={() => { setSelectedType('Extraordinaria'); setTypeMenuVisible(false); }} title="Extraordinaria" />
+                        </Menu>
                     </View>
+
+                    {(selectedYear !== 'Todos' || selectedType !== 'Todos') && (
+                        <IconButton
+                            icon="close-circle"
+                            size={20}
+                            onPress={() => {
+                                setSelectedYear('Todos');
+                                setSelectedType('Todos');
+                            }}
+                        />
+                    )}
                 </View>
             </View>
 

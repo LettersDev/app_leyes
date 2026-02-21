@@ -9,21 +9,28 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+let consecutiveSkips = 0;
+const MAX_CONSECUTIVE_SKIPS = 100;
+let newSentenciasCount = 0;
+const PushNotifier = require('./pushNotifier');
+
 // Cliente Axios con soporte de sesiones persistentes
 const agent = new https.Agent({ rejectUnauthorized: false });
 
 // Helper para reintentos
-async function fetchWithRetry(url, options = {}, retries = 3, backoff = 2000) {
+async function fetchWithRetry(url, options = {}, retries = 5, backoff = 5000) {
     try {
         if (!options.headers) options.headers = {};
         options.headers['Accept-Encoding'] = 'identity';
         return await axios.get(url, options);
     } catch (err) {
-        const isNetworkError = err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.response?.status >= 500 || err.response?.status === 404;
+        const retriableCodes = ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EHOSTUNREACH', 'ENOTFOUND'];
+        const isNetworkError = retriableCodes.includes(err.code) || err.response?.status >= 500 || err.response?.status === 404;
+
         if (retries > 0 && isNetworkError) {
-            console.log(`      ⚠️ Error temporal (${err.message}). Reintentando en ${backoff / 1000}s... (${retries} restantes)`);
+            console.log(`      ⚠️ Error de red (${err.code || err.message}). Reintentando en ${backoff / 1000}s... (${retries} restantes)`);
             await new Promise(r => setTimeout(r, backoff));
-            return fetchWithRetry(url, options, retries - 1, backoff * 1.5);
+            return fetchWithRetry(url, options, retries - 1, backoff * 2);
         }
         throw err;
     }
@@ -54,6 +61,17 @@ async function getJurisprudence(options = {}) {
     if (!cookieStr) return;
 
     await executeSync(mode, year, roomIds, cookieStr);
+
+    // 🔔 NOTIFICACIÓN PUSH
+    // Solo notificar si hay nuevas y NO es modo histórico/reparación
+    if (newSentenciasCount > 0 && mode !== 'historical' && mode !== 'repair_auto' && mode !== 'full' && mode !== 'full_repair') {
+        const title = newSentenciasCount === 1 ? 'Nueva Sentencia' : 'Nuevas Sentencias';
+        const body = newSentenciasCount === 1
+            ? `Se ha publicado una nueva sentencia en el TSJ.`
+            : `Se han publicado ${newSentenciasCount} nuevas sentencias en el TSJ.`;
+
+        await PushNotifier.notifyAll(title, body, { type: 'juris', count: newSentenciasCount });
+    }
 }
 
 async function runRepairAuto(roomIds) {
@@ -117,7 +135,7 @@ async function getSessionCookies() {
     }
 }
 
-async function executeSync(mode, year, roomIds, cookieStr) {
+async function executeSync(mode, year, roomIds, cookieStr, options = {}) {
     let allSuccess = true;
     let currentCookies = cookieStr;
 
@@ -131,14 +149,30 @@ async function executeSync(mode, year, roomIds, cookieStr) {
         while (attempts < 2 && !roomSuccess) {
             try {
                 if (mode === 'historical' && year) {
-                    await syncHistoricalYear(salaId, year, currentCookies);
+                    await syncHistoricalYear(salaId, year, currentCookies, options);
                 } else {
                     const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     await syncDay(salaId, today, currentCookies);
                 }
                 roomSuccess = true;
+                consecutiveSkips = 0; // Resetear al tener éxito
             } catch (error) {
                 attempts++;
+
+                // Si es un error 400 (Bad Request), es probable que el TSJ no tenga datos para ese año/sala
+                if (error.response?.status === 400) {
+                    consecutiveSkips++;
+                    console.error(`   ⚠️ Sala ${salaInfo.short} no disponible (Error 400). [Skips seguidos: ${consecutiveSkips}]`);
+
+                    if (consecutiveSkips >= MAX_CONSECUTIVE_SKIPS) {
+                        console.error(`\n🔴 DETENCION DE SEGURIDAD: Se han saltado ${MAX_CONSECUTIVE_SKIPS} elementos seguidos. Es posible que la estructura del TSJ haya cambiado.`);
+                        process.exit(1);
+                    }
+
+                    roomSuccess = true; // Marcamos como "éxito" para salir del while y seguir con otras salas
+                    continue;
+                }
+
                 console.error(`   ❌ Error en sala ${salaInfo.short} (Intento ${attempts}/2): ${error.message}`);
 
                 if (attempts < 2) {
@@ -147,7 +181,8 @@ async function executeSync(mode, year, roomIds, cookieStr) {
                     currentCookies = await getSessionCookies();
                     if (!currentCookies) break;
                 } else {
-                    allSuccess = false;
+                    console.error(`   🛑 Sala ${salaInfo.short} falló tras 2 intentos. Saltando para continuar con las demás.`);
+                    allSuccess = false; // Marcamos que hubo errores, pero no detenemos el bucle de salas
                 }
             }
         }
@@ -269,7 +304,8 @@ async function syncDay(salaId, fecha, cookies) {
         console.log(`   ✨ Encontradas: ${sentencias.length}`);
 
         for (const s of sentencias) {
-            await saveToDB(s, salaId);
+            const isNew = await saveToDB(s, salaId);
+            if (isNew) newSentenciasCount++;
             // Pequeño delay entre sentencias
             await new Promise(r => setTimeout(r, 200));
         }
@@ -284,18 +320,26 @@ async function saveToDB(s, salaId) {
     const sentId = `${salaInfo.code}-${year}-${s.SSENTNUMERO}`.toLowerCase().replace(/\s+/g, '');
 
     try {
-        // Verificar si ya existe (evitar escrituras innecesarias)
+        // Verificar si ya existe
         const { data: existing } = await supabase
             .from('jurisprudence')
-            .select('id')
+            .select('id, fecha_corte')
             .eq('id', sentId)
             .maybeSingle();
 
-        if (existing) {
+        // Si existe Y ya tiene la fecha_corte, no hacemos nada (ahorro de cuota)
+        if (existing && existing.fecha_corte) {
             return;
         }
 
         // Sin keywords manuales: PostgreSQL genera el tsvector (fts) automáticamente
+        // Parsear fecha DD/MM/YYYY a YYYY-MM-DD para campo DATE de Postgres
+        let fechaCorte = null;
+        if (s.DSENTFECHA && s.DSENTFECHA.includes('/')) {
+            const [d, m, y] = s.DSENTFECHA.split('/');
+            fechaCorte = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+        }
+
         const row = {
             id: sentId,
             id_sentencia: sentId,
@@ -305,6 +349,7 @@ async function saveToDB(s, salaId) {
             sala: salaInfo.name,
             ponente: s.SPONENOMBRE,
             fecha: s.DSENTFECHA,
+            fecha_corte: fechaCorte, // Nuevo campo para ordenamiento real
             titulo: `Sentencia N° ${s.SSENTNUMERO}`,
             procedimiento: s.SPROCDESCRIPCION,
             partes: s.SSENTPARTES || 'N/A',
@@ -322,22 +367,24 @@ async function saveToDB(s, salaId) {
 
         if (error) throw error;
         console.log(`      ✅ Guardada: ${s.SSENTNUMERO} (${salaInfo.short})`);
+        return true; // NUEVA
     } catch (e) {
         console.error(`      ⚠️ Error al procesar sentencia ${s.SSENTNUMERO}: ${e.message}`);
+        return false;
     }
 }
 
-async function syncHistoricalYear(salaId, year, cookies) {
+async function syncHistoricalYear(salaId, year, cookies, options = {}) {
     const baseUrl = 'https://www.tsj.gob.ve/decisiones';
     console.log(`   📅 Sincronizando año histórico: ${year}`);
 
     const params = {
-        p_p_id: 'displaySentencias_WAR_NoticiasTsjPorlet612',
+        p_p_id: 'displayListaDecision_WAR_NoticiasTsjPorlet612',
         p_p_lifecycle: '2',
         p_p_state: 'normal',
         p_p_mode: 'view',
         p_p_cacheability: 'cacheLevelPage',
-        p_p_col_id: '_118_INSTANCE_C808K7b2myu1__column-2',
+        p_p_col_id: 'column-1',
         p_p_col_pos: '1',
         p_p_col_count: '2',
         'server[endpoint]': '/services/WSDecision.HTTPEndpoint',
@@ -367,8 +414,22 @@ async function syncHistoricalYear(salaId, year, cookies) {
         console.log(`   📅 Encontrados ${diasValidos.length} días con actividad.`);
 
         for (const dia of diasValidos) {
-            await syncDay(salaId, dia.FECHA, cookies);
-            await new Promise(r => setTimeout(r, 1000));
+            // Soporte para saltar meses si se especifica (para reanudar)
+            if (options.startMonth) {
+                const mesDia = parseInt(dia.FECHA.split('/')[1]);
+                if (mesDia < options.startMonth) continue;
+            }
+
+            try {
+                await syncDay(salaId, dia.FECHA, cookies);
+                await new Promise(r => setTimeout(r, 1000));
+            } catch (err) {
+                if (err.response?.status === 400) {
+                    console.log(`      ⚠️ Error 400 en ${dia.FECHA} (PAGINA NO EXISTE O DATOS CORRUPTOS EN TSJ). Saltando día...`);
+                    continue; // Continuar con el siguiente día
+                }
+                throw err; // Re-lanzar para que executeSync lo capture y reintente la sala o refresque sesión
+            }
         }
     } else {
         // Verificar si es un error silencioso de Liferay
@@ -385,6 +446,7 @@ let mode = 'daily';
 let year = new Date().getFullYear().toString();
 let fromYear = 2000;
 let toYear = new Date().getFullYear();
+let startMonth = 1;
 
 myArgs.forEach(arg => {
     if (arg.includes('=')) {
@@ -393,6 +455,7 @@ myArgs.forEach(arg => {
         if (key === 'year' || key === 'ano') year = value;
         if (key === 'from') fromYear = parseInt(value);
         if (key === 'to') toYear = parseInt(value);
+        if (key === 'month' || key === 'mes') startMonth = parseInt(value);
     } else {
         if (['historical', 'recent', 'daily', 'auto', 'repair_auto', 'full', 'full_repair'].includes(arg)) {
             mode = arg;
@@ -403,23 +466,27 @@ myArgs.forEach(arg => {
 });
 
 // Modos extendidos para ejecución manual
-async function runFullSync(roomIds, forceRepair = false, startY = 2000, endY = new Date().getFullYear()) {
+async function runFullSync(roomIds, forceRepair = false, startY = 2000, endY = new Date().getFullYear(), sMonth = 1) {
     let cookieStr = await getSessionCookies();
     if (!cookieStr) return;
 
     for (let y = startY; y <= endY; y++) {
         console.log(`\n🚀 [FullSync] Iniciando año ${y}...`);
 
+        // El sMonth solo aplica al primer año de la serie
+        const currentStartMonth = y === startY ? sMonth : 1;
+
         // Refrescar sesión al inicio de cada año para evitar expiraciones largas
         cookieStr = await getSessionCookies();
 
-        const success = await executeSync('historical', y.toString(), roomIds, cookieStr);
+        const success = await executeSync('historical', y.toString(), roomIds, cookieStr, { startMonth: currentStartMonth });
 
         if (!success) {
-            console.error(`\n❌ Error crítico persistente en el año ${y}. Deteniendo para evitar saltos.`);
-            process.exit(1);
+            console.warn(`\n⚠️  El año ${y} tuvo omisiones por errores 400. Continuando...`);
         }
 
+        // Si el año se procesó (aunque haya fallado alguna sala por 400), guardamos el progreso
+        // para que la próxima vez comience en el año siguiente.
         if (!forceRepair) {
             await supabase
                 .from('sync_monitor')
@@ -428,6 +495,7 @@ async function runFullSync(roomIds, forceRepair = false, startY = 2000, endY = n
                     data: { lastYearSynced: y, lastUpdate: new Date().toISOString() },
                     updated_at: new Date().toISOString()
                 });
+            console.log(`\n💾 Progreso guardado: Año ${y} procesado.`);
         }
 
         // Espera de seguridad entre años
@@ -439,9 +507,9 @@ async function runFullSync(roomIds, forceRepair = false, startY = 2000, endY = n
 const roomIds = Object.keys(SALA_MAP);
 
 if (mode === 'full') {
-    runFullSync(roomIds, false, fromYear, toYear).catch(console.error);
+    runFullSync(roomIds, false, fromYear, toYear, startMonth).catch(console.error);
 } else if (mode === 'full_repair') {
-    runFullSync(roomIds, true, fromYear, toYear).catch(console.error);
+    runFullSync(roomIds, true, fromYear, toYear, startMonth).catch(console.error);
 } else {
     getJurisprudence({ mode, year, roomIds });
 }

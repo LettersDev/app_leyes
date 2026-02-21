@@ -79,7 +79,8 @@ export const JurisprudenceService = {
                         type: 'websearch',   // interpreta comillas, AND, OR, -
                         config: 'spanish'    // aplica stemming en español
                     })
-                    .order('timestamp', { ascending: false })
+                    .order('fecha_corte', { ascending: false })
+                    .order('id', { ascending: false })
                     .limit(20);
 
                 if (!ftsErr) {
@@ -105,7 +106,8 @@ export const JurisprudenceService = {
             const { data, error } = await supabase
                 .from(COLLECTION_NAME)
                 .select('*')
-                .order('timestamp', { ascending: false })
+                .order('fecha_corte', { ascending: false })
+                .order('id', { ascending: false })
                 .limit(limitCount);
 
             if (error) throw error;
@@ -120,15 +122,19 @@ export const JurisprudenceService = {
     },
 
     fetchSentences: async (filters = {}) => {
-        const { selectedSala, selectedYear, lastTimestamp, pageSize = 20 } = filters;
+        const { selectedSala, selectedYear, lastFechaCorte, lastId, pageSize = 20 } = filters;
         try {
             let q = supabase.from(COLLECTION_NAME).select('*');
 
             if (selectedSala === 'recent') {
-                // Última semana (Lógica simplificada para el servicio)
+                // Última semana (Lógica basada en la FECHA ACTUAL real)
+                const today = new Date();
                 const lastWeek = new Date();
-                lastWeek.setDate(lastWeek.getDate() - 7);
-                q = q.gte('timestamp', lastWeek.toISOString());
+                lastWeek.setDate(today.getDate() - 7);
+
+                // Formato YYYY-MM-DD para Supabase
+                const fmtDate = lastWeek.toISOString().split('T')[0];
+                q = q.gte('fecha_corte', fmtDate);
             } else if (selectedSala && selectedSala !== 'all') {
                 q = q.eq('sala', selectedSala);
             }
@@ -137,11 +143,14 @@ export const JurisprudenceService = {
                 q = q.eq('ano', parseInt(selectedYear));
             }
 
-            if (lastTimestamp) {
-                q = q.lt('timestamp', lastTimestamp);
+            // Keyset pagination: Si hay cursor, pedir elementos anteriores
+            if (lastFechaCorte && lastId) {
+                q = q.or(`fecha_corte.lt.${lastFechaCorte},and(fecha_corte.eq.${lastFechaCorte},id.lt.${lastId})`);
             }
 
-            q = q.order('timestamp', { ascending: false }).limit(pageSize);
+            q = q.order('fecha_corte', { ascending: false, nullsFirst: false })
+                .order('id', { ascending: false })
+                .limit(pageSize);
 
             const { data, error } = await q;
             if (error) throw error;

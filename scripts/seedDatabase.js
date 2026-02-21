@@ -186,6 +186,15 @@ async function run() {
     // Actualizar metadata global si hubo cambios
     if (uploadedCount > 0) {
         await updateMetadata(uploadedCount, totalLaws);
+
+        // 🔔 NOTIFICACIÓN PUSH
+        const PushNotifier = require('./pushNotifier');
+        const title = uploadedCount === 1 ? 'Nueva Ley Disponible' : 'Nuevas Leyes Actualizadas';
+        const body = uploadedCount === 1
+            ? `Se ha cargado una nueva ley en la aplicación.`
+            : `Se han actualizado/agregado ${uploadedCount} leyes.`;
+
+        await PushNotifier.notifyAll(title, body, { type: 'laws', count: uploadedCount });
     }
 
     const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
