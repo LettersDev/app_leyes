@@ -34,7 +34,8 @@ CREATE INDEX IF NOT EXISTS idx_laws_fts ON public.laws USING GIN(fts);
 CREATE INDEX IF NOT EXISTS idx_laws_category ON public.laws(category);
 CREATE INDEX IF NOT EXISTS idx_laws_parent_category ON public.laws(parent_category);
 
-ALTER TABLE public.laws DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.laws ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir lectura pública de leyes" ON public.laws FOR SELECT USING (true);
 
 
 -- ============================================================
@@ -57,7 +58,8 @@ CREATE TABLE IF NOT EXISTS public.law_items (
 CREATE INDEX IF NOT EXISTS idx_law_items_law_id ON public.law_items(law_id);
 CREATE INDEX IF NOT EXISTS idx_law_items_index  ON public.law_items(law_id, "index" ASC);
 
-ALTER TABLE public.law_items DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.law_items ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir lectura pública de artículos" ON public.law_items FOR SELECT USING (true);
 
 
 -- ============================================================
@@ -108,7 +110,8 @@ CREATE INDEX IF NOT EXISTS idx_jur_sala_fc      ON public.jurisprudence(sala, fe
 CREATE INDEX IF NOT EXISTS idx_jur_ano_fc       ON public.jurisprudence(ano, fecha_corte DESC);
 CREATE INDEX IF NOT EXISTS idx_jur_fecha        ON public.jurisprudence(fecha);
 
-ALTER TABLE public.jurisprudence DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.jurisprudence ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir lectura pública de jurisprudencia" ON public.jurisprudence FOR SELECT USING (true);
 
 
 -- ============================================================
@@ -143,7 +146,8 @@ CREATE INDEX IF NOT EXISTS idx_gacetas_fts        ON public.gacetas USING GIN(ft
 CREATE INDEX IF NOT EXISTS idx_gacetas_numero     ON public.gacetas(numero DESC);
 CREATE INDEX IF NOT EXISTS idx_gacetas_ano_numero ON public.gacetas(ano DESC, numero DESC);
 
-ALTER TABLE public.gacetas DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gacetas ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir lectura pública de gacetas" ON public.gacetas FOR SELECT USING (true);
 
 
 -- ============================================================
@@ -159,7 +163,8 @@ CREATE TABLE IF NOT EXISTS public.app_metadata (
     updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE public.app_metadata DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_metadata ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir lectura pública de metadata" ON public.app_metadata FOR SELECT USING (true);
 
 -- Insertar el singleton si no existe
 INSERT INTO public.app_metadata (id) VALUES ('singleton') ON CONFLICT (id) DO NOTHING;
@@ -174,4 +179,26 @@ CREATE TABLE IF NOT EXISTS public.sync_monitor (
     updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE public.sync_monitor DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sync_monitor ENABLE ROW LEVEL SECURITY;
+-- No se definen políticas SELECT/INSERT/UPDATE para public en sync_monitor
+-- Solo los roles de servicio (service_role) pueden acceder, lo cual es el comportamiento por defecto de RLS sin políticas.
+
+-- ============================================================
+-- 7. PUSH_TOKENS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.push_tokens (
+    token       TEXT PRIMARY KEY,
+    platform    TEXT,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
+
+-- Permitir a usuarios anónimos registrar/actualizar su propio token
+CREATE POLICY "Permitir registro de tokens" ON public.push_tokens 
+    FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Permitir update de tokens" ON public.push_tokens 
+    FOR UPDATE USING (true) WITH CHECK (true);
+
+-- Nota: No se permite SELECT ni DELETE para el rol anon/authenticated para evitar scraping de tokens.

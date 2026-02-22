@@ -33,6 +33,6 @@ jobs:
             echo "Running for year: ${{ github.event.inputs.year }}"
             node scripts/getGacetas.js --year=${{ github.event.inputs.year }}
           else
-            echo "Running smart backfill..."
-            node scripts/getGacetas.js --mode=backfill
+            echo "Running smart incremental sync..."
+            node scripts/getGacetas.js --mode=smart
           fi

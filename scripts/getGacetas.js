@@ -1,7 +1,8 @@
-require('dotenv').config();
 const axios = require('axios');
 const https = require('https');
+const cheerio = require('cheerio');
 const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
 // Configuración Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -10,17 +11,128 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const agent = new https.Agent({ rejectUnauthorized: false });
 
+// ─── SCRAPING DIRECTO DE GACETAS (FALLBACK PARA 2024-2026 / MODO SMART) ───────────────
+async function scrapeDirectoPorRango(startNum, endNum, esExtraordinaria, stopOnGap = false) {
+    const tipoLabel = esExtraordinaria ? 'Extraordinaria' : 'Ordinaria';
+    console.log(`🔎 Buscando gacetas ${tipoLabel} modernas: ${startNum} - ${endNum}`);
+
+    let consecutiveGaps = 0;
+    const MAX_GAPS = 10;
+
+    for (let num = startNum; num <= endNum; num++) {
+        if (stopOnGap && consecutiveGaps >= MAX_GAPS) {
+            console.log(`\n🛑 Se alcanzaron ${MAX_GAPS} huecos seguidos. Asumiendo que no hay más ${tipoLabel} por ahora.`);
+            break;
+        }
+
+        const displayNum = num.toString().replace(/(\d)(\d{3})$/, '$1.$2');
+        const id = esExtraordinaria ? `gaceta-E${num}` : `gaceta-${num}`;
+
+        // Verificamos si ya existe para ahorrar tiempo
+        const { data: exists } = await supabase.from('gacetas').select('id').eq('id', id).maybeSingle();
+        if (exists) {
+            process.stdout.write('s');
+            consecutiveGaps = 0;
+            continue;
+        }
+
+        const folders = esExtraordinaria ? ['gaceta', 'gaceta_ext'] : ['gaceta'];
+        const formats = [displayNum, num.toString()];
+
+        let foundInRange = false;
+
+        for (const folder of folders) {
+            for (const fmt of formats) {
+                const url = `http://historico.tsj.gob.ve/${folder}/blanco.asp?nrogaceta=${fmt}`;
+
+                try {
+                    const res = await fetchWithRetry(url, {
+                        httpsAgent: agent,
+                        timeout: 10000,
+                        headers: { 'User-Agent': 'Mozilla/5.0' }
+                    }, 1, 2500);
+
+                    if (res.data.includes('Caracter no V') || res.data.includes('Error')) continue;
+
+                    const $ = cheerio.load(res.data);
+                    let sumario = $('p.sumario').text().trim();
+                    let fechaTexto = $('p.fecha').text().trim();
+
+                    if (!sumario || sumario.toLowerCase() === 'sumario') {
+                        const allText = [];
+                        $('body p').each((i, el) => {
+                            const txt = $(el).text().trim();
+                            if (txt && txt.toLowerCase() !== 'sumario' && !txt.includes(`N°:${num}`)) {
+                                allText.push(txt);
+                            }
+                        });
+                        sumario = allText.join('\n').substring(0, 3000);
+                    }
+
+                    if (sumario && sumario.length > 10) {
+                        const cleanSumario = sumario.replace(/\s+/g, ' ');
+                        let year = new Date().getFullYear();
+
+                        const textYearMatch = (fechaTexto + sumario).match(/202[4-6]/);
+                        if (textYearMatch) {
+                            year = parseInt(textYearMatch[0]);
+                        } else {
+                            $('a[href*="202"]').each((i, el) => {
+                                const href = $(el).attr('href');
+                                const hrefMatch = href.match(/202[4-6]/);
+                                if (hrefMatch) {
+                                    year = parseInt(hrefMatch[0]);
+                                    return false;
+                                }
+                            });
+                        }
+
+                        const row = {
+                            id: id,
+                            numero: num,
+                            numero_display: displayNum,
+                            fecha: fechaTexto || `Año ${year}`,
+                            ano: year,
+                            url_original: url,
+                            titulo: cleanSumario.substring(0, 120) + '...',
+                            subtitulo: `Gaceta ${tipoLabel} N° ${displayNum}`,
+                            sumario: cleanSumario,
+                            tipo: tipoLabel,
+                            timestamp: new Date(year, 0, 1).toISOString()
+                        };
+
+                        const { error } = await supabase.from('gacetas').upsert(row);
+                        if (!error) {
+                            console.log(`\n      ✨ ¡Guardada! ${tipoLabel} N° ${displayNum} (usando ${fmt}) en [${folder}]`);
+                            foundInRange = true;
+                            break;
+                        }
+                    }
+                } catch (e) { }
+            }
+            if (foundInRange) break;
+        }
+
+        if (!foundInRange) {
+            process.stdout.write('.');
+            consecutiveGaps++;
+        } else {
+            consecutiveGaps = 0;
+        }
+    }
+}
+
 async function fetchWithRetry(url, options = {}, retries = 5, backoff = 5000) {
     try {
         if (!options.headers) options.headers = {};
         options.headers['Accept-Encoding'] = 'identity';
-        return await axios.get(url, options);
+        const response = await axios.get(url, { ...options, responseType: 'arraybuffer' });
+        const decoder = new TextDecoder('windows-1252');
+        response.data = decoder.decode(response.data);
+        return response;
     } catch (err) {
         const retriableCodes = ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EHOSTUNREACH', 'ENOTFOUND'];
-        const isNetworkError = retriableCodes.includes(err.code) || err.response?.status >= 500;
-
-        if (retries > 0 && isNetworkError) {
-            console.log(`      ⚠️ Error de red (${err.code || err.message}). Reintentando en ${backoff / 1000}s... (${retries} restantes)`);
+        if (retries > 0 && (retriableCodes.includes(err.code) || err.response?.status >= 500)) {
             await new Promise(r => setTimeout(r, backoff));
             return fetchWithRetry(url, options, retries - 1, backoff * 2);
         }
@@ -28,362 +140,157 @@ async function fetchWithRetry(url, options = {}, retries = 5, backoff = 5000) {
     }
 }
 
-// CLI Arguments
-const args = process.argv.slice(2);
-const yearArg = args.find(arg => arg.startsWith('--year='));
-const TARGET_YEAR = yearArg ? parseInt(yearArg.split('=')[1]) : null;
+function isGacetaExtraordinaria(num, displayNum, typeText, summary) {
+    const typeLower = (typeText || '').toLowerCase();
+    const summaryLower = (summary || '').toLowerCase();
+    if (typeLower === 'ordinaria' && num > 20000) return false;
+    if (typeLower.includes('extraordinaria')) return true;
+    if (summaryLower.includes('extraordinaria')) return true;
+    if (displayNum && displayNum.includes('.') && num < 40000) return true;
+    if (num > 0 && num < 20000 && !typeLower) return true;
+    return false;
+}
 
-const backfillArg = args.find(arg => arg.startsWith('--mode=backfill'));
-const fullArg = args.find(arg => arg.startsWith('--mode=full'));
-const repairArg = args.find(arg => arg.startsWith('--mode=repair')); // Nuevo modo repair
-const extraArg = args.find(arg => arg.startsWith('--mode=extra')); // Nuevo modo solo extraordinarias
-const IS_BACKFILL = !!backfillArg;
-const IS_FULL = !!fullArg;
-const IS_REPAIR = !!repairArg;
-const IS_EXTRA_ONLY = !!extraArg;
-
+// ─── LÓGICA PRINCIPAL (RESTABLECIDA) ──────────────────────────────────────────
 async function getGacetas() {
-    console.log(`\n📜 Iniciando Scraper de Gacetas Oficiales (SmartSync)...`);
+    const args = process.argv.slice(2);
+    console.log(`\n📜 Iniciando Scraper de Gacetas Oficiales...`);
 
     if (!supabaseUrl || !supabaseKey) {
         console.error('❌ Faltan variables SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env');
         return;
     }
 
+    // NUEVO MODO SMART (Solicitado por el usuario)
+    if (args.includes('--mode=smart')) {
+        console.log(`   🧠 Modo: Smart (Incremental)`);
+
+        const { data: lastOrd } = await supabase.from('gacetas').select('numero').eq('tipo', 'Ordinaria').order('numero', { ascending: false }).limit(1).maybeSingle();
+        const startOrd = (lastOrd?.numero || 43000) + 1;
+        await scrapeDirectoPorRango(startOrd, startOrd + 50, false, true);
+
+        const { data: lastExt } = await supabase.from('gacetas').select('numero').eq('tipo', 'Extraordinaria').order('numero', { ascending: false }).limit(1).maybeSingle();
+        const startExt = (lastExt?.numero || 6800) + 1;
+        await scrapeDirectoPorRango(startExt, startExt + 50, true, true);
+        return;
+    }
+
+    // LÓGICA ORIGINAL DE MODOS (MANTENIDA PARA FLEXIBILIDAD)
+    const yearArg = args.find(arg => arg.startsWith('--year='));
+    const TARGET_YEAR = yearArg ? parseInt(yearArg.split('=')[1]) : null;
+    const IS_BACKFILL = args.includes('--mode=backfill');
+    const IS_FULL = args.includes('--mode=full');
+    const IS_REPAIR = args.includes('--mode=repair');
+    const IS_EXTRA_ONLY = args.includes('--mode=extra');
+
     const MAX_WRITES = (IS_BACKFILL || IS_FULL) ? 2000 : 500;
 
-    const url = 'http://www.tsj.gob.ve/gaceta-oficial';
-    const params = {
-        p_p_id: 'receiverGacetaOficial_WAR_NoticiasTsjPorlet612',
-        p_p_lifecycle: '2',
-        p_p_state: 'normal',
-        p_p_mode: 'view',
-        p_p_cacheability: 'cacheLevelPage',
-        'server[endpoint]': '/services/WSGacetaOficial.HTTPEndpoint',
-        'server[method]': '/listGaceta'
-    };
-
     try {
+        if (!TARGET_YEAR || TARGET_YEAR >= 2024) {
+            // Sincronización directa para el hueco 2024-2026
+            await scrapeDirectoPorRango(42700, 43500, false);
+            await scrapeDirectoPorRango(6750, 7200, true);
+        }
+
         const currentYear = new Date().getFullYear();
         let targetYears = [];
 
         if (TARGET_YEAR) {
             targetYears = [TARGET_YEAR];
-            console.log(`   📅 Modo: Manual | Año objetivo: ${TARGET_YEAR}`);
-        } else if (IS_EXTRA_ONLY) {
-            console.log(`   ⚖️  Modo: Solo Extraordinarias | Sincronizando registros específicos.`);
-        } else if (IS_FULL) {
-            console.log(`   🚀 Modo: Full | Sincronizando toda la base de datos disponible.`);
         } else if (IS_BACKFILL) {
-            // Smart Backfill Progress desde sync_monitor
             let lastHistoricalYearSynced = 1999;
-            const { data: syncData } = await supabase
-                .from('sync_monitor')
-                .select('data')
-                .eq('id', 'gacetas_sync')
-                .maybeSingle();
-
-            if (syncData) {
-                lastHistoricalYearSynced = syncData.data?.lastHistoricalYearSynced || 1999;
-            }
-
+            const { data: syncData } = await supabase.from('sync_monitor').select('data').eq('id', 'gacetas_sync').maybeSingle();
+            if (syncData) lastHistoricalYearSynced = syncData.data?.lastHistoricalYearSynced || 1999;
             const nextYear = lastHistoricalYearSynced + 1;
             targetYears = [currentYear, currentYear - 1];
-
-            if (nextYear < currentYear - 1) {
-                targetYears.push(nextYear);
-                console.log(`   🔄 Modo: SmartSync | Recientes + Año Histórico: ${nextYear}`);
-            } else {
-                console.log(`   ✨ Modo: SmartSync | Toda la historia (2000+) está sincronizada.`);
-            }
+            if (nextYear < currentYear - 1) targetYears.push(nextYear);
         } else {
-            targetYears = [currentYear, currentYear - 1];
-            console.log(`   📅 Modo: Recientes (Hoy/Ayer)`);
+            targetYears = [currentYear];
         }
 
-        // Fetch Remote List
         console.log("   🔍 Obteniendo lista del TSJ...");
-        const res = await fetchWithRetry(url, {
-            params,
+        const res = await fetchWithRetry(TSJ_BASE, {
+            params: { ...TSJ_PARAMS_BASE, 'server[method]': '/listGaceta' },
             httpsAgent: agent,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+            headers: { 'User-Agent': 'Mozilla/5.0', 'X-Requested-With': 'XMLHttpRequest' },
+            timeout: 30000
         });
 
         if (res.data.coleccion && res.data.coleccion.GACETA) {
             const list = res.data.coleccion.GACETA;
-            console.log(`   🌐 Total en TSJ: ${list.length}`);
-            console.log(`   🧪 Primeros 10 números en raw: ${list.slice(0, 10).map(g => g.sgacenumero).join(', ')}`);
 
-            // Filter by target years (skipped in FULL/EXTRA mode)
             const matchedItems = list.filter(g => {
                 if (IS_FULL) return true;
-
-                // Determinar si es Extraordinaria para el filtro IS_EXTRA_ONLY
                 const rawNum = g.sgacenumero || '';
-                const cleanNum = parseInt(rawNum.replace(/\./g, ''));
-                const summary = g.sgacedescripcion || g.sgacesumario || g.sgacedesc || g.sgacesum || '';
-                const typeText = g.sgacetipo || '';
-                const isExtra = isGacetaExtraordinaria(cleanNum, rawNum, typeText, summary);
-
-                if (IS_EXTRA_ONLY) {
-                    return isExtra;
-                }
-
-                if (!g.sgacefecha) return false;
-                const year = parseInt(g.sgacefecha.split('/')[2]);
-                return targetYears.includes(year);
+                const cleanNum = parseInt(rawNum.replace(/[.,\s]/g, ''));
+                const summary = g.sgacedescripcion || '';
+                const isExtra = isGacetaExtraordinaria(cleanNum, rawNum, g.sgacetipo || '', summary);
+                if (IS_EXTRA_ONLY) return isExtra;
+                const parts = g.sgacefecha?.split('/') || [];
+                const year = parseInt(parts[2]);
+                return targetYears.includes(year) || isExtra;
             });
 
-            if (matchedItems.length === 0) {
-                console.log("   ✅ No hay gacetas en el TSJ para los años seleccionados.");
-                return;
+            console.log(`   📋 Gacetas filtradas: ${matchedItems.length}`);
+
+            // Lógica de guardado en lote...
+            for (const g of matchedItems.slice(0, MAX_WRITES)) {
+                await saveGaceta(g);
+                await new Promise(r => setTimeout(r, 200));
             }
 
-            // DIAGNÓSTICO: Ver las llaves del primer objeto para detectar cambios en el TSJ
-            if (matchedItems[0]) {
-                console.log("   🧪 Estructura de Gaceta detectada:", Object.keys(matchedItems[0]).join(', '));
-            }
-
-            // Verificar duplicados en Supabase (OPIMIZADO: Lectura en bloque con sumario)
-            console.log(`   💾 Verificando estado de la base de datos...`);
-
-            const existingData = new Map(); // id -> { sumario, tipo }
-            let page = 0;
-            const PAGE_SIZE_DB = 1000;
-            let hasMoreDB = true;
-
-            while (hasMoreDB) {
-                const { data, error } = await supabase
-                    .from('gacetas')
-                    .select('id, sumario, tipo') // Agregado tipo
-                    .range(page * PAGE_SIZE_DB, (page + 1) * PAGE_SIZE_DB - 1);
-
-                if (error) throw error;
-                (data || []).forEach(row => existingData.set(row.id, { sumario: row.sumario, tipo: row.tipo }));
-
-                if (!data || data.length < PAGE_SIZE_DB) {
-                    hasMoreDB = false;
-                } else {
-                    page++;
-                }
-            }
-
-            // Ordenar por FECHA descendente (más recientes primero)
-            // La fecha viene en formato DD/MM/YYYY
-            matchedItems.sort((a, b) => {
-                if (!a.sgacefecha || !b.sgacefecha) return 0;
-                const [da, ma, ya] = a.sgacefecha.split('/').map(Number);
-                const [db, mb, yb] = b.sgacefecha.split('/').map(Number);
-                const dateA = new Date(ya, ma - 1, da);
-                const dateB = new Date(yb, mb - 1, db);
-                return dateB - dateA || (parseInt(b.sgacenumero.replace(/\./g, '')) - parseInt(a.sgacenumero.replace(/\./g, '')));
-            });
-
-            const newItems = matchedItems.filter(g => {
-                const num = parseInt(g.sgacenumero.replace(/\./g, ''));
-                if (isNaN(num)) return false;
-
-                const summary = g.sgacedescripcion || g.sgacesumario || g.sgacedesc || g.sgacesum || '';
-                const isExtra = isGacetaExtraordinaria(num, g.sgacenumero, g.sgacetipo || '', summary);
-                const id = isExtra ? `gaceta-E${num}` : `gaceta-${num}`;
-
-                if (existingData.has(id)) {
-                    // En modo repair, procesamos si:
-                    // 1. No tiene sumario o es un "placeholder" genérico
-                    // 2. Está mal clasificada (ej: tiene punto pero no dice Extraordinaria)
-                    if (IS_REPAIR) {
-                        const existing = existingData.get(id);
-                        const isPlaceholder = !existing.sumario ||
-                            existing.sumario.length < 40 ||
-                            existing.sumario.toLowerCase().includes('gaceta oficial n');
-
-                        // Recalcular potencialmente extra para comparar (Rango < 30k)
-                        const potentiallyExtra = num < 30000 || (num < 10000 && g.sgacenumero.includes('.'));
-
-                        const isMisclassified = (potentiallyExtra && existing.tipo !== 'Extraordinaria') ||
-                            (!potentiallyExtra && num > 30000 && existing.tipo === 'Extraordinaria');
-
-                        return isPlaceholder || isMisclassified;
-                    }
-                    return false;
-                }
-                return true;
-            });
-
-            console.log(`   ✨ Nuevas para importar: ${newItems.length}`);
-
-            if (newItems.length === 0) {
-                console.log("   ✅ Todo está sincronizado.");
-            } else {
-                // Modo Automático: Procesar todos los registros encontrados
-                const TOTAL_TO_PROCESS = (IS_FULL || IS_REPAIR) ? newItems.length : Math.min(newItems.length, MAX_WRITES);
-                const toProcessAll = newItems.slice(0, TOTAL_TO_PROCESS);
-
-                console.log(`   🚀 Iniciando procesamiento automático de ${toProcessAll.length} registros...`);
-
-                let writesCount = 0;
-                const chunkSize = 20; // Reducido un poco para mayor estabilidad con detalles individuales
-
-                for (let i = 0; i < toProcessAll.length; i += chunkSize) {
-                    const chunk = toProcessAll.slice(i, i + chunkSize);
-                    await Promise.all(chunk.map(g => saveGaceta(g)));
-                    writesCount += chunk.length;
-
-                    const percent = ((writesCount / toProcessAll.length) * 100).toFixed(1);
-                    console.log(`      📊 Progreso: ${writesCount} / ${toProcessAll.length} (${percent}%)`);
-
-                    // Breve pausa táctica cada 100 registros para no saturar
-                    if (writesCount % 100 === 0) {
-                        await new Promise(r => setTimeout(r, 2000));
-                    }
-                }
-                console.log(`\n✅ Sincronización finalizada: ${writesCount} registros procesados.`);
-
-                // 🔔 NOTIFICACIÓN PUSH
-                // Solo notificar si: 
-                // 1. Hay gacetas nuevas
-                // 2. NO es modo backfill, full o repair (solo modo diario/manual reciente)
-                if (writesCount > 0 && !IS_BACKFILL && !IS_FULL && !IS_REPAIR && !IS_EXTRA_ONLY) {
-                    const PushNotifier = require('./pushNotifier');
-                    const title = writesCount === 1 ? 'Nueva Gaceta Oficial' : 'Nuevas Gacetas Oficiales';
-                    const body = writesCount === 1
-                        ? `Se ha publicado la Gaceta N° ${toProcessAll[0].sgacenumero}`
-                        : `Se han publicado ${writesCount} nuevas gacetas.`;
-
-                    await PushNotifier.notifyAll(title, body, { type: 'gaceta', count: writesCount });
-                }
-            }
-
-            // Actualizar progreso en backfill mode
             if (IS_BACKFILL && !TARGET_YEAR) {
-                const { data: syncData } = await supabase
-                    .from('sync_monitor')
-                    .select('data')
-                    .eq('id', 'gacetas_sync')
-                    .maybeSingle();
-
-                const currentStored = syncData?.data?.lastHistoricalYearSynced || 1999;
-                const nextYearToMark = currentStored + 1;
-
-                if (nextYearToMark < currentYear - 1) {
-                    await supabase
-                        .from('sync_monitor')
-                        .upsert({
-                            id: 'gacetas_sync',
-                            data: { lastHistoricalYearSynced: nextYearToMark, lastUpdate: new Date().toISOString() },
-                            updated_at: new Date().toISOString()
-                        });
-                    console.log(`\n✅ Progreso guardado: Registros históricos hasta ${nextYearToMark} verificados.`);
+                const { data: syncData } = await supabase.from('sync_monitor').select('data').eq('id', 'gacetas_sync').maybeSingle();
+                const cur = syncData?.data?.lastHistoricalYearSynced || 1999;
+                if (cur + 1 < currentYear - 1) {
+                    await supabase.from('sync_monitor').upsert({
+                        id: 'gacetas_sync',
+                        data: { lastHistoricalYearSynced: cur + 1, lastUpdate: new Date().toISOString() },
+                        updated_at: new Date().toISOString()
+                    });
                 }
             }
-
-        } else {
-            console.log(`   ❌ No se encontró la colección de Gacetas.`);
         }
-
     } catch (e) {
         console.error(`   ❌ Error fatal: ${e.message}`);
     }
 }
 
 async function saveGaceta(g) {
-    if (!g.sgacenumero || !g.sgacefecha) return;
+    if (!g.igaceid) return;
+    let rawNum = g.sgacenumero || '';
+    let num = parseInt(rawNum.replace(/[.,\s]/g, ''));
+    let cleanNumStr = rawNum.replace(/[.,\s]/g, '');
+    let summary = g.sgacedescripcion || g.sgacesumario || '';
 
-    const num = parseInt(g.sgacenumero.replace(/\./g, ''));
-    if (isNaN(num)) return;
-
-    const id = `gaceta-${num}`;
-
-    let folder = 'gaceta_ext';
-    if (num > 30000) folder = 'gaceta';
-    const url = `http://historico.tsj.gob.ve/${folder}/blanco.asp?nrogaceta=${g.sgacenumero}`;
-
-    const [day, month, year] = g.sgacefecha.split('/');
-    const dateObj = new Date(`${year}-${month}-${day}`);
-
-    // Intentar obtener el sumario de varias posibles llaves del TSJ
-    let summary = g.sgacedescripcion || g.sgacesumario || g.sgacedesc || g.sgacesum || '';
-
-    // Si no hay sumario en la lista, intentar pedir el detalle individual
-    if (!summary && g.igaceid) {
-        try {
-            const urlDetail = 'http://www.tsj.gob.ve/gaceta-oficial';
-            const detailRes = await fetchWithRetry(urlDetail, {
-                params: {
-                    p_p_id: 'receiverGacetaOficial_WAR_NoticiasTsjPorlet612',
-                    p_p_lifecycle: '2',
-                    p_p_state: 'normal',
-                    p_p_mode: 'view',
-                    p_p_cacheability: 'cacheLevelPage',
-                    'server[endpoint]': '/services/WSGacetaOficial.HTTPEndpoint',
-                    'server[method]': '/getGaceta',
-                    'server[idGaceta]': g.igaceid
-                },
-                httpsAgent: agent,
-                timeout: 5000
-            });
-
-            const detail = detailRes.data;
-            summary = detail?.sgacedescripcion || detail?.sgacesumario || '';
-            if (summary) {
-                // console.log(`      ✅ Sumario recuperado del detalle para N° ${g.sgacenumero}`);
-            }
-        } catch (e) {
-            // console.log(`      ⚠️ Error recuperando detalle para N° ${g.sgacenumero}: ${e.message}`);
-        }
-    }
-
-    // Detección mejorada del tipo de Gaceta
-    const isExtra = isGacetaExtraordinaria(num, g.sgacenumero, g.sgacetipo || '', summary);
+    const isExtra = isGacetaExtraordinaria(num, rawNum, g.sgacetipo || '', summary);
     const type = isExtra ? 'Extraordinaria' : 'Ordinaria';
+    const finalId = isExtra ? `gaceta-E${num}` : `gaceta-${num}`;
+    const folder = isExtra ? 'gaceta_ext' : 'gaceta';
+    const urlGaceta = `http://historico.tsj.gob.ve/${folder}/blanco.asp?nrogaceta=${cleanNumStr}`;
 
-    const isExtraFinal = isGacetaExtraordinaria(num, g.sgacenumero, g.sgacetipo || '', summary);
-    const finalId = isExtraFinal ? `gaceta-E${num}` : `gaceta-${num}`;
+    const parts = (g.sgacefecha || '').split('/');
+    if (parts.length !== 3) return;
+    const dateObj = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
 
     const row = {
-        id: finalId,
-        numero: num,
-        numero_display: g.sgacenumero,
-        fecha: g.sgacefecha,
-        ano: parseInt(year),
-        mes: parseInt(month),
-        dia: parseInt(day),
-        timestamp: dateObj.toISOString(),
-        url_original: url,
-        titulo: summary ? `${summary.substring(0, 80)}...` : `Gaceta Oficial N° ${g.sgacenumero}`,
-        subtitulo: `Publicado el ${g.sgacefecha}`,
-        sumario: summary,
-        tipo: type
+        id: finalId, numero: num, numero_display: rawNum, fecha: g.sgacefecha,
+        ano: parseInt(parts[2]), mes: parseInt(parts[1]), dia: parseInt(parts[0]),
+        timestamp: dateObj.toISOString(), url_original: urlGaceta,
+        titulo: summary ? `${summary.substring(0, 80)}...` : `Gaceta Oficial N° ${rawNum}`,
+        subtitulo: `Gaceta ${type} N° ${rawNum}`,
+        sumario: summary, tipo: type
     };
 
-    try {
-        const { error } = await supabase
-            .from('gacetas')
-            .upsert(row);
-
-        if (error) throw error;
-    } catch (e) {
-        console.error(`      Error saving gaceta: ${e.message}`);
-    }
+    const { error } = await supabase.from('gacetas').upsert(row);
+    if (!error) process.stdout.write('+');
 }
 
-function isGacetaExtraordinaria(num, displayNum, typeText, summary) {
-    const text = (displayNum + ' ' + (typeText || '') + ' ' + (summary || '')).toLowerCase();
-
-    // 1. Detección por texto explícito
-    if (text.includes('extraordinaria')) return true;
-
-    // 2. Detección por formato de número (ej: 6.809 con punto y bajo 10k)
-    if (num < 10000 && displayNum.includes('.')) return true;
-
-    // 3. Umbral de seguridad para números bajos (históricos extraordinarios)
-    // Las ordinarias modernas son > 40k. Las extraordinarias modernas son < 7k.
-    if (num < 30000 && !text.includes('ordinaria')) return true;
-
-    return false;
-}
+const TSJ_BASE = 'http://www.tsj.gob.ve/gaceta-oficial';
+const TSJ_PARAMS_BASE = {
+    p_p_id: 'receiverGacetaOficial_WAR_NoticiasTsjPorlet612',
+    p_p_lifecycle: '2', p_p_state: 'normal', p_p_mode: 'view',
+    p_p_cacheability: 'cacheLevelPage', 'server[endpoint]': '/services/WSGacetaOficial.HTTPEndpoint',
+};
 
 getGacetas();

@@ -151,8 +151,18 @@ async function executeSync(mode, year, roomIds, cookieStr, options = {}) {
                 if (mode === 'historical' && year) {
                     await syncHistoricalYear(salaId, year, currentCookies, options);
                 } else {
-                    const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    await syncDay(salaId, today, currentCookies);
+                    const today = new Date();
+                    const yesterday = new Date();
+                    yesterday.setDate(today.getDate() - 1);
+
+                    const fmtToday = today.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const fmtYesterday = yesterday.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                    console.log(`   🔎 Verificando ayer (${fmtYesterday})...`);
+                    await syncDay(salaId, fmtYesterday, currentCookies);
+
+                    console.log(`   🔎 Verificando hoy (${fmtToday})...`);
+                    await syncDay(salaId, fmtToday, currentCookies);
                 }
                 roomSuccess = true;
                 consecutiveSkips = 0; // Resetear al tener éxito
@@ -243,7 +253,7 @@ async function runAutoSync(roomIds) {
     console.log(`   🔎 Verificando hoy (${fmtToday})...`);
     await executeSyncManualDate(fmtToday, roomIds, cookieStr);
 
-    // 2. Si aún falta historia, avanzar un año por ejecución
+    // 2. Si aún falta historia (opcional/desactivado por defecto si quieres, pero mantenemos la lógica)
     if (nextYear < currentYear) {
         console.log(`\n⏳ [SmartSync] Paso 2: Avanzando historia. Sincronizando año: ${nextYear}`);
         const success = await executeSync('historical', nextYear, roomIds, cookieStr);
@@ -303,74 +313,93 @@ async function syncDay(salaId, fecha, cookies) {
         sentencias = sentencias.filter(s => s && s.SSENTNUMERO);
         console.log(`   ✨ Encontradas: ${sentencias.length}`);
 
-        for (const s of sentencias) {
-            const isNew = await saveToDB(s, salaId);
-            if (isNew) newSentenciasCount++;
-            // Pequeño delay entre sentencias
-            await new Promise(r => setTimeout(r, 200));
+        if (sentencias.length > 0) {
+            const addedCount = await saveBatchToDB(sentencias, salaId);
+            newSentenciasCount += addedCount;
         }
     } else {
         console.log(`   📭 No hay sentencias publicadas este día.`);
     }
 }
 
-async function saveToDB(s, salaId) {
+async function saveBatchToDB(sentencias, salaId) {
     const salaInfo = SALA_MAP[salaId];
-    const year = s.DSENTFECHA ? s.DSENTFECHA.split('/')[2] : new Date().getFullYear();
-    const sentId = `${salaInfo.code}-${year}-${s.SSENTNUMERO}`.toLowerCase().replace(/\s+/g, '');
+    if (!salaInfo) return 0;
 
     try {
-        // Verificar si ya existe
-        const { data: existing } = await supabase
+        // Preparar datos y generar IDs únicos
+        const preparedData = sentencias.map(s => {
+            const year = s.DSENTFECHA ? s.DSENTFECHA.split('/')[2] : new Date().getFullYear();
+            const sentId = `${salaInfo.code}-${year}-${s.SSENTNUMERO}`.toLowerCase().replace(/\s+/g, '');
+
+            let fechaCorte = null;
+            if (s.DSENTFECHA && s.DSENTFECHA.includes('/')) {
+                const [d, m, y] = s.DSENTFECHA.split('/');
+                fechaCorte = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+            }
+
+            return {
+                id: sentId,
+                id_sentencia: sentId,
+                ano: parseInt(year),
+                expediente: s.SSENTEXPEDIENTE,
+                numero: s.SSENTNUMERO,
+                sala: salaInfo.name,
+                ponente: s.SPONENOMBRE,
+                fecha: s.DSENTFECHA,
+                fecha_corte: fechaCorte,
+                titulo: `Sentencia N° ${s.SSENTNUMERO}`,
+                procedimiento: s.SPROCDESCRIPCION,
+                partes: s.SSENTPARTES || 'N/A',
+                resumen: s.SSENTDECISION || '',
+                searchable_text: `${s.SSENTNUMERO} ${s.SSENTEXPEDIENTE} ${s.SSENTDECISION || ''}`.toLowerCase(),
+                url_original: s.SSENTNOMBREDOC && s.SSENTNOMBREDOC !== 'null'
+                    ? `http://historico.tsj.gob.ve/decisiones/${s.SSALADIR}/${s.NOMBREMES?.trim()}/${s.SSENTNOMBREDOC}`
+                    : null,
+                timestamp: new Date().toISOString()
+            };
+        });
+
+        const ids = preparedData.map(d => d.id);
+
+        // 1. Verificar cuáles ya existen y tienen fecha_corte (ahorro de cuota/tiempo)
+        const { data: existingRecords, error: fetchError } = await supabase
             .from('jurisprudence')
             .select('id, fecha_corte')
-            .eq('id', sentId)
-            .maybeSingle();
+            .in('id', ids);
 
-        // Si existe Y ya tiene la fecha_corte, no hacemos nada (ahorro de cuota)
-        if (existing && existing.fecha_corte) {
-            return;
+        if (fetchError) throw fetchError;
+
+        const existingMap = new Map();
+        existingRecords?.forEach(r => existingMap.set(r.id, r.fecha_corte));
+
+        // 2. Filtrar solo las que son nuevas o les falta la fecha_corte
+        const rowsToUpsert = preparedData.filter(row => {
+            const existingFechaCorte = existingMap.get(row.id);
+            return !existingMap.has(row.id) || !existingFechaCorte;
+        });
+
+        if (rowsToUpsert.length === 0) {
+            console.log(`      ℹ️  Todas las sentencias (${sentencias.length}) ya están al día en la DB.`);
+            return 0;
         }
 
-        // Sin keywords manuales: PostgreSQL genera el tsvector (fts) automáticamente
-        // Parsear fecha DD/MM/YYYY a YYYY-MM-DD para campo DATE de Postgres
-        let fechaCorte = null;
-        if (s.DSENTFECHA && s.DSENTFECHA.includes('/')) {
-            const [d, m, y] = s.DSENTFECHA.split('/');
-            fechaCorte = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-        }
-
-        const row = {
-            id: sentId,
-            id_sentencia: sentId,
-            ano: parseInt(year),
-            expediente: s.SSENTEXPEDIENTE,
-            numero: s.SSENTNUMERO,
-            sala: salaInfo.name,
-            ponente: s.SPONENOMBRE,
-            fecha: s.DSENTFECHA,
-            fecha_corte: fechaCorte, // Nuevo campo para ordenamiento real
-            titulo: `Sentencia N° ${s.SSENTNUMERO}`,
-            procedimiento: s.SPROCDESCRIPCION,
-            partes: s.SSENTPARTES || 'N/A',
-            resumen: s.SSENTDECISION || '',
-            searchable_text: `${s.SSENTNUMERO} ${s.SSENTEXPEDIENTE} ${s.SSENTDECISION || ''}`.toLowerCase(),
-            url_original: s.SSENTNOMBREDOC && s.SSENTNOMBREDOC !== 'null'
-                ? `http://historico.tsj.gob.ve/decisiones/${s.SSALADIR}/${s.NOMBREMES?.trim()}/${s.SSENTNOMBREDOC}`
-                : null,
-            timestamp: new Date().toISOString()
-        };
-
-        const { error } = await supabase
+        // 3. Upsert en lote
+        const { error: upsertError } = await supabase
             .from('jurisprudence')
-            .upsert(row);
+            .upsert(rowsToUpsert, { onConflict: 'id' });
 
-        if (error) throw error;
-        console.log(`      ✅ Guardada: ${s.SSENTNUMERO} (${salaInfo.short})`);
-        return true; // NUEVA
+        if (upsertError) throw upsertError;
+
+        console.log(`      ✅ Guardadas/Actualizadas: ${rowsToUpsert.length} sentencias (${salaInfo.short})`);
+
+        // Contar como "nuevas" solo las que no existían previamente en el mapa
+        const trulyNewCount = rowsToUpsert.filter(row => !existingMap.has(row.id)).length;
+        return trulyNewCount;
+
     } catch (e) {
-        console.error(`      ⚠️ Error al procesar sentencia ${s.SSENTNUMERO}: ${e.message}`);
-        return false;
+        console.error(`      ⚠️ Error en procesamiento por lote (${salaInfo.short}): ${e.message}`);
+        return 0;
     }
 }
 
