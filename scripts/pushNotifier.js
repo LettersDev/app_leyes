@@ -29,7 +29,6 @@ const PushNotifier = {
             const tokens = tokensData.map(t => t.token);
 
             // 2. Preparar mensajes para la API de Expo
-            // Expo permite hasta 100 mensajes por chunk
             const messages = tokens.map(token => ({
                 to: token,
                 sound: 'default',
@@ -38,17 +37,20 @@ const PushNotifier = {
                 data: data,
             }));
 
-            // 3. Enviar a Expo
-            const response = await axios.post('https://exp.host/--/api/v2/push/send', messages, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Accept-encoding': 'gzip, deflate',
-                    'Content-Type': 'application/json',
-                },
-            });
+            // 3. Enviar a Expo en chunks de 100 (límite de la API)
+            const CHUNK_SIZE = 100;
+            for (let i = 0; i < messages.length; i += CHUNK_SIZE) {
+                const chunk = messages.slice(i, i + CHUNK_SIZE);
+                await axios.post('https://exp.host/--/api/v2/push/send', chunk, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Accept-encoding': 'gzip, deflate',
+                        'Content-Type': 'application/json',
+                    },
+                });
+            }
 
             console.log(`   ✅ Notificación enviada a ${tokens.length} dispositivos.`);
-            // console.log('   Response:', JSON.stringify(response.data));
 
         } catch (error) {
             console.error('   ❌ Error enviando notificaciones:', error.response?.data || error.message);

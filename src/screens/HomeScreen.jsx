@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Linking } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card, Title, Paragraph, IconButton, Avatar, Surface, Banner, Portal, Dialog, Button, Badge } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -315,7 +315,7 @@ const HomeScreen = ({ navigation }) => {
                         Esta aplicación NO representa a ninguna entidad gubernamental.
                         {'\n'}Fuentes: TSJ, Asamblea Nacional, Gaceta Oficial.
                     </Text>
-                    <Text style={styles.versionText}>TuLey v1.1.0</Text>
+                    <Text style={styles.versionText}>TuLey v{LawsIndexService.getCurrentAppVersion()}</Text>
                 </View>
             </ScrollView>
 
@@ -339,8 +339,7 @@ const HomeScreen = ({ navigation }) => {
                         <Button
                             mode="contained"
                             onPress={() => {
-                                // Enlace real al Play Store cuando lo tengas
-                                // Linking.openURL('market://details?id=com.lettersdev.tuley');
+                                Linking.openURL('market://details?id=com.lettersdev.tuley');
                                 setUpdateAvailable(null);
                             }}
                             style={{ width: '80%', borderRadius: 20 }}

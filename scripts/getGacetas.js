@@ -72,14 +72,15 @@ async function scrapeDirectoPorRango(startNum, endNum, esExtraordinaria, stopOnG
                     if (sumario && sumario.length > 10) {
                         const cleanSumario = sumario.replace(/\s+/g, ' ');
                         let year = new Date().getFullYear();
+                        const yearRegex = new RegExp(`20[2-3]\\d`);
 
-                        const textYearMatch = (fechaTexto + sumario).match(/202[4-6]/);
+                        const textYearMatch = (fechaTexto + sumario).match(yearRegex);
                         if (textYearMatch) {
                             year = parseInt(textYearMatch[0]);
                         } else {
-                            $('a[href*="202"]').each((i, el) => {
+                            $('a[href*="20"]').each((i, el) => {
                                 const href = $(el).attr('href');
-                                const hrefMatch = href.match(/202[4-6]/);
+                                const hrefMatch = href.match(yearRegex);
                                 if (hrefMatch) {
                                     year = parseInt(hrefMatch[0]);
                                     return false;
@@ -108,7 +109,7 @@ async function scrapeDirectoPorRango(startNum, endNum, esExtraordinaria, stopOnG
                             break;
                         }
                     }
-                } catch (e) { }
+                } catch (e) { /* URL no disponible, se salta */ }
             }
             if (foundInRange) break;
         }
