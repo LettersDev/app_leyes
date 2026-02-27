@@ -10,6 +10,8 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const agent = new https.Agent({ rejectUnauthorized: false });
+const PushNotifier = require('./pushNotifier');
+let newGacetasCount = 0;
 
 // ─── SCRAPING DIRECTO DE GACETAS (FALLBACK PARA 2024-2026 / MODO SMART) ───────────────
 async function scrapeDirectoPorRango(startNum, endNum, esExtraordinaria, stopOnGap = false) {
@@ -106,6 +108,7 @@ async function scrapeDirectoPorRango(startNum, endNum, esExtraordinaria, stopOnG
                         if (!error) {
                             console.log(`\n      ✨ ¡Guardada! ${tipoLabel} N° ${displayNum} (usando ${fmt}) en [${folder}]`);
                             foundInRange = true;
+                            newGacetasCount++;
                             break;
                         }
                     }
@@ -162,17 +165,33 @@ async function getGacetas() {
         return;
     }
 
-    // NUEVO MODO SMART (Solicitado por el usuario)
+    // NUEVO MODO SMART (Optimizado con ventana de retroceso)
     if (args.includes('--mode=smart')) {
-        console.log(`   🧠 Modo: Smart (Incremental)`);
+        console.log(`   🧠 Modo: Smart (Incremental con Ventana de Retroceso)`);
 
+        // Ordinarias
         const { data: lastOrd } = await supabase.from('gacetas').select('numero').eq('tipo', 'Ordinaria').order('numero', { ascending: false }).limit(1).maybeSingle();
-        const startOrd = (lastOrd?.numero || 43000) + 1;
-        await scrapeDirectoPorRango(startOrd, startOrd + 50, false, true);
+        const startOrd = (lastOrd?.numero || 43000) - 10; // Retrocedemos 10 para capturar retrasos
+        console.log(`   🕒 Escaneando desde Ordinaria N° ${startOrd} (Ventana de retroceso)`);
+        await scrapeDirectoPorRango(startOrd, startOrd + 60, false, true);
 
+        // Extraordinarias
         const { data: lastExt } = await supabase.from('gacetas').select('numero').eq('tipo', 'Extraordinaria').order('numero', { ascending: false }).limit(1).maybeSingle();
-        const startExt = (lastExt?.numero || 6800) + 1;
-        await scrapeDirectoPorRango(startExt, startExt + 50, true, true);
+        const startExt = (lastExt?.numero || 6800) - 10; // Retrocedemos 10 para capturar retrasos
+        console.log(`   🕒 Escaneando desde Extraordinaria N° ${startExt} (Ventana de retroceso)`);
+        await scrapeDirectoPorRango(startExt, startExt + 60, true, true);
+
+        // 🔔 NOTIFICACIÓN PUSH
+        if (newGacetasCount > 0) {
+            const title = newGacetasCount === 1 ? 'Nueva Gaceta Oficial' : 'Nuevas Gacetas Oficiales';
+            const body = newGacetasCount === 1
+                ? 'Se ha publicado una nueva gaceta oficial.'
+                : `Se han publicado ${newGacetasCount} nuevas gacetas oficiales.`;
+            await PushNotifier.notifyAll(title, body, {
+                type: 'gacetas',
+                url: 'tuley://gacetas'
+            });
+        }
         return;
     }
 

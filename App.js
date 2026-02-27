@@ -1,5 +1,6 @@
 import 'react-native-gesture-handler';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import * as Notifications from 'expo-notifications';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { MD3LightTheme, Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -9,6 +10,8 @@ import { SettingsProvider } from './src/context/SettingsContext';
 import LawsIndexService from './src/services/lawsIndexService';
 import { downloadLawContent } from './src/services/lawService';
 import OfflineService from './src/services/offlineService';
+import { checkForUpdate } from './src/services/updateService';
+import UpdateModal from './src/components/UpdateModal';
 
 const theme = {
   ...MD3LightTheme,
@@ -23,9 +26,27 @@ const theme = {
 export default function App() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [initStatus, setInitStatus] = useState('Iniciando...');
+  const notificationListener = useRef();
+  const responseListener = useRef();
+  const [updateInfo, setUpdateInfo] = useState({ visible: false, currentVersion: '', latestVersion: '' });
 
   useEffect(() => {
     initializeApp();
+
+    // Listener para cuando el usuario TOCA la notificación
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data;
+      console.log('App: Notificación tocada con data:', data);
+
+      // La navegación se manejará vía deep linking o aquí si es necesario manual
+      // Pero con el ResponseListener podemos forzar acciones
+    });
+
+    return () => {
+      if (responseListener.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+    };
   }, []);
 
   const initializeApp = async () => {
@@ -41,6 +62,13 @@ export default function App() {
 
       // We still run the background check, but it will see the laws are "offline" (bundled)
       ensurePriorityLawsDownloaded();
+
+      // Check for app updates in the background
+      checkForUpdate().then(({ hasUpdate, latestVersion, currentVersion }) => {
+        if (hasUpdate) {
+          setUpdateInfo({ visible: true, currentVersion, latestVersion });
+        }
+      });
 
       setIsInitializing(false);
     } catch (error) {
@@ -81,6 +109,12 @@ export default function App() {
       <SettingsProvider>
         <PaperProvider theme={theme}>
           <AppNavigator />
+          <UpdateModal
+            visible={updateInfo.visible}
+            currentVersion={updateInfo.currentVersion}
+            latestVersion={updateInfo.latestVersion}
+            onDismiss={() => setUpdateInfo(prev => ({ ...prev, visible: false }))}
+          />
         </PaperProvider>
       </SettingsProvider>
     </SafeAreaProvider>

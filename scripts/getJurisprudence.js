@@ -70,7 +70,11 @@ async function getJurisprudence(options = {}) {
             ? `Se ha publicado una nueva sentencia en el TSJ.`
             : `Se han publicado ${newSentenciasCount} nuevas sentencias en el TSJ.`;
 
-        await PushNotifier.notifyAll(title, body, { type: 'juris', count: newSentenciasCount });
+        await PushNotifier.notifyAll(title, body, {
+            type: 'juris',
+            count: newSentenciasCount,
+            url: 'tuley://juris'
+        });
     }
 }
 

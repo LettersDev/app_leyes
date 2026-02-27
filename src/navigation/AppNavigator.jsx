@@ -20,6 +20,19 @@ import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createStackNavigator();
 
+const linking = {
+    prefixes: ['tuley://'],
+    config: {
+        screens: {
+            Home: 'home',
+            Jurisprudence: 'juris',
+            Gacetas: 'gacetas',
+            LawDetail: 'law/:id',
+            JurisprudenceDetail: 'sentencia/:id',
+        },
+    },
+};
+
 const AppNavigator = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [showOnboarding, setShowOnboarding] = useState(true);
@@ -50,7 +63,7 @@ const AppNavigator = () => {
     }
 
     return (
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
             <Stack.Navigator
                 initialRouteName={showOnboarding ? "Onboarding" : "Home"}
                 screenOptions={{
