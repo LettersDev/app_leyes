@@ -169,17 +169,19 @@ async function getGacetas() {
     if (args.includes('--mode=smart')) {
         console.log(`   🧠 Modo: Smart (Incremental con Ventana de Retroceso)`);
 
-        // Ordinarias
+        // Ordinarias — huecos son raros, stopOnGap está bien
         const { data: lastOrd } = await supabase.from('gacetas').select('numero').eq('tipo', 'Ordinaria').order('numero', { ascending: false }).limit(1).maybeSingle();
         const startOrd = (lastOrd?.numero || 43000) - 10; // Retrocedemos 10 para capturar retrasos
         console.log(`   🕒 Escaneando desde Ordinaria N° ${startOrd} (Ventana de retroceso)`);
-        await scrapeDirectoPorRango(startOrd, startOrd + 60, false, true);
+        await scrapeDirectoPorRango(startOrd, startOrd + 80, false, true);
 
-        // Extraordinarias
+        // Extraordinarias — los números NO son secuenciales, pueden tener grandes huecos
+        // entre publicaciones normales (e.g. E-6970 → E-6990 con nada en el medio).
+        // Por eso: retrocedemos más (30) y desactivamos stopOnGap para no cortar el scan.
         const { data: lastExt } = await supabase.from('gacetas').select('numero').eq('tipo', 'Extraordinaria').order('numero', { ascending: false }).limit(1).maybeSingle();
-        const startExt = (lastExt?.numero || 6800) - 10; // Retrocedemos 10 para capturar retrasos
-        console.log(`   🕒 Escaneando desde Extraordinaria N° ${startExt} (Ventana de retroceso)`);
-        await scrapeDirectoPorRango(startExt, startExt + 60, true, true);
+        const startExt = (lastExt?.numero || 6800) - 30; // Retrocedemos 30 para capturar publicaciones tardías
+        console.log(`   🕒 Escaneando desde Extraordinaria N° ${startExt} (Ventana de retroceso ampliada)`);
+        await scrapeDirectoPorRango(startExt, startExt + 80, true, false); // stopOnGap=false para extraordinarias
 
         // 🔔 NOTIFICACIÓN PUSH
         if (newGacetasCount > 0) {

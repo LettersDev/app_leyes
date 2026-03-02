@@ -35,6 +35,9 @@ const PushNotifier = {
                 title: title,
                 body: body,
                 data: data,
+                // channelId debe coincidir con el canal creado en notificationService.js
+                // Esto es lo que hace que Android use el ícono personalizado (notification-icon.png)
+                channelId: 'tuley-default',
             }));
 
             // 3. Enviar a Expo en chunks de 100 (límite de la API)

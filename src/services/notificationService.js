@@ -4,6 +4,9 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { supabase } from '../config/supabase';
 
+// ID del canal de Android — debe coincidir con el channelId enviado en las notificaciones
+export const NOTIFICATION_CHANNEL_ID = 'tuley-default';
+
 // Configuración de cómo se muestran las notificaciones cuando la app está abierta
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -23,6 +26,17 @@ export const NotificationService = {
         if (!Device.isDevice) {
             console.log('Notificaciones Push solo funcionan en dispositivos físicos.');
             return null;
+        }
+
+        // Crear el canal de notificaciones en Android (necesario para usar el ícono personalizado)
+        if (Platform.OS === 'android') {
+            await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
+                name: 'TuLey',
+                importance: Notifications.AndroidImportance.HIGH,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#C9A227',
+                sound: 'default',
+            });
         }
 
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
