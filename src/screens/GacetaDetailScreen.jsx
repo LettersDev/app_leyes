@@ -2,11 +2,15 @@ import React, { useState, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { Text, Card, Button, Divider, IconButton, Chip, ActivityIndicator } from 'react-native-paper';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import { COLORS } from '../utils/constants';
 
 const TSJ_BASE = 'http://historico.tsj.gob.ve';
+
+const toGoogleViewer = (pdfUrl) => {
+    const clean = pdfUrl.split('#')[0];
+    const abs = clean.startsWith('http') ? clean : `${TSJ_BASE}/${clean.replace(/^\//, '')}`;
+    return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(abs)}`;
+};
 
 // Limpia los estilos del TSJ igual que JurisprudenceDetailScreen
 const INJECTED_CSS = `
@@ -42,50 +46,41 @@ const GacetaDetailScreen = ({ route }) => {
     const isExtra = gaceta.tipo?.includes('Extra');
 
     const [mode, setMode] = useState('detail'); // 'detail' | 'webview'
-    const [downloading, setDownloading] = useState(false);
-
-    /**
-     * Descarga un PDF y lo abre con el visor nativo del dispositivo.
-     * Esto muestra el PDF dentro de la experiencia del sistema (sin "Abrir con").
-     */
-    const handlePdf = async (pdfUrl) => {
-        if (downloading) return;
-        const abs = pdfUrl.startsWith('http') ? pdfUrl : `${TSJ_BASE}/${pdfUrl.replace(/^\//, '')}`;
-        try {
-            setDownloading(true);
-            const filename = abs.split('/').pop().split('?')[0] || 'gaceta.pdf';
-            const localUri = FileSystem.cacheDirectory + filename;
-            const fileInfo = await FileSystem.getInfoAsync(localUri);
-            const uri = fileInfo.exists ? localUri : (await FileSystem.downloadAsync(abs, localUri)).uri;
-            await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Leer Gaceta PDF' });
-        } catch {
-            Alert.alert('Error', 'No se pudo cargar el documento. Comprueba tu conexión.');
-        } finally {
-            setDownloading(false);
-        }
-    };
+    const [webviewSource, setWebviewSource] = useState({ uri: baseUrl });
+    const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
+    const [pdfLoading, setPdfLoading] = useState(false);
+    // Ref para leer currentPdfUrl dentro de handleNavigation sin closures stale
+    const pdfModeRef = React.useRef(false);
 
     /**
      * Intercepta enlaces en el WebView:
-     * - Si es un PDF → lo descarga y lo abre nativamente (NO sale del app)
-     * - Si es externo → lo ignora
-     * - Si es TSJ → lo permite
+     * - Si es un PDF → cambia la fuente del WebView al Google Docs Viewer (sin salir de la app)
+     * - Si es externo → lo bloquea
+     * - Si es TSJ o Google Docs → lo permite
      */
     const handleNavigation = (request) => {
         const url = request.url;
         if (url === 'about:blank') return true;
 
-        if (/\.pdf($|\?)/i.test(url)) {
-            handlePdf(url);
-            return false; // Cancela la navegación del WebView
-        }
+        // Cuando estamos en el visor de PDF, permitir todo
+        // (Google Docs carga recursos de gstatic.com, accounts.google.com, etc.)
+        if (pdfModeRef.current) return true;
 
-        // Bloquear links que no sean del TSJ
-        if (url.startsWith('http') && !url.includes('tsj.gob.ve')) {
+        if (/\.pdf($|\?|#)/i.test(url)) {
+            const cleanPdf = url.split('#')[0];
+            const abs = cleanPdf.startsWith('http') ? cleanPdf : `${TSJ_BASE}/${cleanPdf.replace(/^\//, '')}`;
+            pdfModeRef.current = true;
+            setCurrentPdfUrl(abs);
+            setPdfLoading(true);
+            setWebviewSource({ uri: toGoogleViewer(url) });
             return false;
         }
 
-        return true;
+        // Permitir TSJ
+        if (url.includes('tsj.gob.ve')) return true;
+
+        // Bloquear todo lo demás
+        return false;
     };
 
     // ─── Modo WebView (exactamente como Jurisprudencia) ───────────────────────
@@ -94,39 +89,45 @@ const GacetaDetailScreen = ({ route }) => {
             <View style={{ flex: 1, backgroundColor: '#fff' }}>
                 {/* Barra superior */}
                 <View style={styles.bar}>
-                    <IconButton icon="arrow-left" iconColor={COLORS.primary} size={22} onPress={() => setMode('detail')} />
+                    <IconButton icon="arrow-left" iconColor={COLORS.primary} size={22} onPress={() => {
+                        if (currentPdfUrl) {
+                            pdfModeRef.current = false;
+                            setCurrentPdfUrl(null);
+                            setPdfLoading(false);
+                            setWebviewSource({ uri: baseUrl });
+                        } else {
+                            setMode('detail');
+                        }
+                    }} />
                     <Text style={styles.barTitle} numberOfLines={1}>
-                        Gaceta N° {gaceta.numero_display || gaceta.numero}
+                        {currentPdfUrl ? '📄 Documento PDF' : `Gaceta N° ${gaceta.numero_display || gaceta.numero}`}
                     </Text>
-                    <IconButton icon="open-in-new" iconColor={COLORS.primary} size={22} onPress={() => Linking.openURL(baseUrl)} />
+                    <IconButton icon="open-in-new" iconColor={COLORS.primary} size={22}
+                        onPress={() => Linking.openURL(currentPdfUrl || baseUrl)} />
                 </View>
-
-                {/* Indicador cuando descarga PDF */}
-                {downloading && (
-                    <View style={styles.downloadBanner}>
-                        <ActivityIndicator color="#fff" size="small" />
-                        <Text style={{ color: '#fff', marginLeft: 8, fontWeight: '600' }}>Cargando PDF...</Text>
-                    </View>
-                )}
 
                 {/* WebView idéntico a JurisprudenceDetailScreen */}
                 <WebView
                     ref={webViewRef}
-                    source={{ uri: baseUrl }}
+                    source={webviewSource}
                     injectedJavaScript={INJECTED_CSS}
                     javaScriptEnabled={true}
                     domStorageEnabled={true}
-                    startInLoadingState={true}
+                    startInLoadingState={false}
                     mixedContentMode="always"
                     onShouldStartLoadWithRequest={handleNavigation}
+                    onLoadEnd={() => setPdfLoading(false)}
+                    originWhitelist={['*']}
                     style={{ flex: 1 }}
-                    renderLoading={() => (
-                        <View style={styles.loadingOverlay}>
-                            <ActivityIndicator color={COLORS.primary} size="large" />
-                            <Text style={{ marginTop: 10, color: '#666' }}>Cargando Gaceta...</Text>
-                        </View>
-                    )}
                 />
+                {/* Overlay de carga manual — funciona para cargas iniciales y cambios de source */}
+                {pdfLoading && (
+                    <View style={styles.loadingOverlay}>
+                        <ActivityIndicator color={COLORS.primary} size="large" />
+                        <Text style={{ marginTop: 10, color: '#666', fontWeight: '500' }}>Abriendo documento PDF...</Text>
+                        <Text style={{ marginTop: 6, color: '#aaa', fontSize: 12 }}>Esto puede tardar unos segundos</Text>
+                    </View>
+                )}
             </View>
         );
     }
