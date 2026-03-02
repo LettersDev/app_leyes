@@ -12,6 +12,16 @@ const toGoogleViewer = (pdfUrl) => {
     return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(abs)}`;
 };
 
+// Elimina prefijos de navegación del TSJ que quedaron en datos viejos
+const cleanTitle = (titulo) => {
+    if (!titulo) return '';
+    return titulo
+        .replace(/^-{1,2}\s*ir al organismo se[ñn]alado en el sumario\s*/gi, '')
+        .replace(/^se[ñn]alado en el sumario\s*/gi, '')
+        .replace(/^-{1,2}\s*sumario\s*/gi, '')
+        .trim();
+};
+
 // Limpia los estilos del TSJ igual que JurisprudenceDetailScreen
 const INJECTED_CSS = `
     (function() {
@@ -178,7 +188,7 @@ const GacetaDetailScreen = ({ route }) => {
                         <Text style={styles.metaLabel}>Fecha:</Text>
                         <Text style={styles.metaValue}>{gaceta.fecha || '--'}</Text>
                     </View>
-                    <Text style={styles.titulo}>{gaceta.titulo}</Text>
+                    <Text style={styles.titulo}>{cleanTitle(gaceta.titulo)}</Text>
                 </Card.Content>
                 <Card.Actions style={styles.cardActions}>
                     <Button

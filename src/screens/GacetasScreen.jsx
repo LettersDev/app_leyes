@@ -62,6 +62,16 @@ const GacetasScreen = ({ navigation }) => {
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     };
 
+    // Limpia prefijos de navegación que quedaron en registros viejos en Supabase
+    const cleanTitle = (titulo) => {
+        if (!titulo) return '';
+        return titulo
+            .replace(/^-{1,2}\s*ir al organismo señalado en el sumario\s*/gi, '')
+            .replace(/^señalado en el sumario\s*/gi, '')
+            .replace(/^-{1,2}\s*sumario\s*/gi, '')
+            .trim();
+    };
+
     const fetchGacetas = async (isReset = false) => {
         if (loading) return;
         setLoading(true);
@@ -185,7 +195,7 @@ const GacetasScreen = ({ navigation }) => {
                 <View style={styles.cardHeader}>
                     <View style={styles.headerLeft}>
                         {/* Use different icon or color for Ordinaria vs Extra? */}
-                        <Title style={styles.cardTitle}>{item.titulo}</Title>
+                        <Title style={styles.cardTitle}>{cleanTitle(item.titulo)}</Title>
                         <Paragraph style={styles.cardSubtitle}>{item.subtitulo}</Paragraph>
                     </View>
                     <IconButton
