@@ -154,12 +154,7 @@ const GacetasScreen = ({ navigation }) => {
                 data: { ...item }
             });
 
-            // Use JurisprudenceDetail logic or just create GacetaDetail if needed
-            // Reusing JurisprudenceDetail for WebView is fine if params match
-            navigation.navigate('JurisprudenceDetail', {
-                url: item.url_original,
-                title: item.titulo
-            });
+            navigation.navigate('GacetaDetail', { gaceta: item });
         }
     }, [navigation]);
 

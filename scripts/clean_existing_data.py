@@ -90,7 +90,7 @@ def main():
         print(f"❌ No se encuentra el directorio data: {DATA_DIR}")
         return
 
-    json_files = list(DATA_DIR.glob("*_full.json"))
+    json_files = list(DATA_DIR.glob("*.json"))
     print(f"🔍 Encontrados {len(json_files)} archivos JSON de leyes.")
     
     for json_file in json_files:

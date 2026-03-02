@@ -13,6 +13,7 @@ import SearchScreen from '../screens/SearchScreen';
 import JurisprudenceScreen from '../screens/JurisprudenceScreen';
 import GacetasScreen from '../screens/GacetasScreen';
 import JurisprudenceDetailScreen from '../screens/JurisprudenceDetailScreen';
+import GacetaDetailScreen from '../screens/GacetaDetailScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -128,6 +129,13 @@ const AppNavigator = () => {
                     component={JurisprudenceDetailScreen}
                     options={({ route }) => ({
                         title: route.params?.title || 'Sentencia'
+                    })}
+                />
+                <Stack.Screen
+                    name="GacetaDetail"
+                    component={GacetaDetailScreen}
+                    options={({ route }) => ({
+                        title: `Gaceta N° ${route.params?.gaceta?.numero_display || ''}` || 'Gaceta Oficial'
                     })}
                 />
                 <Stack.Screen

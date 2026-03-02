@@ -1,318 +1,300 @@
+/**
+ * getGacetas.js - Scraper de Gacetas Oficiales de Venezuela (V3.1 - Confirmed Sumario Structure)
+ *
+ * La página sumario.asp?fecha=DD/MM/YYYY tiene esta estructura:
+ *   <p class="numero">N°:43314</p>
+ *   <p><a href="febrero/1022026/1022026-7630.pdf#page=1">Decreto Nro. ...</a></p>
+ *
+ * Estrategia: Visita cada día hábil → encuentra todos los p.numero → extrae el sumario de los <a> siguientes → guarda.
+ *
+ * Modos:
+ *   (sin args)        → últimas 2 semanas
+ *   --mode=smart      → últimas 4 semanas (cron diario)
+ *   --mode=full       → 2020 a hoy
+ *   --year=2025       → solo ese año
+ */
+
+require('dotenv').config();
 const axios = require('axios');
 const https = require('https');
 const cheerio = require('cheerio');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
 
-// Configuración Supabase
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const agent = new https.Agent({ rejectUnauthorized: false });
 const PushNotifier = require('./pushNotifier');
+
 let newGacetasCount = 0;
 
-// ─── SCRAPING DIRECTO DE GACETAS (FALLBACK PARA 2024-2026 / MODO SMART) ───────────────
-async function scrapeDirectoPorRango(startNum, endNum, esExtraordinaria, stopOnGap = false) {
-    const tipoLabel = esExtraordinaria ? 'Extraordinaria' : 'Ordinaria';
-    console.log(`🔎 Buscando gacetas ${tipoLabel} modernas: ${startNum} - ${endNum}`);
+// ─── UTILIDADES ───────────────────────────────────────────────────────────────
 
-    let consecutiveGaps = 0;
-    const MAX_GAPS = 10;
-
-    for (let num = startNum; num <= endNum; num++) {
-        if (stopOnGap && consecutiveGaps >= MAX_GAPS) {
-            console.log(`\n🛑 Se alcanzaron ${MAX_GAPS} huecos seguidos. Asumiendo que no hay más ${tipoLabel} por ahora.`);
-            break;
-        }
-
-        const displayNum = num.toString().replace(/(\d)(\d{3})$/, '$1.$2');
-        const id = esExtraordinaria ? `gaceta-E${num}` : `gaceta-${num}`;
-
-        // Verificamos si ya existe para ahorrar tiempo
-        const { data: exists } = await supabase.from('gacetas').select('id').eq('id', id).maybeSingle();
-        if (exists) {
-            process.stdout.write('s');
-            consecutiveGaps = 0;
-            continue;
-        }
-
-        const folders = esExtraordinaria ? ['gaceta', 'gaceta_ext'] : ['gaceta'];
-        const formats = [displayNum, num.toString()];
-
-        let foundInRange = false;
-
-        for (const folder of folders) {
-            for (const fmt of formats) {
-                const url = `http://historico.tsj.gob.ve/${folder}/blanco.asp?nrogaceta=${fmt}`;
-
-                try {
-                    const res = await fetchWithRetry(url, {
-                        httpsAgent: agent,
-                        timeout: 10000,
-                        headers: { 'User-Agent': 'Mozilla/5.0' }
-                    }, 1, 2500);
-
-                    if (res.data.includes('Caracter no V') || res.data.includes('Error')) continue;
-
-                    const $ = cheerio.load(res.data);
-                    let sumario = $('p.sumario').text().trim();
-                    let fechaTexto = $('p.fecha').text().trim();
-
-                    if (!sumario || sumario.toLowerCase() === 'sumario') {
-                        const allText = [];
-                        $('body p').each((i, el) => {
-                            const txt = $(el).text().trim();
-                            if (txt && txt.toLowerCase() !== 'sumario' && !txt.includes(`N°:${num}`)) {
-                                allText.push(txt);
-                            }
-                        });
-                        sumario = allText.join('\n').substring(0, 3000);
-                    }
-
-                    if (sumario && sumario.length > 10) {
-                        const cleanSumario = sumario.replace(/\s+/g, ' ');
-                        let year = new Date().getFullYear();
-                        const yearRegex = new RegExp(`20[2-3]\\d`);
-
-                        const textYearMatch = (fechaTexto + sumario).match(yearRegex);
-                        if (textYearMatch) {
-                            year = parseInt(textYearMatch[0]);
-                        } else {
-                            $('a[href*="20"]').each((i, el) => {
-                                const href = $(el).attr('href');
-                                const hrefMatch = href.match(yearRegex);
-                                if (hrefMatch) {
-                                    year = parseInt(hrefMatch[0]);
-                                    return false;
-                                }
-                            });
-                        }
-
-                        const row = {
-                            id: id,
-                            numero: num,
-                            numero_display: displayNum,
-                            fecha: fechaTexto || `Año ${year}`,
-                            ano: year,
-                            url_original: url,
-                            titulo: cleanSumario.substring(0, 120) + '...',
-                            subtitulo: `Gaceta ${tipoLabel} N° ${displayNum}`,
-                            sumario: cleanSumario,
-                            tipo: tipoLabel,
-                            timestamp: new Date(year, 0, 1).toISOString()
-                        };
-
-                        const { error } = await supabase.from('gacetas').upsert(row);
-                        if (!error) {
-                            console.log(`\n      ✨ ¡Guardada! ${tipoLabel} N° ${displayNum} (usando ${fmt}) en [${folder}]`);
-                            foundInRange = true;
-                            newGacetasCount++;
-                            break;
-                        }
-                    }
-                } catch (e) { /* URL no disponible, se salta */ }
-            }
-            if (foundInRange) break;
-        }
-
-        if (!foundInRange) {
-            process.stdout.write('.');
-            consecutiveGaps++;
-        } else {
-            consecutiveGaps = 0;
-        }
-    }
-}
-
-async function fetchWithRetry(url, options = {}, retries = 5, backoff = 5000) {
-    try {
-        if (!options.headers) options.headers = {};
-        options.headers['Accept-Encoding'] = 'identity';
-        const response = await axios.get(url, { ...options, responseType: 'arraybuffer' });
-        const decoder = new TextDecoder('windows-1252');
-        response.data = decoder.decode(response.data);
-        return response;
-    } catch (err) {
-        const retriableCodes = ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EHOSTUNREACH', 'ENOTFOUND'];
-        if (retries > 0 && (retriableCodes.includes(err.code) || err.response?.status >= 500)) {
-            await new Promise(r => setTimeout(r, backoff));
-            return fetchWithRetry(url, options, retries - 1, backoff * 2);
-        }
-        throw err;
-    }
-}
-
-function isGacetaExtraordinaria(num, displayNum, typeText, summary) {
-    const typeLower = (typeText || '').toLowerCase();
-    const summaryLower = (summary || '').toLowerCase();
-    if (typeLower === 'ordinaria' && num > 20000) return false;
-    if (typeLower.includes('extraordinaria')) return true;
-    if (summaryLower.includes('extraordinaria')) return true;
-    if (displayNum && displayNum.includes('.') && num < 40000) return true;
-    if (num > 0 && num < 20000 && !typeLower) return true;
-    return false;
-}
-
-// ─── LÓGICA PRINCIPAL (RESTABLECIDA) ──────────────────────────────────────────
-async function getGacetas() {
-    const args = process.argv.slice(2);
-    console.log(`\n📜 Iniciando Scraper de Gacetas Oficiales...`);
-
-    if (!supabaseUrl || !supabaseKey) {
-        console.error('❌ Faltan variables SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env');
-        return;
-    }
-
-    // NUEVO MODO SMART (Optimizado con ventana de retroceso)
-    if (args.includes('--mode=smart')) {
-        console.log(`   🧠 Modo: Smart (Incremental con Ventana de Retroceso)`);
-
-        // Ordinarias — huecos son raros, stopOnGap está bien
-        const { data: lastOrd } = await supabase.from('gacetas').select('numero').eq('tipo', 'Ordinaria').order('numero', { ascending: false }).limit(1).maybeSingle();
-        const startOrd = (lastOrd?.numero || 43000) - 10; // Retrocedemos 10 para capturar retrasos
-        console.log(`   🕒 Escaneando desde Ordinaria N° ${startOrd} (Ventana de retroceso)`);
-        await scrapeDirectoPorRango(startOrd, startOrd + 80, false, true);
-
-        // Extraordinarias — los números NO son secuenciales, pueden tener grandes huecos
-        // entre publicaciones normales (e.g. E-6970 → E-6990 con nada en el medio).
-        // Por eso: retrocedemos más (30) y desactivamos stopOnGap para no cortar el scan.
-        const { data: lastExt } = await supabase.from('gacetas').select('numero').eq('tipo', 'Extraordinaria').order('numero', { ascending: false }).limit(1).maybeSingle();
-        const startExt = (lastExt?.numero || 6800) - 30; // Retrocedemos 30 para capturar publicaciones tardías
-        console.log(`   🕒 Escaneando desde Extraordinaria N° ${startExt} (Ventana de retroceso ampliada)`);
-        await scrapeDirectoPorRango(startExt, startExt + 80, true, false); // stopOnGap=false para extraordinarias
-
-        // 🔔 NOTIFICACIÓN PUSH
-        if (newGacetasCount > 0) {
-            const title = newGacetasCount === 1 ? 'Nueva Gaceta Oficial' : 'Nuevas Gacetas Oficiales';
-            const body = newGacetasCount === 1
-                ? 'Se ha publicado una nueva gaceta oficial.'
-                : `Se han publicado ${newGacetasCount} nuevas gacetas oficiales.`;
-            await PushNotifier.notifyAll(title, body, {
-                type: 'gacetas',
-                url: 'tuley://gacetas'
-            });
-        }
-        return;
-    }
-
-    // LÓGICA ORIGINAL DE MODOS (MANTENIDA PARA FLEXIBILIDAD)
-    const yearArg = args.find(arg => arg.startsWith('--year='));
-    const TARGET_YEAR = yearArg ? parseInt(yearArg.split('=')[1]) : null;
-    const IS_BACKFILL = args.includes('--mode=backfill');
-    const IS_FULL = args.includes('--mode=full');
-    const IS_REPAIR = args.includes('--mode=repair');
-    const IS_EXTRA_ONLY = args.includes('--mode=extra');
-
-    const MAX_WRITES = (IS_BACKFILL || IS_FULL) ? 2000 : 500;
-
-    try {
-        if (!TARGET_YEAR || TARGET_YEAR >= 2024) {
-            // Sincronización directa para el hueco 2024-2026
-            await scrapeDirectoPorRango(42700, 43500, false);
-            await scrapeDirectoPorRango(6750, 7200, true);
-        }
-
-        const currentYear = new Date().getFullYear();
-        let targetYears = [];
-
-        if (TARGET_YEAR) {
-            targetYears = [TARGET_YEAR];
-        } else if (IS_BACKFILL) {
-            let lastHistoricalYearSynced = 1999;
-            const { data: syncData } = await supabase.from('sync_monitor').select('data').eq('id', 'gacetas_sync').maybeSingle();
-            if (syncData) lastHistoricalYearSynced = syncData.data?.lastHistoricalYearSynced || 1999;
-            const nextYear = lastHistoricalYearSynced + 1;
-            targetYears = [currentYear, currentYear - 1];
-            if (nextYear < currentYear - 1) targetYears.push(nextYear);
-        } else {
-            targetYears = [currentYear];
-        }
-
-        console.log("   🔍 Obteniendo lista del TSJ...");
-        const res = await fetchWithRetry(TSJ_BASE, {
-            params: { ...TSJ_PARAMS_BASE, 'server[method]': '/listGaceta' },
-            httpsAgent: agent,
-            headers: { 'User-Agent': 'Mozilla/5.0', 'X-Requested-With': 'XMLHttpRequest' },
-            timeout: 30000
-        });
-
-        if (res.data.coleccion && res.data.coleccion.GACETA) {
-            const list = res.data.coleccion.GACETA;
-
-            const matchedItems = list.filter(g => {
-                if (IS_FULL) return true;
-                const rawNum = g.sgacenumero || '';
-                const cleanNum = parseInt(rawNum.replace(/[.,\s]/g, ''));
-                const summary = g.sgacedescripcion || '';
-                const isExtra = isGacetaExtraordinaria(cleanNum, rawNum, g.sgacetipo || '', summary);
-                if (IS_EXTRA_ONLY) return isExtra;
-                const parts = g.sgacefecha?.split('/') || [];
-                const year = parseInt(parts[2]);
-                return targetYears.includes(year) || isExtra;
-            });
-
-            console.log(`   📋 Gacetas filtradas: ${matchedItems.length}`);
-
-            // Lógica de guardado en lote...
-            for (const g of matchedItems.slice(0, MAX_WRITES)) {
-                await saveGaceta(g);
-                await new Promise(r => setTimeout(r, 200));
-            }
-
-            if (IS_BACKFILL && !TARGET_YEAR) {
-                const { data: syncData } = await supabase.from('sync_monitor').select('data').eq('id', 'gacetas_sync').maybeSingle();
-                const cur = syncData?.data?.lastHistoricalYearSynced || 1999;
-                if (cur + 1 < currentYear - 1) {
-                    await supabase.from('sync_monitor').upsert({
-                        id: 'gacetas_sync',
-                        data: { lastHistoricalYearSynced: cur + 1, lastUpdate: new Date().toISOString() },
-                        updated_at: new Date().toISOString()
-                    });
-                }
-            }
-        }
-    } catch (e) {
-        console.error(`   ❌ Error fatal: ${e.message}`);
-    }
-}
-
-async function saveGaceta(g) {
-    if (!g.igaceid) return;
-    let rawNum = g.sgacenumero || '';
-    let num = parseInt(rawNum.replace(/[.,\s]/g, ''));
-    let cleanNumStr = rawNum.replace(/[.,\s]/g, '');
-    let summary = g.sgacedescripcion || g.sgacesumario || '';
-
-    const isExtra = isGacetaExtraordinaria(num, rawNum, g.sgacetipo || '', summary);
-    const type = isExtra ? 'Extraordinaria' : 'Ordinaria';
-    const finalId = isExtra ? `gaceta-E${num}` : `gaceta-${num}`;
-    const folder = isExtra ? 'gaceta_ext' : 'gaceta';
-    const urlGaceta = `http://historico.tsj.gob.ve/${folder}/blanco.asp?nrogaceta=${cleanNumStr}`;
-
-    const parts = (g.sgacefecha || '').split('/');
-    if (parts.length !== 3) return;
-    const dateObj = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-
-    const row = {
-        id: finalId, numero: num, numero_display: rawNum, fecha: g.sgacefecha,
-        ano: parseInt(parts[2]), mes: parseInt(parts[1]), dia: parseInt(parts[0]),
-        timestamp: dateObj.toISOString(), url_original: urlGaceta,
-        titulo: summary ? `${summary.substring(0, 80)}...` : `Gaceta Oficial N° ${rawNum}`,
-        subtitulo: `Gaceta ${type} N° ${rawNum}`,
-        sumario: summary, tipo: type
-    };
-
-    const { error } = await supabase.from('gacetas').upsert(row);
-    if (!error) process.stdout.write('+');
-}
-
-const TSJ_BASE = 'http://www.tsj.gob.ve/gaceta-oficial';
-const TSJ_PARAMS_BASE = {
-    p_p_id: 'receiverGacetaOficial_WAR_NoticiasTsjPorlet612',
-    p_p_lifecycle: '2', p_p_state: 'normal', p_p_mode: 'view',
-    p_p_cacheability: 'cacheLevelPage', 'server[endpoint]': '/services/WSGacetaOficial.HTTPEndpoint',
+const MESES_MAP = {
+    enero: '01', febrero: '02', marzo: '03', abril: '04', mayo: '05', junio: '06',
+    julio: '07', agosto: '08', septiembre: '09', octubre: '10', noviembre: '11', diciembre: '12'
 };
 
-getGacetas();
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/**
+ * Limpia y mejora el texto del sumario:
+ * - Elimina prefijos de navegación ("-- Ir al organismo...")
+ * - Extrae solo los textos de las leyes/decretos (links que no son el numero)
+ * - Devuelve { titulo, sumario }
+ */
+function buildTituloYSumario(rawLines, tipo) {
+    // Prefijos a ignorar (navegación de la página, no contenido real)
+    const IGNORAR = [
+        /^--\s*ir al organismo/i,
+        /^ir al organismo/i,
+        /^se?ñalado en el sumario/i,
+        /^sumario$/i,
+        /^\s*$/,
+        /^imprimir$/i,
+        /^leer gaceta/i
+    ];
+
+    // Limpiar cada línea
+    const lineas = rawLines
+        .map(l => l.replace(/--\s*/g, '').replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' '))
+        .filter(l => l.length > 4 && !IGNORAR.some(re => re.test(l)));
+
+    // Agrupar: ministerios (cabeceras en MAYÚSCULAS o con estructura de cabecera) vs contenido
+    const contenido = lineas.filter(l =>
+        !(/^MINISTERIO|^PRESIDENCIA|^ASAMBLEA|^CONSEJO|^BANCO|^INSTITUTO|^CORTE|^TRIBUNAL|^SUPERINTEN/i.test(l))
+    );
+
+    const items = contenido.length > 0 ? contenido : lineas;
+    const sumario = items.join('\n').substring(0, 4000);
+    const titulo = items.slice(0, 3).join(' • ').substring(0, 200);
+
+    return { titulo: titulo || `Gaceta ${tipo}`, sumario };
+}
+
+async function fetchHtml(url, timeout = 10000, retries = 2) {
+    try {
+        const res = await axios.get(url, {
+            httpsAgent: agent, timeout, responseType: 'arraybuffer',
+            headers: { 'User-Agent': 'Mozilla/5.0', 'Accept-Encoding': 'identity' }
+        });
+        return new TextDecoder('windows-1252').decode(res.data);
+    } catch (err) {
+        const shouldRetry = ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EHOSTUNREACH'].includes(err.code)
+            || (err.response?.status >= 500);
+        if (retries > 0 && shouldRetry) {
+            await sleep(3000);
+            return fetchHtml(url, timeout, retries - 1);
+        }
+        return null;
+    }
+}
+
+function fechaToTimestamp(fecha) {
+    if (!fecha?.includes('/')) return new Date(2024, 0, 1).toISOString();
+    const [d, m, a] = fecha.split('/');
+    const dt = new Date(`${a}-${m.padStart(2, '0')}-${d.padStart(2, '0')}T12:00:00Z`);
+    return isNaN(dt) ? new Date(2024, 0, 1).toISOString() : dt.toISOString();
+}
+
+/**
+ * Extrae fecha del path del PDF relativo. Ej: "febrero/1022026/1022026-7630.pdf"
+ * El número de carpeta es: [dia][mes_en_numero][año] → 1022026 = 10/02/2026
+ */
+function extractFechaFromPdfPath(pdfHref) {
+    const m = pdfHref.match(/\/(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\/([0-9]{7,9})\//i);
+    if (!m) return null;
+    const mes = MESES_MAP[m[1].toLowerCase()] || '01';
+    const code = m[2];
+    const year = code.slice(-4);
+    const day = code.slice(0, -4).padStart(2, '0');
+    return `${day}/${mes}/${year}`;
+}
+
+// ─── PARSER DE SUMARIO POR FECHA ─────────────────────────────────────────────
+
+/**
+ * Visita sumario.asp y extrae los datos de TODAS las gacetas de ese día.
+ * Retorna array de objetos: { num, rawNum, tipo, fecha, sumario, pdfLinks }
+ */
+function parseSumarioPage(html, tipo, fechaFallback) {
+    const $ = cheerio.load(html);
+    const gacetas = [];
+
+    // Cada gaceta está señalada por un p.numero
+    $('p.numero').each((_, numEl) => {
+        const numeroText = $(numEl).text().trim();
+        const numStr = numeroText.replace(/^N°:\s*/i, '').replace(/[.\s]/g, '');
+        const num = parseInt(numStr);
+        if (!num || num <= 0) return;
+        const rawNum = numStr;
+
+        const pdfLinks = [];
+        const linkTexts = []; // Solo texto de los <a>, que contiene el nombre real de la ley/decreto
+        let el = $(numEl).next();
+        while (el.length && !el.is('p.numero') && !el.is('hr')) {
+            // Extraer solo el texto de los links a PDF (eso es el nombre del decreto/ley)
+            el.find('a[href*=".pdf"]').each((_, a) => {
+                const href = $(a).attr('href') || '';
+                const text = $(a).text().trim();
+                if (href) pdfLinks.push(href);
+                // El texto del link es el nombre real del decreto/ley
+                if (text && text.length > 5 && !/^--/.test(text) && !/ir al organismo/i.test(text)) {
+                    linkTexts.push(text);
+                }
+            });
+            el = el.next();
+        }
+
+        // Extraer fecha del primer link PDF
+        let fecha = fechaFallback;
+        for (const href of pdfLinks) {
+            const f = extractFechaFromPdfPath(href);
+            if (f) { fecha = f; break; }
+        }
+
+        const { titulo, sumario } = buildTituloYSumario(linkTexts, tipo);
+        gacetas.push({ num, rawNum, tipo, fecha, titulo, sumario });
+    });
+
+    return gacetas;
+}
+
+// ─── GUARDAR EN SUPABASE ──────────────────────────────────────────────────────
+
+async function saveGaceta(info) {
+    const { num, rawNum, tipo, fecha, titulo: tituloRaw, sumario } = info;
+    const id = tipo === 'Extraordinaria' ? `gaceta-E${num}` : `gaceta-${num}`;
+    const displayNum = rawNum.replace(/(\d)(\d{3})$/, '$1.$2');
+
+    const { data: exists } = await supabase.from('gacetas').select('id, titulo').eq('id', id).maybeSingle();
+    // Saltar solo si existe Y tiene un título limpio
+    const hasBadTitle = exists?.titulo && (
+        exists.titulo.startsWith('--') ||
+        /ir al organismo/i.test(exists.titulo) ||
+        exists.titulo.startsWith('señalado')
+    );
+    if (exists && !hasBadTitle) { process.stdout.write('s'); return false; }
+
+    const year = parseInt(fecha.split('/')[2]) || new Date().getFullYear();
+    const timestamp = fechaToTimestamp(fecha);
+    const titulo = tituloRaw || (sumario ? sumario.substring(0, 120) : `Gaceta ${tipo} N° ${displayNum}`);
+    const folder = tipo === 'Extraordinaria' ? 'gaceta_ext' : 'gaceta';
+    const url_original = `http://historico.tsj.gob.ve/${folder}/blanco.asp?nrogaceta=${rawNum}`;
+
+    const { error } = await supabase.from('gacetas').upsert({
+        id, numero: num, numero_display: displayNum,
+        fecha, ano: year, timestamp, url_original,
+        titulo, subtitulo: `Gaceta ${tipo} N° ${displayNum}`,
+        sumario: sumario || titulo, tipo
+    });
+
+    if (!error) {
+        process.stdout.write('+');
+        newGacetasCount++;
+        return true;
+    } else {
+        process.stdout.write('e');
+        return false;
+    }
+}
+
+// ─── SCAN POR FECHA ───────────────────────────────────────────────────────────
+
+async function scanFechas(fechas) {
+    let found = 0;
+    console.log(`\n📅 Escaneando ${fechas.length} días...`);
+
+    for (const fecha of fechas) {
+        const urls = [
+            { url: `http://historico.tsj.gob.ve/gaceta/sumario.asp?fecha=${fecha}`, tipo: 'Ordinaria' },
+            { url: `http://historico.tsj.gob.ve/gaceta_ext/sumario.asp?fecha=${fecha}`, tipo: 'Extraordinaria' }
+        ];
+
+        for (const { url, tipo } of urls) {
+            const html = await fetchHtml(url, 8000);
+            if (!html || html.includes('no se ha podido') || html.includes('sin resultados')) continue;
+
+            const gacetas = parseSumarioPage(html, tipo, fecha);
+            if (gacetas.length > 0) {
+                process.stdout.write(`\n  📰 ${fecha} [${tipo[0]}${gacetas.length}] `);
+                for (const g of gacetas) {
+                    await saveGaceta(g);
+                    await sleep(400);
+                }
+                found += gacetas.length;
+            }
+        }
+
+        await sleep(200);
+    }
+
+    console.log(`\n\n✅ Dias escaneados: ${fechas.length} | Gacetas encontradas: ${found} | Nuevas guardadas: ${newGacetasCount}`);
+}
+
+// ─── GENERACIÓN DE FECHAS ─────────────────────────────────────────────────────
+
+function generarFechas(startYear, endYear) {
+    const fechas = [];
+    const hoy = new Date();
+    const inicio = new Date(startYear, 0, 1);
+    const fin = new Date(Math.min(endYear, hoy.getFullYear()), hoy.getMonth(), hoy.getDate());
+    for (let d = new Date(inicio); d <= fin; d.setDate(d.getDate() + 1)) {
+        const dow = d.getDay();
+        if (dow === 0 || dow === 6) continue;
+        fechas.push(`${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`);
+    }
+    return fechas;
+}
+
+function generarFechasRecientes(semanas = 4) {
+    const hoy = new Date();
+    const inicio = new Date(hoy);
+    inicio.setDate(inicio.getDate() - semanas * 7);
+    return generarFechas(inicio.getFullYear(), hoy.getFullYear())
+        .filter(f => {
+            const [d, m, a] = f.split('/');
+            return new Date(`${a}-${m}-${d}`) >= inicio;
+        });
+}
+
+// ─── MAIN ────────────────────────────────────────────────────────────────────
+
+async function main() {
+    const args = process.argv.slice(2);
+    console.log('\n📜 Scraper Gacetas V3.1 (Modo Sumario por Fecha)');
+    console.log('=================================================');
+
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('❌ Faltan variables de entorno.');
+        process.exit(1);
+    }
+
+    let fechas;
+
+    if (args.includes('--mode=smart')) {
+        console.log('🧠 Modo: Smart (últimas 4 semanas)\n');
+        fechas = generarFechasRecientes(4);
+    } else if (args.includes('--mode=full')) {
+        console.log('🚀 Modo: Full (2020 → hoy)\n');
+        fechas = generarFechas(2020, new Date().getFullYear());
+    } else {
+        const yearArg = args.find(a => a.startsWith('--year='));
+        if (yearArg) {
+            const y = parseInt(yearArg.split('=')[1]);
+            console.log(`📅 Modo: Año ${y}\n`);
+            fechas = generarFechas(y, y);
+        } else {
+            console.log('📅 Modo: Últimas 2 semanas\n');
+            fechas = generarFechasRecientes(2);
+        }
+    }
+
+    await scanFechas(fechas);
+
+    if (newGacetasCount > 0 && args.includes('--mode=smart')) {
+        await PushNotifier.notifyAll('📰 Nuevas Gacetas', `${newGacetasCount} nuevas gacetas publicadas.`, { type: 'gacetas', url: 'tuley://gacetas' });
+    }
+
+    console.log(`\n🏁 Total gacetas nuevas guardadas: ${newGacetasCount}`);
+}
+
+main().catch(err => { console.error('\n❌ Error fatal:', err.message); process.exit(1); });

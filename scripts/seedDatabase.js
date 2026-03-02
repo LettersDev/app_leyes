@@ -148,7 +148,7 @@ async function run() {
         }
     } else {
         files = fs.readdirSync(dataDir)
-            .filter(f => f.endsWith('_full.json'))
+            .filter(f => f.endsWith('.json'))
             .map(f => path.join(dataDir, f));
     }
 
