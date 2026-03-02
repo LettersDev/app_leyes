@@ -1,240 +1,189 @@
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
-import {
-    Text, Card, Button, Divider, ActivityIndicator, IconButton, Chip
-} from 'react-native-paper';
+import { Text, Card, Button, Divider, IconButton, Chip, ActivityIndicator } from 'react-native-paper';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { COLORS } from '../utils/constants';
 
 const TSJ_BASE = 'http://historico.tsj.gob.ve';
 
-/**
- * Convierte cualquier URL de PDF en un visor embebido (Google Docs Viewer).
- * Esto permite ver el PDF dentro del WebView sin que Android lo intente abrir externamente.
- */
-const toPdfViewerUrl = (pdfUrl) => {
-    const abs = pdfUrl.startsWith('http') ? pdfUrl : `${TSJ_BASE}/${pdfUrl.replace(/^\//, '')}`;
-    return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(abs)}`;
-};
+// Limpia los estilos del TSJ igual que JurisprudenceDetailScreen
+const INJECTED_CSS = `
+    (function() {
+        var style = document.createElement('style');
+        style.innerHTML = ' \
+            #banner, #footer, #navigation, .portal-add-content, \
+            .portlet-topper, .lfr-message, header, footer, nav, aside { display: none !important; } \
+            body, .portlet-content, .portlet-boundary { background: white !important; padding: 10px !important; } \
+            * { font-family: sans-serif !important; } \
+            a[href*=".pdf"], a[href*=".PDF"] { \
+                display: block !important; padding: 14px !important; margin: 10px 0 !important; \
+                background: #eff6ff !important; border-left: 4px solid #3b82f6 !important; \
+                border-radius: 8px !important; color: #1d4ed8 !important; font-weight: bold !important; \
+                text-decoration: none !important; \
+            } \
+        ';
+        document.head.appendChild(style);
+
+        // Forzar que todos los links se abran en la misma ventana
+        document.querySelectorAll('a').forEach(function(a) { a.target = '_self'; });
+    })();
+    true;
+`;
 
 const GacetaDetailScreen = ({ route }) => {
     const { gaceta } = route.params;
     const webViewRef = useRef(null);
 
-    // URL base de la gaceta (puede ser HTML o PDF directo)
     const folder = gaceta.tipo?.includes('Extra') ? 'gaceta_ext' : 'gaceta';
     const rawNum = (gaceta.numero_display || gaceta.numero?.toString() || '').replace(/\./g, '');
     const baseUrl = gaceta.url_original || `${TSJ_BASE}/${folder}/blanco.asp?nrogaceta=${rawNum}`;
-
-    const isUrlValid = baseUrl && !baseUrl.endsWith('/null') && !baseUrl.includes('/null/');
     const isExtra = gaceta.tipo?.includes('Extra');
-    const isPdfDirect = /\.pdf$/i.test(baseUrl);
 
-    // Si la URL ya es un PDF → cargar directamente en el visor. Si es la página HTML → cargar tal cual.
-    const initialUrl = isPdfDirect ? toPdfViewerUrl(baseUrl) : baseUrl;
-
-    // Estados
     const [mode, setMode] = useState('detail'); // 'detail' | 'webview'
-    const [webLoading, setWebLoading] = useState(true);
-    const [currentPdfUrl, setCurrentPdfUrl] = useState(null); // URL del PDF que está viendo
-    const [webviewSource, setWebviewSource] = useState({ uri: initialUrl });
+    const [downloading, setDownloading] = useState(false);
 
-    const handleVerGaceta = () => {
-        if (!isUrlValid) {
-            Alert.alert(
-                'Documento No Disponible',
-                'El documento de esta Gaceta no está disponible para visualización directa.',
-                [{ text: 'OK' }]
-            );
-            return;
+    /**
+     * Descarga un PDF y lo abre con el visor nativo del dispositivo.
+     * Esto muestra el PDF dentro de la experiencia del sistema (sin "Abrir con").
+     */
+    const handlePdf = async (pdfUrl) => {
+        if (downloading) return;
+        const abs = pdfUrl.startsWith('http') ? pdfUrl : `${TSJ_BASE}/${pdfUrl.replace(/^\//, '')}`;
+        try {
+            setDownloading(true);
+            const filename = abs.split('/').pop().split('?')[0] || 'gaceta.pdf';
+            const localUri = FileSystem.cacheDirectory + filename;
+            const fileInfo = await FileSystem.getInfoAsync(localUri);
+            const uri = fileInfo.exists ? localUri : (await FileSystem.downloadAsync(abs, localUri)).uri;
+            await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Leer Gaceta PDF' });
+        } catch {
+            Alert.alert('Error', 'No se pudo cargar el documento. Comprueba tu conexión.');
+        } finally {
+            setDownloading(false);
         }
-        setWebviewSource({ uri: initialUrl });
-        setCurrentPdfUrl(isPdfDirect ? baseUrl : null);
-        setMode('webview');
     };
 
     /**
-     * Intercepta la navegación del WebView.
-     * Si el usuario hace clic en un enlace .pdf dentro del WebView del TSJ, lo redirigimos
-     * a Google Docs Viewer en lugar de dejar que Android lo maneje con el diálogo "Abrir con".
+     * Intercepta enlaces en el WebView:
+     * - Si es un PDF → lo descarga y lo abre nativamente (NO sale del app)
+     * - Si es externo → lo ignora
+     * - Si es TSJ → lo permite
      */
-    const handleShouldStartLoad = (request) => {
+    const handleNavigation = (request) => {
         const url = request.url;
+        if (url === 'about:blank') return true;
 
-        // Si el WebView intenta navegar a un PDF → interceptar y cargar el visor
-        if (/\.pdf($|\?)/i.test(url) && !url.includes('docs.google.com')) {
-            const viewerUrl = toPdfViewerUrl(url);
-            setCurrentPdfUrl(url);               // guardamos la URL real del PDF para descarga
-            setWebviewSource({ uri: viewerUrl }); // redirigimos al visor
-            return false; // cancelamos la navegación original
+        if (/\.pdf($|\?)/i.test(url)) {
+            handlePdf(url);
+            return false; // Cancela la navegación del WebView
         }
 
-        // Bloqueamos cualquier enlace que salga del dominio TSJ o Google para evitar salir de la app
-        if (url.startsWith('http') && !url.includes('tsj.gob.ve') && !url.includes('docs.google.com')) {
-            // Si es un link externo irrelevante, lo ignoramos
+        // Bloquear links que no sean del TSJ
+        if (url.startsWith('http') && !url.includes('tsj.gob.ve')) {
             return false;
         }
 
         return true;
     };
 
-    // Script inyectado para mejorar la apariencia de la página TSJ y resaltar los links de PDF
-    const injectedJS = `
-        (function() {
-            var style = document.createElement('style');
-            style.innerHTML = \`
-                body { font-family: -apple-system, sans-serif !important; font-size: 15px !important;
-                        line-height: 1.7 !important; background: #fff !important; padding: 16px !important; }
-                img[src*="logo"], img[src*="banner"], [id*="header"], [id*="footer"],
-                [class*="header"], [class*="footer"] { display: none !important; }
-                a[href*=".pdf"], a[href*=".PDF"] {
-                    display: block !important; padding: 14px 16px !important; margin: 10px 0 !important;
-                    background: #eff6ff !important; border-left: 4px solid #3b82f6 !important;
-                    border-radius: 8px !important; font-size: 14px !important;
-                    text-decoration: none !important; color: #1d4ed8 !important; font-weight: 600 !important;
-                }
-                a[href*=".pdf"]::before, a[href*=".PDF"]::before {
-                    content: "📄 ";
-                }
-            \`;
-            document.head.appendChild(style);
-        })();
-        true;
-    `;
-
-    // ─── Vista WebView ────────────────────────────────────────────────────────
+    // ─── Modo WebView (exactamente como Jurisprudencia) ───────────────────────
     if (mode === 'webview') {
         return (
             <View style={{ flex: 1, backgroundColor: '#fff' }}>
                 {/* Barra superior */}
-                <View style={styles.webviewBar}>
-                    <IconButton
-                        icon="arrow-left"
-                        iconColor={COLORS.primary}
-                        size={22}
-                        onPress={() => {
-                            // Si estamos viendo un PDF, volver a la página de la gaceta
-                            if (currentPdfUrl && !isPdfDirect) {
-                                setCurrentPdfUrl(null);
-                                setWebviewSource({ uri: initialUrl });
-                            } else {
-                                setMode('detail');
-                            }
-                        }}
-                    />
-                    <Text style={styles.webviewBarTitle} numberOfLines={1}>
-                        {currentPdfUrl ? '📄 PDF de la Gaceta' : `Gaceta N° ${gaceta.numero_display || gaceta.numero}`}
+                <View style={styles.bar}>
+                    <IconButton icon="arrow-left" iconColor={COLORS.primary} size={22} onPress={() => setMode('detail')} />
+                    <Text style={styles.barTitle} numberOfLines={1}>
+                        Gaceta N° {gaceta.numero_display || gaceta.numero}
                     </Text>
-                    {currentPdfUrl && (
-                        <IconButton
-                            icon="download"
-                            iconColor={COLORS.primary}
-                            size={22}
-                            onPress={() => {
-                                // Mostrar opciones de descarga
-                                Alert.alert(
-                                    'Descargar PDF',
-                                    'El PDF se abrirá para que puedas descargarlo o compartirlo.',
-                                    [
-                                        { text: 'Cancelar', style: 'cancel' },
-                                        {
-                                            text: 'Descargar',
-                                            onPress: () => {
-                                                // Intentamos abrir la URL directa del PDF para descarga
-                                                import('react-native').then(({ Linking }) => {
-                                                    Linking.openURL(currentPdfUrl);
-                                                });
-                                            }
-                                        }
-                                    ]
-                                );
-                            }}
-                        />
-                    )}
+                    <IconButton icon="open-in-new" iconColor={COLORS.primary} size={22} onPress={() => Linking.openURL(baseUrl)} />
                 </View>
 
-                <WebView
-                    ref={webViewRef}
-                    source={webviewSource}
-                    injectedJavaScript={injectedJS}
-                    onLoadStart={() => setWebLoading(true)}
-                    onLoadEnd={() => setWebLoading(false)}
-                    style={{ flex: 1 }}
-                    javaScriptEnabled
-                    domStorageEnabled
-                    mixedContentMode="always"
-                    startInLoadingState={false}
-                    onShouldStartLoadWithRequest={handleShouldStartLoad}
-                />
-                {webLoading && (
-                    <View style={styles.loadingOverlay}>
-                        <ActivityIndicator color={COLORS.primary} size="large" />
-                        <Text style={{ color: COLORS.textSecondary, marginTop: 10 }}>
-                            {currentPdfUrl ? 'Cargando PDF...' : 'Cargando Gaceta...'}
-                        </Text>
+                {/* Indicador cuando descarga PDF */}
+                {downloading && (
+                    <View style={styles.downloadBanner}>
+                        <ActivityIndicator color="#fff" size="small" />
+                        <Text style={{ color: '#fff', marginLeft: 8, fontWeight: '600' }}>Cargando PDF...</Text>
                     </View>
                 )}
+
+                {/* WebView idéntico a JurisprudenceDetailScreen */}
+                <WebView
+                    ref={webViewRef}
+                    source={{ uri: baseUrl }}
+                    injectedJavaScript={INJECTED_CSS}
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
+                    startInLoadingState={true}
+                    mixedContentMode="always"
+                    onShouldStartLoadWithRequest={handleNavigation}
+                    style={{ flex: 1 }}
+                    renderLoading={() => (
+                        <View style={styles.loadingOverlay}>
+                            <ActivityIndicator color={COLORS.primary} size="large" />
+                            <Text style={{ marginTop: 10, color: '#666' }}>Cargando Gaceta...</Text>
+                        </View>
+                    )}
+                />
             </View>
         );
     }
 
-    // ─── Vista Detalle ────────────────────────────────────────────────────────
-    // El sumario usa '-- ' (dos guiones ASCII) como separador entre decretos
+    // ─── Vista Detalle con Sumario ────────────────────────────────────────────
     const rawSumario = gaceta.sumario || '';
-    const sumarioLines = rawSumario
-        .split(/\s*--\s+/)
-        .map(l => l.trim())
-        .filter(l => l.length > 5);
+
+    // Nivel 1: split por salto de línea (datos del scraper nuevo)
+    let sumarioLines = rawSumario.split('\n').map(l => l.trim()).filter(l => l.length > 5);
+
+    // Nivel 2: split por doble guión (datos viejos con '-- ')
+    if (sumarioLines.length <= 1) {
+        sumarioLines = rawSumario.split(/\s*--\s+/).map(l => l.trim()).filter(l => l.length > 8);
+    }
+
+    // Nivel 3: split por inicio de nombre institucional (datos sin separador)
+    if (sumarioLines.length <= 1) {
+        sumarioLines = rawSumario
+            .split(/(?=\b(?:Ministerio|Resolución|Decreto|Providencia|Presidencia|Consejo|Asamblea|Fiscalía|Tribunal|Banco Central|Instituto)\b)/)
+            .map(l => l.trim())
+            .filter(l => l.length > 15);
+    }
+
+    // Post-procesamiento: fusionar líneas que son continuación de la anterior.
+    // Si el ítem previo NO termina con punto, la siguiente línea es su continuación.
+    const merged = [];
+    for (const line of sumarioLines) {
+        if (merged.length > 0 && !/[.!?]$/.test(merged[merged.length - 1])) {
+            merged[merged.length - 1] += ' ' + line;
+        } else {
+            merged.push(line);
+        }
+    }
+    const finalLines = merged;
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-
-            {/* Tarjeta principal */}
+            {/* Tarjeta de info */}
             <Card style={styles.card}>
                 <Card.Content>
                     <View style={styles.cardHeader}>
-                        <Text style={styles.numLabel}>
-                            Gaceta N° {gaceta.numero_display || gaceta.numero}
-                        </Text>
-                        <Chip
-                            compact
-                            textStyle={{ fontSize: 10 }}
-                            style={isExtra ? styles.chipExtra : styles.chipOrd}
-                        >
+                        <Text style={styles.numLabel}>Gaceta N° {gaceta.numero_display || gaceta.numero}</Text>
+                        <Chip style={isExtra ? styles.chipExtra : styles.chipOrd} textStyle={{ fontSize: 11 }}>
                             {gaceta.tipo || 'Ordinaria'}
                         </Chip>
                     </View>
-
                     <View style={styles.metaRow}>
                         <Text style={styles.metaLabel}>Fecha:</Text>
                         <Text style={styles.metaValue}>{gaceta.fecha || '--'}</Text>
                     </View>
-
                     <Text style={styles.titulo}>{gaceta.titulo}</Text>
                 </Card.Content>
-
                 <Card.Actions style={styles.cardActions}>
-                    <View style={styles.leftActions}>
-                        <IconButton
-                            icon="download-outline"
-                            iconColor={COLORS.primary}
-                            size={24}
-                            onPress={handleVerGaceta}
-                            tooltip="Descargar"
-                        />
-                        <IconButton
-                            icon="open-in-new"
-                            iconColor={COLORS.primary}
-                            size={24}
-                            onPress={handleVerGaceta}
-                            tooltip="Abrir en app"
-                        />
-                    </View>
                     <Button
                         mode="contained"
-                        onPress={handleVerGaceta}
-                        buttonColor={COLORS.secondary || COLORS.primary}
-                        labelStyle={{ fontSize: 13 }}
+                        onPress={() => setMode('webview')}
+                        buttonColor={COLORS.primary}
                         icon="book-open-variant"
                     >
                         Ver Gaceta
@@ -243,19 +192,17 @@ const GacetaDetailScreen = ({ route }) => {
             </Card>
 
             {/* Sumario */}
-            {sumarioLines.length > 0 && (
+            {finalLines.length > 0 && (
                 <>
                     <Divider style={{ marginVertical: 8 }} />
                     <Text style={styles.sectionLabel}>SUMARIO</Text>
-                    {sumarioLines.map((line, i) => (
+                    {finalLines.map((line, i) => (
                         <View key={i}>
                             <View style={styles.sumarioItem}>
                                 <Text style={styles.bullet}>•</Text>
                                 <Text style={styles.sumarioLine}>{line}</Text>
                             </View>
-                            {i < sumarioLines.length - 1 && (
-                                <Divider style={styles.sumarioDivider} />
-                            )}
+                            {i < finalLines.length - 1 && <Divider style={styles.sumarioDivider} />}
                         </View>
                     ))}
                 </>
@@ -268,47 +215,38 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f5f5f5' },
     content: { padding: 12, paddingBottom: 40 },
 
-    // WebView bar
-    webviewBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
-        elevation: 2,
-        minHeight: 52,
+    bar: {
+        flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+        borderBottomWidth: 1, borderBottomColor: '#e5e7eb', height: 56,
     },
-    webviewBarTitle: {
-        flex: 1,
-        fontSize: 13,
-        fontWeight: '600',
-        color: COLORS.text,
-        textAlign: 'center',
-    },
-    loadingOverlay: {
-        position: 'absolute', top: 52, left: 0, right: 0, bottom: 0,
-        justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff'
+    barTitle: { flex: 1, fontSize: 14, fontWeight: 'bold', color: '#1e293b', textAlign: 'center' },
+
+    downloadBanner: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: COLORS.primary, padding: 8,
     },
 
-    // Card
+    loadingOverlay: {
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', zIndex: 10,
+    },
+
     card: { marginBottom: 12, elevation: 2, backgroundColor: '#fff' },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-    numLabel: { fontSize: 16, fontWeight: 'bold', color: COLORS.primary },
+    numLabel: { fontSize: 17, fontWeight: 'bold', color: COLORS.primary },
     chipOrd: { backgroundColor: '#DBEAFE' },
     chipExtra: { backgroundColor: '#FEE2E2' },
     metaRow: { flexDirection: 'row', marginBottom: 4 },
     metaLabel: { fontWeight: 'bold', width: 55, color: '#777', fontSize: 13 },
     metaValue: { flex: 1, color: '#333', fontSize: 13 },
     titulo: { marginTop: 8, fontSize: 14, color: '#444', lineHeight: 20 },
-    cardActions: { justifyContent: 'space-between', paddingHorizontal: 8 },
-    leftActions: { flexDirection: 'row' },
+    cardActions: { justifyContent: 'flex-end', paddingHorizontal: 8, paddingBottom: 8 },
 
-    // Sumario
-    sectionLabel: { fontSize: 11, fontWeight: 'bold', color: COLORS.textSecondary, letterSpacing: 1, marginBottom: 10, paddingHorizontal: 4 },
+    sectionLabel: { fontSize: 11, fontWeight: 'bold', color: '#888', letterSpacing: 1, marginBottom: 10, paddingHorizontal: 4 },
     sumarioItem: { flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 4 },
     sumarioDivider: { marginHorizontal: 4, backgroundColor: '#e5e7eb' },
     bullet: { color: COLORS.primary, marginRight: 8, fontWeight: 'bold', marginTop: 2 },
-    sumarioLine: { flex: 1, fontSize: 14, color: COLORS.text, lineHeight: 22 },
+    sumarioLine: { flex: 1, fontSize: 14, color: COLORS.text || '#333', lineHeight: 22 },
 });
 
 export default GacetaDetailScreen;
