@@ -260,7 +260,7 @@ function generarFechasRecientes(semanas = 4) {
 
 async function main() {
     const args = process.argv.slice(2);
-    console.log('\n📜 Scraper Gacetas V3.1 (Modo Sumario por Fecha)');
+    console.log('\n📜 Scraper Gacetas V3.2 (Modo Diario por Fecha)');
     console.log('=================================================');
 
     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -269,29 +269,63 @@ async function main() {
     }
 
     let fechas;
+    let shouldNotify = false;
 
-    if (args.includes('--mode=smart')) {
-        console.log('🧠 Modo: Smart (últimas 4 semanas)\n');
+    if (args.includes('--mode=daily')) {
+        // ✅ MODO CRON DIARIO: solo hoy y ayer, igual que jurisprudencia
+        const hoy = new Date();
+        const ayer = new Date();
+        ayer.setDate(hoy.getDate() - 1);
+
+        const fmt = (d) =>
+            `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+
+        fechas = [fmt(ayer), fmt(hoy)];
+        console.log(`📅 Modo: Daily (${fechas.join(' y ')})\n`);
+        shouldNotify = true; // Solo notificamos en modo diario
+
+    } else if (args.includes('--mode=smart')) {
+        // 🧠 MODO RECUPERACIÓN: últimas 4 semanas, solo para uso manual
+        console.log('🧠 Modo: Smart (últimas 4 semanas) — SIN notificación push\n');
         fechas = generarFechasRecientes(4);
+        shouldNotify = false;
+
     } else if (args.includes('--mode=full')) {
-        console.log('🚀 Modo: Full (2020 → hoy)\n');
+        console.log('🚀 Modo: Full (2020 → hoy) — SIN notificación push\n');
         fechas = generarFechas(2020, new Date().getFullYear());
+        shouldNotify = false;
+
     } else {
         const yearArg = args.find(a => a.startsWith('--year='));
         if (yearArg) {
             const y = parseInt(yearArg.split('=')[1]);
-            console.log(`📅 Modo: Año ${y}\n`);
+            console.log(`📅 Modo: Año ${y} — SIN notificación push\n`);
             fechas = generarFechas(y, y);
+            shouldNotify = false;
         } else {
-            console.log('📅 Modo: Últimas 2 semanas\n');
-            fechas = generarFechasRecientes(2);
+            // Sin argumento → modo daily por defecto (igual que jurisprudencia)
+            const hoy = new Date();
+            const ayer = new Date();
+            ayer.setDate(hoy.getDate() - 1);
+            const fmt = (d) =>
+                `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+            fechas = [fmt(ayer), fmt(hoy)];
+            console.log(`📅 Modo: Daily por defecto (${fechas.join(' y ')})\n`);
+            shouldNotify = true;
         }
     }
 
     await scanFechas(fechas);
 
-    if (newGacetasCount > 0 && args.includes('--mode=smart')) {
-        await PushNotifier.notifyAll('📰 Nuevas Gacetas', `${newGacetasCount} nuevas gacetas publicadas.`, { type: 'gacetas', url: 'tuley://gacetas' });
+    // 🔔 Solo notificar si el modo lo permite Y hay gacetas verdaderamente nuevas
+    if (shouldNotify && newGacetasCount > 0) {
+        const title = newGacetasCount === 1 ? '📰 Nueva Gaceta Oficial' : '📰 Nuevas Gacetas Oficiales';
+        const body = newGacetasCount === 1
+            ? 'Se publicó 1 nueva Gaceta Oficial.'
+            : `Se publicaron ${newGacetasCount} nuevas Gacetas Oficiales.`;
+        await PushNotifier.notifyAll(title, body, { type: 'gacetas', url: 'tuley://gacetas' });
+    } else if (shouldNotify && newGacetasCount === 0) {
+        console.log('\n📭 Sin gacetas nuevas hoy. No se envía notificación.');
     }
 
     console.log(`\n🏁 Total gacetas nuevas guardadas: ${newGacetasCount}`);

@@ -5,10 +5,10 @@ on:
     - cron: '0 21 * * *' # 5:00 PM Venezuela (VET)
   workflow_dispatch:
     inputs:
-      year:
-        description: 'Year to sync (Optional, e.g. 2000)'
+      mode:
+        description: 'Sync mode: daily (default), smart (4 weeks), full (2020→hoy), or a year like 2024'
         required: false
-        default: ''
+        default: 'daily'
 
 jobs:
   sync_gacetas:
@@ -29,10 +29,11 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ -n "${{ github.event.inputs.year }}" ]; then
-            echo "Running for year: ${{ github.event.inputs.year }}"
-            node scripts/getGacetas.js --year=${{ github.event.inputs.year }}
+          MODE="${{ github.event.inputs.mode || 'daily' }}"
+          if echo "$MODE" | grep -qE '^[0-9]{4}$'; then
+            echo "Running for year: $MODE"
+            node scripts/getGacetas.js --year=$MODE
           else
-            echo "Running smart incremental sync..."
-            node scripts/getGacetas.js --mode=smart
+            echo "Running mode: $MODE"
+            node scripts/getGacetas.js --mode=$MODE
           fi

@@ -21,7 +21,8 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.lettersdev.tuley",
-      "versionCode": 9
+      "versionCode": 10,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -39,7 +40,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#123456"
+          "color": "#1A3A5C"
         }
       ]
     ],

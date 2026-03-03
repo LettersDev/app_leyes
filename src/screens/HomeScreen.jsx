@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     disclaimerFooter: {
         paddingHorizontal: 24,
         paddingVertical: 15,
-        marginBottom: 25,
+        marginBottom: 80,
         alignItems: 'center',
     },
     disclaimerText: {
