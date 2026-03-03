@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.lettersdev.tuley",
-      "versionCode": 8
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,13 +34,16 @@
             "usesCleartextTraffic": true
           }
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#123456"
+        }
       ]
     ],
     "scheme": "tuley",
-    "notification": {
-      "icon": "./assets/notification-icon.png",
-      "color": "#123456"
-    },
     "extra": {
       "eas": {
         "projectId": "f30a380e-3412-4c8b-a0e2-aeccec2c6b1d"
