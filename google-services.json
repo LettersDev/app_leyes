@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "699245710995",
+    "project_id": "tuley-push",
+    "storage_bucket": "tuley-push.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699245710995:android:3965da51925c63d51d0766",
+        "android_client_info": {
+          "package_name": "com.lettersdev.tuley"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGA81GnYFs96i6ZDxtvnrSdxWmWDPfob4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

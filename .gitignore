@@ -41,7 +41,6 @@ yarn-error.*
 /android
 
 # Security & Firebase (CRITICAL)
-google-services.json
 scripts/serviceAccountKey.json
 serviceAccountKey.json
 *.json.bak
