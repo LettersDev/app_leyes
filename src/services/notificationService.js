@@ -84,7 +84,20 @@ export const NotificationService = {
                     return null;
                 }
 
-                // Paso 4: Guardar en Supabase
+                // Guardar en Supabase — eliminamos tokens viejos del mismo dispositivo antes de insertar
+                // Esto evita acumulación de tokens duplicados (ej. Expo Go + Native)
+                try {
+                    // Primero borramos cualquier token previo de este mismo dispositivo (mismo platform)
+                    // La app nativa siempre registra uno nuevo al abrir, así que solo queremos el más reciente
+                    await supabase
+                        .from('push_tokens')
+                        .delete()
+                        .eq('platform', Platform.OS)
+                        .neq('token', token);
+                } catch (cleanupErr) {
+                    console.log('[NotificationService] Cleanup previo ignorado:', cleanupErr.message);
+                }
+
                 try {
                     const { error } = await supabase
                         .from('push_tokens')

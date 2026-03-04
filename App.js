@@ -52,40 +52,45 @@ export default function App() {
 
   const initializeApp = async () => {
     try {
-      // Initialize index (will unbundle from assets if needed)
-      setInitStatus('Configurando leyes...');
-      await LawsIndexService.initialize();
+      // Check if this is the first launch (no local index yet)
+      const hasIndex = await LawsIndexService.hasLocalIndex();
 
-      // Register for push notifications
-      setInitStatus('Configurando notificaciones...');
-      const registeredToken = await NotificationService.registerForPushNotificationsAsync();
-      console.log('App: Token registration result:', registeredToken ? 'Success' : 'Failed');
+      if (!hasIndex) {
+        // PRIMERA VEZ: mostrar pantalla de carga y esperar
+        setInitStatus('Configurando leyes...');
+        await LawsIndexService.initialize();
 
-      // We still run the background check, but it will see the laws are "offline" (bundled)
-      ensurePriorityLawsDownloaded();
+        setInitStatus('Configurando notificaciones...');
+        NotificationService.registerForPushNotificationsAsync()
+          .then(token => console.log('App: Token:', token ? 'OK' : 'Failed'))
+          .catch(err => console.log('App: Push registration error:', err.message));
 
-      // Check for app updates in the background
-      checkForUpdate().then(({ hasUpdate, latestVersion, currentVersion }) => {
-        if (hasUpdate) {
-          setUpdateInfo({ visible: true, currentVersion, latestVersion });
-        }
-      });
+        // Check for app updates in the background
+        checkForUpdate().then(({ hasUpdate, latestVersion, currentVersion }) => {
+          if (hasUpdate) setUpdateInfo({ visible: true, currentVersion, latestVersion });
+        });
 
-      setIsInitializing(false);
+        setIsInitializing(false);
+      } else {
+        // APERTURAS SUBSECUENTES: entrar directo, todo en background
+        setIsInitializing(false);
+
+        // Verificar actualizaciones en background (silenciosamente)
+        LawsIndexService.initialize().catch(err =>
+          console.log('BG laws update error:', err.message)
+        );
+
+        NotificationService.registerForPushNotificationsAsync()
+          .then(token => console.log('App: Token:', token ? 'OK' : 'Failed'))
+          .catch(err => console.log('App: Push registration error:', err.message));
+
+        checkForUpdate().then(({ hasUpdate, latestVersion, currentVersion }) => {
+          if (hasUpdate) setUpdateInfo({ visible: true, currentVersion, latestVersion });
+        });
+      }
     } catch (error) {
       console.error('Error initializing app:', error);
       setIsInitializing(false);
-    }
-  };
-
-  const ensurePriorityLawsDownloaded = async () => {
-    try {
-      // This now mostly serves to check if there are updates in the background
-      // Since isLawOffline returns true for bundled laws, this won't download anything
-      // unless an update is found on the server.
-      console.log('App: Priority laws check finished (Background)');
-    } catch (error) {
-      console.error('Error in auto-download check:', error);
     }
   };
 
