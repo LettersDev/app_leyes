@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import { supabase } from '../config/supabase';
 
 // ID del canal de Android — debe coincidir con el channelId enviado en las notificaciones
@@ -28,6 +28,8 @@ export const NotificationService = {
             return null;
         }
 
+        console.log('Iniciando registro de notificaciones...');
+
         // Crear el canal de notificaciones en Android (necesario para usar el ícono personalizado)
         if (Platform.OS === 'android') {
             await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
@@ -52,15 +54,19 @@ export const NotificationService = {
             return null;
         }
 
+        console.log('Permiso concedido, obteniendo token...');
+
         try {
             // Obtener el token de Expo
             const projectId = Constants?.expoConfig?.extra?.eas?.projectId || Constants?.easConfig?.projectId;
+            console.log('Project ID encontrado:', projectId);
 
             token = (await Notifications.getExpoPushTokenAsync({
                 projectId
             })).data;
 
             console.log('Push Token obtenido:', token);
+            // Alert.alert('Debug', 'Token obtenido: ' + token);
 
             // Guardar en Supabase
             const { error } = await supabase
@@ -73,11 +79,14 @@ export const NotificationService = {
 
             if (error) {
                 console.error('Error guardando token en Supabase:', error.message);
+            } else {
+                console.log('Token registrado exitosamente en Supabase.');
             }
 
             return token;
         } catch (error) {
             console.error('Error al registrar notificaciones:', error);
+            // Alert.alert('Error Fatal', error.message);
             return null;
         }
     },

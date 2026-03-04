@@ -12,6 +12,7 @@ import { downloadLawContent } from './src/services/lawService';
 import OfflineService from './src/services/offlineService';
 import { checkForUpdate } from './src/services/updateService';
 import UpdateModal from './src/components/UpdateModal';
+import NotificationService from './src/services/notificationService';
 
 const theme = {
   ...MD3LightTheme,
@@ -44,7 +45,7 @@ export default function App() {
 
     return () => {
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+        responseListener.current.remove();
       }
     };
   }, []);
@@ -57,8 +58,8 @@ export default function App() {
 
       // Register for push notifications
       setInitStatus('Configurando notificaciones...');
-      const { NotificationService } = require('./src/services/notificationService');
-      NotificationService.registerForPushNotificationsAsync();
+      const registeredToken = await NotificationService.registerForPushNotificationsAsync();
+      console.log('App: Token registration result:', registeredToken ? 'Success' : 'Failed');
 
       // We still run the background check, but it will see the laws are "offline" (bundled)
       ensurePriorityLawsDownloaded();
