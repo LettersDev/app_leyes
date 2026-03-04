@@ -1,16 +1,17 @@
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import { supabase } from '../config/supabase';
 
 // ID del canal de Android — debe coincidir con el channelId enviado en las notificaciones
 export const NOTIFICATION_CHANNEL_ID = 'tuley-default';
 
 // Configuración de cómo se muestran las notificaciones cuando la app está abierta
+// NOTA: shouldShowBanner + shouldShowList es la forma moderna (SDK 53+), no shouldShowAlert
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
     }),
@@ -19,74 +20,117 @@ Notifications.setNotificationHandler({
 export const NotificationService = {
     /**
      * Solicita permisos y registra el token en Supabase
+     * Tiene un timeout de 10s para no bloquear la app si falla
      */
     registerForPushNotificationsAsync: async () => {
-        let token;
+        // Timeout para evitar cuelgues infinitos
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Push registration timeout')), 10000)
+        );
 
-        if (!Device.isDevice) {
-            console.log('Notificaciones Push solo funcionan en dispositivos físicos.');
-            return null;
-        }
+        const registrationPromise = (async () => {
+            try {
+                console.log('[NotificationService] Iniciando registro...');
 
-        console.log('Iniciando registro de notificaciones...');
+                // Paso 1: Verificar permisos
+                const { status: existingStatus } = await Notifications.getPermissionsAsync();
+                let finalStatus = existingStatus;
 
-        // Crear el canal de notificaciones en Android (necesario para usar el ícono personalizado)
-        if (Platform.OS === 'android') {
-            await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
-                name: 'TuLey',
-                importance: Notifications.AndroidImportance.HIGH,
-                vibrationPattern: [0, 250, 250, 250],
-                lightColor: '#C9A227',
-                sound: 'default',
-            });
-        }
+                if (existingStatus !== 'granted') {
+                    try {
+                        const { status } = await Notifications.requestPermissionsAsync();
+                        finalStatus = status;
+                    } catch (permError) {
+                        console.log('[NotificationService] Error solicitando permisos:', permError.message);
+                        return null;
+                    }
+                }
 
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
+                if (finalStatus !== 'granted') {
+                    console.log('[NotificationService] Permiso de notificaciones denegado');
+                    return null;
+                }
 
-        if (existingStatus !== 'granted') {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-        }
+                // Paso 2: Obtener projectId de forma segura
+                let projectId = null;
+                try {
+                    projectId = Constants?.expoConfig?.extra?.eas?.projectId ||
+                        Constants?.easConfig?.projectId ||
+                        Constants?.manifest?.extra?.eas?.projectId;
+                } catch (err) {
+                    console.log('[NotificationService] Error obteniendo projectId:', err.message);
+                }
 
-        if (finalStatus !== 'granted') {
-            console.log('Permiso de notificaciones rechazado.');
-            return null;
-        }
+                if (!projectId) {
+                    console.log('[NotificationService] Push desactivado: projectId no encontrado');
+                    return null;
+                }
 
-        console.log('Permiso concedido, obteniendo token...');
+                console.log('[NotificationService] Project ID:', projectId);
 
-        try {
-            // Obtener el token de Expo
-            const projectId = Constants?.expoConfig?.extra?.eas?.projectId || Constants?.easConfig?.projectId;
-            console.log('Project ID encontrado:', projectId);
+                // Paso 3: Obtener token
+                let token = null;
+                try {
+                    const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+                    token = tokenData?.data;
+                    console.log('[NotificationService] Token obtenido:', token ? '✓' : '✗');
+                } catch (tokenError) {
+                    console.log('[NotificationService] Error obteniendo token:', tokenError.message);
+                    return null;
+                }
 
-            token = (await Notifications.getExpoPushTokenAsync({
-                projectId
-            })).data;
+                if (!token) {
+                    console.log('[NotificationService] No se pudo obtener token');
+                    return null;
+                }
 
-            console.log('Push Token obtenido:', token);
-            // Alert.alert('Debug', 'Token obtenido: ' + token);
+                // Paso 4: Guardar en Supabase
+                try {
+                    const { error } = await supabase
+                        .from('push_tokens')
+                        .upsert({
+                            token,
+                            platform: Platform.OS,
+                            created_at: new Date().toISOString()
+                        }, { onConflict: 'token' });
 
-            // Guardar en Supabase
-            const { error } = await supabase
-                .from('push_tokens')
-                .upsert({
-                    token,
-                    platform: Platform.OS,
-                    created_at: new Date().toISOString()
-                }, { onConflict: 'token' });
+                    if (error) {
+                        console.error('[NotificationService] Error guardando token:', error.message);
+                    } else {
+                        console.log('[NotificationService] Token guardado exitosamente');
+                    }
+                } catch (dbError) {
+                    console.error('[NotificationService] Excepción guardando token:', dbError.message);
+                }
 
-            if (error) {
-                console.error('Error guardando token en Supabase:', error.message);
-            } else {
-                console.log('Token registrado exitosamente en Supabase.');
+                // Paso 5: Crear canal de Android (después de obtener el token)
+                if (Platform.OS === 'android') {
+                    try {
+                        await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
+                            name: 'TuLey',
+                            importance: Notifications.AndroidImportance.HIGH,
+                            vibrationPattern: [0, 250, 250, 250],
+                            lightColor: '#C9A227',
+                            sound: 'default',
+                        });
+                    } catch (channelError) {
+                        console.log('[NotificationService] Error creando canal:', channelError.message);
+                    }
+                }
+
+                console.log('[NotificationService] Registro completado');
+                return token;
+            } catch (error) {
+                console.error('[NotificationService] Error crítico:', error.message);
+                return null;
             }
+        })();
 
-            return token;
+        // Race entre timeout y registro
+        try {
+            return await Promise.race([registrationPromise, timeoutPromise]);
         } catch (error) {
-            console.error('Error al registrar notificaciones:', error);
-            // Alert.alert('Error Fatal', error.message);
+            console.log('[NotificationService] Push registration failed or timed out:', error.message);
             return null;
         }
     },
