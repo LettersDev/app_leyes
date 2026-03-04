@@ -25,22 +25,21 @@ const theme = {
 };
 
 export default function App() {
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [initStatus, setInitStatus] = useState('Iniciando...');
+  // Empezamos asumiendo que ya está inicializada para evitar el "flash" del loading
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [initStatus, setInitStatus] = useState('');
   const notificationListener = useRef();
   const responseListener = useRef();
   const [updateInfo, setUpdateInfo] = useState({ visible: false, currentVersion: '', latestVersion: '' });
 
   useEffect(() => {
-    initializeApp();
+    // Verificamos si realmente necesitamos inicializar
+    checkIfFirstLaunch();
 
     // Listener para cuando el usuario TOCA la notificación
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
       console.log('App: Notificación tocada con data:', data);
-
-      // La navegación se manejará vía deep linking o aquí si es necesario manual
-      // Pero con el ResponseListener podemos forzar acciones
     });
 
     return () => {
@@ -50,48 +49,40 @@ export default function App() {
     };
   }, []);
 
-  const initializeApp = async () => {
+  const checkIfFirstLaunch = async () => {
     try {
-      // Check if this is the first launch (no local index yet)
       const hasIndex = await LawsIndexService.hasLocalIndex();
-
       if (!hasIndex) {
-        // PRIMERA VEZ: mostrar pantalla de carga y esperar
+        // Es la primera vez REAL, mostramos loading y procesamos
+        setIsInitializing(true);
         setInitStatus('Configurando leyes...');
         await LawsIndexService.initialize();
 
         setInitStatus('Configurando notificaciones...');
-        NotificationService.registerForPushNotificationsAsync()
-          .then(token => console.log('App: Token:', token ? 'OK' : 'Failed'))
-          .catch(err => console.log('App: Push registration error:', err.message));
-
-        // Check for app updates in the background
-        checkForUpdate().then(({ hasUpdate, latestVersion, currentVersion }) => {
-          if (hasUpdate) setUpdateInfo({ visible: true, currentVersion, latestVersion });
-        });
+        await NotificationService.registerForPushNotificationsAsync();
 
         setIsInitializing(false);
       } else {
-        // APERTURAS SUBSECUENTES: entrar directo, todo en background
-        setIsInitializing(false);
-
-        // Verificar actualizaciones en background (silenciosamente)
-        LawsIndexService.initialize().catch(err =>
-          console.log('BG laws update error:', err.message)
-        );
-
-        NotificationService.registerForPushNotificationsAsync()
-          .then(token => console.log('App: Token:', token ? 'OK' : 'Failed'))
-          .catch(err => console.log('App: Push registration error:', err.message));
-
-        checkForUpdate().then(({ hasUpdate, latestVersion, currentVersion }) => {
-          if (hasUpdate) setUpdateInfo({ visible: true, currentVersion, latestVersion });
-        });
+        // Ya hay datos, todo lo demás en el fondo sin bloquear
+        runBackgroundTasks();
       }
     } catch (error) {
-      console.error('Error initializing app:', error);
+      console.error('Error en check inicial:', error);
       setIsInitializing(false);
     }
+  };
+
+  const runBackgroundTasks = () => {
+    // Actualizar leyes en silencio
+    LawsIndexService.initialize().catch(e => console.log('BG Laws Error:', e.message));
+
+    // Actualizar token en silencio
+    NotificationService.registerForPushNotificationsAsync().catch(e => console.log('BG Push Error:', e.message));
+
+    // Buscar updates de la app
+    checkForUpdate().then(({ hasUpdate, latestVersion, currentVersion }) => {
+      if (hasUpdate) setUpdateInfo({ visible: true, currentVersion, latestVersion });
+    });
   };
 
   if (isInitializing) {
