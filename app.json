@@ -22,7 +22,7 @@
       "edgeToEdgeEnabled": true,
       "package": "com.lettersdev.tuley",
       "versionCode": 11,
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "$GOOGLE_SERVICES_JSON"
     },
     "web": {
       "favicon": "./assets/favicon.png"
