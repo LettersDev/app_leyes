@@ -56,9 +56,13 @@ export const NotificationService = {
                 try {
                     projectId = Constants?.expoConfig?.extra?.eas?.projectId ||
                         Constants?.easConfig?.projectId ||
-                        Constants?.manifest?.extra?.eas?.projectId;
+                        Constants?.expoConfig?.projectId ||
+                        Constants?.manifest?.extra?.eas?.projectId ||
+                        Constants?.expoConstants?.projectId ||
+                        'f30a380e-3412-4c8b-a0e2-aeccec2c6b1d'; // Hardcoded fallback FINAL
                 } catch (err) {
                     console.log('[NotificationService] Error obteniendo projectId:', err.message);
+                    projectId = 'f30a380e-3412-4c8b-a0e2-aeccec2c6b1d'; // Fallback en caso de error
                 }
 
                 if (!projectId) {
@@ -84,20 +88,8 @@ export const NotificationService = {
                     return null;
                 }
 
-                // Guardar en Supabase — eliminamos tokens viejos del mismo dispositivo antes de insertar
-                // Esto evita acumulación de tokens duplicados (ej. Expo Go + Native)
-                try {
-                    // Primero borramos cualquier token previo de este mismo dispositivo (mismo platform)
-                    // La app nativa siempre registra uno nuevo al abrir, así que solo queremos el más reciente
-                    await supabase
-                        .from('push_tokens')
-                        .delete()
-                        .eq('platform', Platform.OS)
-                        .neq('token', token);
-                } catch (cleanupErr) {
-                    console.log('[NotificationService] Cleanup previo ignorado:', cleanupErr.message);
-                }
-
+                // Guardar en Supabase — el upsert con onConflict:'token' maneja duplicados correctamente
+                // NO borramos tokens de otros dispositivos aquí (ese error borraba tokens de todos los usuarios)
                 try {
                     const { error } = await supabase
                         .from('push_tokens')
