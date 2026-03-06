@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.lettersdev.tuley",
-      "versionCode": 14,
+      "versionCode": 15,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
