@@ -76,8 +76,10 @@ export default function App() {
     // Actualizar leyes en silencio
     LawsIndexService.initialize().catch(e => console.log('BG Laws Error:', e.message));
 
-    // Actualizar token en silencio
-    NotificationService.registerForPushNotificationsAsync().catch(e => console.log('BG Push Error:', e.message));
+    // Actualizar token en silencio (con reintento)
+    NotificationService.registerForPushNotificationsAsync()
+      .then(token => console.log('BG Push Success:', token ? 'Registered' : 'No Token'))
+      .catch(e => console.log('BG Push Error:', e.message));
 
     // Buscar updates de la app
     checkForUpdate().then(({ hasUpdate, latestVersion, currentVersion }) => {

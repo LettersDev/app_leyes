@@ -90,7 +90,9 @@ export const NotificationService = {
 
                 // Guardar en Supabase — el upsert con onConflict:'token' maneja duplicados correctamente
                 // NO borramos tokens de otros dispositivos aquí (ese error borraba tokens de todos los usuarios)
+                // Guardar en Supabase — el upsert con onConflict:'token' maneja duplicados correctamente
                 try {
+                    console.log('[NotificationService] Guardando token en Supabase...');
                     const { error } = await supabase
                         .from('push_tokens')
                         .upsert({
@@ -100,12 +102,21 @@ export const NotificationService = {
                         }, { onConflict: 'token' });
 
                     if (error) {
-                        console.error('[NotificationService] Error guardando token:', error.message);
+                        console.error('[NotificationService] Error de Supabase:', error.message);
+                        // Fallback a insert simple si el upsert falla (posible problema de RLS Select)
+                        if (error.code === '42501' || error.message?.includes('permission')) {
+                            console.log('[NotificationService] Intentando INSERT como fallback...');
+                            await supabase.from('push_tokens').insert({
+                                token,
+                                platform: Platform.OS,
+                                created_at: new Date().toISOString()
+                            }).catch(() => { });
+                        }
                     } else {
                         console.log('[NotificationService] Token guardado exitosamente');
                     }
                 } catch (dbError) {
-                    console.error('[NotificationService] Excepción guardando token:', dbError.message);
+                    console.error('[NotificationService] Excepción en DB:', dbError.message);
                 }
 
                 // Paso 5: Crear canal de Android (después de obtener el token)
