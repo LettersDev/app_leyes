@@ -20,12 +20,12 @@ Notifications.setNotificationHandler({
 export const NotificationService = {
     /**
      * Solicita permisos y registra el token en Supabase
-     * Tiene un timeout de 10s para no bloquear la app si falla
+     * Tiene un timeout de 60s para no bloquear la app si falla
      */
     registerForPushNotificationsAsync: async () => {
-        // Timeout para evitar cuelgues infinitos
+        // Timeout para permitir que el usuario responda al diálogo de permisos (60s)
         const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Push registration timeout')), 10000)
+            setTimeout(() => reject(new Error('Push registration timeout')), 60000)
         );
 
         const registrationPromise = (async () => {
@@ -47,8 +47,8 @@ export const NotificationService = {
                 }
 
                 if (finalStatus !== 'granted') {
-                    console.log('[NotificationService] Permiso de notificaciones denegado');
-                    return null;
+                    console.log('[NotificationService] Permiso no concedido explícitamente, pero intentaremos obtener el token de todos modos...');
+                    // No retornamos null, permitimos que continúe para ver si el sistema entrega un token (común en Android)
                 }
 
                 // Paso 2: Obtener projectId de forma segura

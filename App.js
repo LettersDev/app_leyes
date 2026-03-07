@@ -52,18 +52,32 @@ export default function App() {
   const checkIfFirstLaunch = async () => {
     try {
       const hasIndex = await LawsIndexService.hasLocalIndex();
-      if (!hasIndex) {
-        // Es la primera vez REAL, mostramos loading y procesamos
-        setIsInitializing(true);
-        setInitStatus('Configurando leyes...');
-        await LawsIndexService.initialize();
 
-        setInitStatus('Configurando notificaciones...');
-        await NotificationService.registerForPushNotificationsAsync();
+      // ✅ MEJORA: Solo bloqueamos la app si es la primera vez que vamos a PREGUNTAR (undetermined)
+      // Si ya respondió (granted o denied), no le hacemos esperar en el loading.
+      const needsPermissions = existingStatus === 'undetermined';
+
+      if (!hasIndex || needsPermissions) {
+        // Si faltan leyes O faltan permisos, mostramos la pantalla de inicialización
+        setIsInitializing(true);
+
+        if (!hasIndex) {
+          setInitStatus('Configurando leyes...');
+          await LawsIndexService.initialize();
+        }
+
+        setInitStatus('¡Listo!');
+        // ✅ MEJORA CRÍTICA: No esperamos los 60s aquí. 
+        // Lanzamos el registro en segundo plano para que el cartel de permiso 
+        // aparezca, pero la app entre al Home de una vez.
+        NotificationService.registerForPushNotificationsAsync();
+
+        // Pequeño retraso de 500ms solo para que el usuario vea el "¡Listo!"
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         setIsInitializing(false);
       } else {
-        // Ya hay datos, todo lo demás en el fondo sin bloquear
+        // Si ya tiene todo, corre tareas de actualización en segundo plano
         runBackgroundTasks();
       }
     } catch (error) {
