@@ -189,8 +189,11 @@ ALTER TABLE public.sync_monitor ENABLE ROW LEVEL SECURITY;
 CREATE TABLE IF NOT EXISTS public.push_tokens (
     token       TEXT PRIMARY KEY,
     platform    TEXT,
+    last_seen   TIMESTAMPTZ DEFAULT NOW(),
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_push_tokens_last_seen ON public.push_tokens(last_seen DESC);
 
 ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
 
@@ -201,4 +204,6 @@ CREATE POLICY "Permitir registro de tokens" ON public.push_tokens
 CREATE POLICY "Permitir update de tokens" ON public.push_tokens 
     FOR UPDATE USING (true) WITH CHECK (true);
 
--- Nota: No se permite SELECT ni DELETE para el rol anon/authenticated para evitar scraping de tokens.
+-- Requerido para que el UPSERT de Supabase detecte conflictos correctamente
+CREATE POLICY "Permitir lectura de tokens para upsert" ON public.push_tokens 
+    FOR SELECT USING (true);
