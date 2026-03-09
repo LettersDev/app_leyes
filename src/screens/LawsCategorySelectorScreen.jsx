@@ -130,11 +130,8 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         backgroundColor: COLORS.surface,
         borderRadius: 16,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        // Original shadow properties removed as per instruction to replace with boxShadow
     },
     cardContent: {
         flexDirection: 'row',

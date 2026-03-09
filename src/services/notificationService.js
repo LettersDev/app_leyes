@@ -125,7 +125,7 @@ const _saveTokenToSupabase = async (token) => {
 // Servicio público
 // ──────────────────────────────────────────────────────────────
 
-export const NotificationService = {
+const NotificationService = {
     /**
      * Flujo principal: solicita permisos, obtiene el token y lo guarda en Supabase.
      *

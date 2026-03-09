@@ -60,12 +60,5 @@ export const GRADIENTS = {
     surface: ['#FFFFFF', '#F8FAFC'],
 };
 
-// Tipos de documentos
-export const DOCUMENT_TYPES = {
-    LEY_BASE: 'ley_base',
-    LEY_ORGANICA: 'ley_organica',
-    SENTENCIA: 'sentencia',
-    DECRETO: 'decreto',
-    RESOLUCION: 'resolucion',
-};
+// ... (rest of file)
 

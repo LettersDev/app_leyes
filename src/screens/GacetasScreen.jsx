@@ -1,40 +1,63 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, SectionList, Linking, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useEffect, useCallback, useReducer } from 'react';
+import { View, StyleSheet, SectionList, Alert, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import HistoryManager from '../utils/historyManager';
 import FavoritesManager from '../utils/favoritesManager';
 import {
     Searchbar,
-    Card,
     Title,
     Paragraph,
     Text,
     ActivityIndicator,
     Button,
-    useTheme,
     IconButton,
     Menu,
-    Divider
 } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 import GacetaService from '../services/gacetaService';
+import GacetaCard from '../components/GacetaCard';
+
+const initialState = {
+    searchQuery: '',
+    selectedYear: 'Todos',
+    selectedType: 'Todos',
+    yearMenuVisible: false,
+    typeMenuVisible: false,
+    loading: false,
+    sections: [],
+    rawData: [],
+    hasMore: true,
+    refreshing: false,
+    indexError: false,
+    favoriteIds: new Set(),
+};
+
+function reducer(state, action) {
+    switch (action.type) {
+        case 'SET_FIELD':
+            return { ...state, [action.field]: action.value };
+        case 'RESET_DATA':
+            return { ...state, rawData: [], sections: [], hasMore: true, indexError: false };
+        case 'SET_DATA':
+            return {
+                ...state,
+                rawData: action.isReset ? action.data : [...state.rawData, ...action.data],
+                hasMore: action.hasMore,
+                indexError: false
+            };
+        case 'SET_FAVORITES':
+            return { ...state, favoriteIds: action.favorites };
+        default:
+            return state;
+    }
+}
 
 const GacetasScreen = ({ navigation }) => {
-    const theme = useTheme();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedYear, setSelectedYear] = useState('Todos');
-    const [selectedType, setSelectedType] = useState('Todos'); // New state
-    const [yearMenuVisible, setYearMenuVisible] = useState(false);
-    const [typeMenuVisible, setTypeMenuVisible] = useState(false); // New state
-    const [loading, setLoading] = useState(false);
-    const [sections, setSections] = useState([]);
-    const [pageOffset, setPageOffset] = useState(0);
-    const [lastNumero, setLastNumero] = useState(null);  // keyset cursor
-    const [refreshing, setRefreshing] = useState(false);
-    const [indexError, setIndexError] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
-    const [favoriteIds, setFavoriteIds] = useState(new Set());
-    const [rawData, setRawData] = useState([]);
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const {
+        searchQuery, selectedYear, selectedType, yearMenuVisible, typeMenuVisible,
+        loading, sections, rawData, hasMore, refreshing, indexError, favoriteIds
+    } = state;
 
     useFocusEffect(
         useCallback(() => {
@@ -45,43 +68,31 @@ const GacetasScreen = ({ navigation }) => {
     const loadFavoriteStatus = async () => {
         const favs = await FavoritesManager.getFavorites();
         const ids = new Set(favs.map(f => f.id));
-        setFavoriteIds(ids);
+        dispatch({ type: 'SET_FAVORITES', favorites: ids });
     };
 
     useEffect(() => {
         fetchGacetas(true);
     }, [selectedYear, selectedType]);
 
-    // Generate years 2000-2026
     const YEARS = Array.from({ length: 27 }, (_, i) => (2026 - i).toString());
 
-    // Helper para normalizar texto (quitar acentos y minúsculas)
-    const normalizeText = (text) => {
-        if (!text) return '';
-        return text.toString().toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    };
-
-    // Limpia prefijos de navegación que quedaron en registros viejos en Supabase
-    const cleanTitle = (titulo) => {
+    const cleanTitle = useCallback((titulo) => {
         if (!titulo) return '';
         return titulo
             .replace(/^-{1,2}\s*ir al organismo señalado en el sumario\s*/gi, '')
             .replace(/^señalado en el sumario\s*/gi, '')
             .replace(/^-{1,2}\s*sumario\s*/gi, '')
             .trim();
-    };
+    }, []);
 
     const fetchGacetas = async (isReset = false) => {
         if (loading) return;
-        setLoading(true);
-        setIndexError(false);
+        dispatch({ type: 'SET_FIELD', field: 'loading', value: true });
+
         try {
             if (isReset) {
-                setLastNumero(null);
-                setSections([]);
-                setRawData([]);
-                setHasMore(true);
+                dispatch({ type: 'RESET_DATA' });
             }
 
             const PAGE_SIZE = 25;
@@ -90,91 +101,75 @@ const GacetasScreen = ({ navigation }) => {
 
             const data = await GacetaService.fetchGacetas({
                 selectedYear,
-                selectedType, // Pass new filter
+                selectedType,
                 pageOffset: offset,
                 searchQuery: term,
                 pageSize: PAGE_SIZE
             });
 
             const newItems = data || [];
+            const hasMoreData = newItems.length >= PAGE_SIZE;
 
-            if (newItems.length < PAGE_SIZE) {
-                setHasMore(false);
-            }
+            const allItems = isReset ? newItems : [...rawData, ...newItems];
 
-            if (newItems.length === 0 && isReset) {
-                setSections([]);
-                setRawData([]);
-            } else {
-                const allItems = isReset ? newItems : [...rawData, ...newItems];
-                setRawData(allItems);
-                processAndSetData(allItems);
-            }
+            // Process sections
+            const grouped = allItems.reduce((acc, item) => {
+                let year = item.ano || (item.fecha ? item.fecha.split('/')[2] : 'Desconocido');
+                if (!acc[year]) acc[year] = [];
+                acc[year].push(item);
+                return acc;
+            }, {});
+
+            const sortedYears = Object.keys(grouped).sort((a, b) => b - a);
+            const newSections = sortedYears.map(year => ({
+                title: year.toString(),
+                data: grouped[year]
+            }));
+
+            dispatch({
+                type: 'SET_DATA',
+                data: newItems,
+                isReset,
+                hasMore: hasMoreData
+            });
+            dispatch({ type: 'SET_FIELD', field: 'sections', value: newSections });
+
         } catch (error) {
-            if (error.message === 'OFFLINE_ERROR') {
-                setIndexError('OFFLINE_ERROR');
-            } else {
-                console.error('Error fetching gacetas:', error);
-                setIndexError(true);
-            }
+            dispatch({
+                type: 'SET_FIELD',
+                field: 'indexError',
+                value: error.message === 'OFFLINE_ERROR' ? 'OFFLINE_ERROR' : true
+            });
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            dispatch({ type: 'SET_FIELD', field: 'loading', value: false });
+            dispatch({ type: 'SET_FIELD', field: 'refreshing', value: false });
         }
-    };
-
-    const processAndSetData = (allItems) => {
-        const grouped = allItems.reduce((acc, item) => {
-            let year = item.ano || (item.fecha ? item.fecha.split('/')[2] : 'Desconocido');
-            if (!acc[year]) acc[year] = [];
-            acc[year].push(item);
-            return acc;
-        }, {});
-
-        const sortedYears = Object.keys(grouped).sort((a, b) => b - a);
-
-        const newSections = sortedYears.map(year => ({
-            title: year.toString(),
-            data: grouped[year]
-        }));
-
-        setSections(newSections);
-    };
-
-    const onSearch = () => {
-        fetchGacetas(true);
     };
 
     const openOriginal = useCallback((item) => {
         if (!item.url_original || item.url_original.endsWith('/null') || item.url_original.includes('/null/')) {
-            Alert.alert(
-                "Documento No Disponible",
-                "El documento de esta Gaceta no está disponible para visualización directa.",
-                [{ text: "OK" }]
-            );
+            Alert.alert("Documento No Disponible", "El documento no está disponible.", [{ text: "OK" }]);
             return;
         }
 
-        if (item.url_original) {
-            HistoryManager.addVisit({
-                id: item.id,
-                type: 'gaceta',
-                title: item.titulo,
-                subtitle: item.subtitulo,
-                data: { ...item }
-            });
+        HistoryManager.addVisit({
+            id: item.id,
+            type: 'gaceta',
+            title: item.titulo,
+            subtitle: item.subtitulo,
+            data: { ...item }
+        });
 
-            navigation.navigate('GacetaDetail', { gaceta: item });
-        }
+        navigation.navigate('GacetaDetail', { gaceta: item });
     }, [navigation]);
 
-    const toggleFavorite = async (item) => {
+    const toggleFavorite = useCallback(async (item) => {
         const isFav = favoriteIds.has(item.id);
         if (isFav) {
             await FavoritesManager.removeFavorite(item.id);
             const newSet = new Set(favoriteIds);
             newSet.delete(item.id);
-            setFavoriteIds(newSet);
+            dispatch({ type: 'SET_FAVORITES', favorites: newSet });
         } else {
             await FavoritesManager.addFavorite({
                 id: item.id,
@@ -185,52 +180,34 @@ const GacetasScreen = ({ navigation }) => {
             });
             const newSet = new Set(favoriteIds);
             newSet.add(item.id);
-            setFavoriteIds(newSet);
+            dispatch({ type: 'SET_FAVORITES', favorites: newSet });
         }
-    };
+    }, [favoriteIds]);
 
-    const renderItem = ({ item }) => (
-        <Card style={styles.card} onPress={() => openOriginal(item)}>
-            <Card.Content>
-                <View style={styles.cardHeader}>
-                    <View style={styles.headerLeft}>
-                        {/* Use different icon or color for Ordinaria vs Extra? */}
-                        <Title style={styles.cardTitle}>{cleanTitle(item.titulo)}</Title>
-                        <Paragraph style={styles.cardSubtitle}>{item.subtitulo}</Paragraph>
-                    </View>
-                    <IconButton
-                        icon={favoriteIds.has(item.id) ? "star" : "star-outline"}
-                        iconColor={favoriteIds.has(item.id) ? "#FFD700" : COLORS.textSecondary}
-                        size={24}
-                        onPress={() => toggleFavorite(item)}
-                    />
-                </View>
-                <View style={styles.chipsRow}>
-                    <Text style={styles.dateText}>{item.fecha}</Text>
-                    {item.tipo && (
-                        <View style={[styles.badge, item.tipo.includes('Extra') ? styles.badgeExtra : styles.badgeOrd]}>
-                            <Text style={styles.badgeText}>{item.tipo}</Text>
-                        </View>
-                    )}
-                </View>
-            </Card.Content>
-        </Card>
-    );
+    const renderItem = useCallback(({ item }) => (
+        <GacetaCard
+            item={item}
+            isFavorite={favoriteIds.has(item.id)}
+            onToggleFavorite={toggleFavorite}
+            onPress={openOriginal}
+            cleanTitle={cleanTitle}
+        />
+    ), [favoriteIds, toggleFavorite, openOriginal, cleanTitle]);
 
-    const renderSectionHeader = ({ section: { title } }) => (
+    const renderSectionHeader = useCallback(({ section: { title } }) => (
         <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{title}</Text>
         </View>
-    );
+    ), []);
 
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
                 <Searchbar
                     placeholder="Buscar por N° o título..."
-                    onChangeText={setSearchQuery}
+                    onChangeText={(v) => dispatch({ type: 'SET_FIELD', field: 'searchQuery', value: v })}
                     value={searchQuery}
-                    onSubmitEditing={onSearch}
+                    onSubmitEditing={() => fetchGacetas(true)}
                     style={styles.searchbar}
                     inputStyle={styles.searchInput}
                     iconColor={COLORS.primary}
@@ -240,16 +217,16 @@ const GacetasScreen = ({ navigation }) => {
                     <View style={styles.yearFilterContainer}>
                         <Menu
                             visible={yearMenuVisible}
-                            onDismiss={() => setYearMenuVisible(false)}
+                            onDismiss={() => dispatch({ type: 'SET_FIELD', field: 'yearMenuVisible', value: false })}
                             anchor={
                                 <Button
                                     mode="outlined"
-                                    onPress={() => setYearMenuVisible(true)}
+                                    onPress={() => dispatch({ type: 'SET_FIELD', field: 'yearMenuVisible', value: true })}
                                     style={styles.yearButton}
                                     icon="calendar"
                                     compact
                                 >
-                                    {selectedYear === 'Todos' ? 'Año' : selectedYear}
+                                    <Text>{selectedYear === 'Todos' ? 'Año' : selectedYear}</Text>
                                 </Button>
                             }
                         >
@@ -258,8 +235,8 @@ const GacetasScreen = ({ navigation }) => {
                                     <Menu.Item
                                         key={year}
                                         onPress={() => {
-                                            setSelectedYear(year);
-                                            setYearMenuVisible(false);
+                                            dispatch({ type: 'SET_FIELD', field: 'selectedYear', value: year });
+                                            dispatch({ type: 'SET_FIELD', field: 'yearMenuVisible', value: false });
                                         }}
                                         title={year}
                                     />
@@ -269,22 +246,22 @@ const GacetasScreen = ({ navigation }) => {
 
                         <Menu
                             visible={typeMenuVisible}
-                            onDismiss={() => setTypeMenuVisible(false)}
+                            onDismiss={() => dispatch({ type: 'SET_FIELD', field: 'typeMenuVisible', value: false })}
                             anchor={
                                 <Button
                                     mode="outlined"
-                                    onPress={() => setTypeMenuVisible(true)}
+                                    onPress={() => dispatch({ type: 'SET_FIELD', field: 'typeMenuVisible', value: true })}
                                     style={[styles.yearButton, { marginLeft: 8 }]}
                                     icon="filter-variant"
                                     compact
                                 >
-                                    {selectedType === 'Todos' ? 'Tipo' : selectedType}
+                                    <Text>{selectedType === 'Todos' ? 'Tipo' : selectedType}</Text>
                                 </Button>
                             }
                         >
-                            <Menu.Item onPress={() => { setSelectedType('Todos'); setTypeMenuVisible(false); }} title="Todos" />
-                            <Menu.Item onPress={() => { setSelectedType('Ordinaria'); setTypeMenuVisible(false); }} title="Ordinaria" />
-                            <Menu.Item onPress={() => { setSelectedType('Extraordinaria'); setTypeMenuVisible(false); }} title="Extraordinaria" />
+                            <Menu.Item onPress={() => { dispatch({ type: 'SET_FIELD', field: 'selectedType', value: 'Todos' }); dispatch({ type: 'SET_FIELD', field: 'typeMenuVisible', value: false }); }} title="Todos" />
+                            <Menu.Item onPress={() => { dispatch({ type: 'SET_FIELD', field: 'selectedType', value: 'Ordinaria' }); dispatch({ type: 'SET_FIELD', field: 'typeMenuVisible', value: false }); }} title="Ordinaria" />
+                            <Menu.Item onPress={() => { dispatch({ type: 'SET_FIELD', field: 'selectedType', value: 'Extraordinaria' }); dispatch({ type: 'SET_FIELD', field: 'typeMenuVisible', value: false }); }} title="Extraordinaria" />
                         </Menu>
                     </View>
 
@@ -293,8 +270,8 @@ const GacetasScreen = ({ navigation }) => {
                             icon="close-circle"
                             size={20}
                             onPress={() => {
-                                setSelectedYear('Todos');
-                                setSelectedType('Todos');
+                                dispatch({ type: 'SET_FIELD', field: 'selectedYear', value: 'Todos' });
+                                dispatch({ type: 'SET_FIELD', field: 'selectedType', value: 'Todos' });
                             }}
                         />
                     )}
@@ -314,19 +291,19 @@ const GacetasScreen = ({ navigation }) => {
                         iconColor={indexError === 'OFFLINE_ERROR' ? COLORS.textSecondary : COLORS.error}
                     />
                     <Title style={{ textAlign: 'center', marginBottom: 10 }}>
-                        {indexError === 'OFFLINE_ERROR' ? 'Sin Conexión' : 'Error de Conexión'}
+                        <Text>{indexError === 'OFFLINE_ERROR' ? 'Sin Conexión' : 'Error de Conexión'}</Text>
                     </Title>
                     <Paragraph style={{ textAlign: 'center', color: COLORS.textSecondary, marginBottom: 20 }}>
-                        {indexError === 'OFFLINE_ERROR'
+                        <Text>{indexError === 'OFFLINE_ERROR'
                             ? 'No se pudieron cargar las gacetas. Por favor, verifica tu internet.'
-                            : 'Error al cargar Gacetas. Verifica tu conexión.'}
+                            : 'Error al cargar Gacetas. Verifica tu conexión.'}</Text>
                     </Paragraph>
                     <Button
                         mode="contained"
                         onPress={() => fetchGacetas(true)}
                         style={{ borderRadius: 20 }}
                     >
-                        Reintentar
+                        <Text>Reintentar</Text>
                     </Button>
                 </View>
             ) : (
@@ -348,7 +325,7 @@ const GacetasScreen = ({ navigation }) => {
                     }
                     refreshing={refreshing}
                     onRefresh={() => {
-                        setRefreshing(true);
+                        dispatch({ type: 'SET_FIELD', field: 'refreshing', value: true });
                         fetchGacetas(true);
                     }}
                 />
@@ -367,16 +344,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0',
-        elevation: 2,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
     },
     searchbar: {
-        elevation: 0,
         backgroundColor: '#f1f5f9',
         borderRadius: 12,
         height: 48,
     },
     searchInput: {
-        fontSize: 14, // Prevent zoom on iOS
+        fontSize: 14,
     },
     filtersContainer: {
         marginTop: 12,
@@ -394,59 +370,6 @@ const styles = StyleSheet.create({
     list: {
         padding: 16,
         paddingBottom: 80,
-    },
-    card: {
-        marginBottom: 12,
-        borderRadius: 12,
-        backgroundColor: '#fff',
-        elevation: 1,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    headerLeft: {
-        flex: 1,
-        marginRight: 8,
-    },
-    cardTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        lineHeight: 22,
-    },
-    cardSubtitle: {
-        fontSize: 13,
-        color: COLORS.textSecondary,
-        marginTop: 4,
-    },
-    chipsRow: {
-        flexDirection: 'row',
-        marginTop: 12,
-        alignItems: 'center',
-    },
-    dateText: {
-        fontSize: 12,
-        color: COLORS.textSecondary,
-        marginRight: 10,
-        fontFamily: 'monospace'
-    },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    badgeOrd: {
-        backgroundColor: '#DBEAFE', // blue-100
-    },
-    badgeExtra: {
-        backgroundColor: '#FEE2E2', // red-100
-    },
-    badgeText: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: '#1E40AF', // blue-800
     },
     loadingContainer: {
         flex: 1,
@@ -469,13 +392,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20
-    },
-    errorText: {
-        color: COLORS.error,
-        fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginTop: 10
     },
     emptyContainer: {
         alignItems: 'center',

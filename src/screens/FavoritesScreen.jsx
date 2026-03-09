@@ -20,63 +20,83 @@ const FavoritesScreen = ({ navigation }) => {
         setFavorites(favs);
     };
 
-    const handleRemove = async (item) => {
+    const toggleFavorite = async (item) => {
         await FavoritesManager.toggleFavorite(item);
         loadFavorites();
     };
 
-    const handleNavigate = (item) => {
-        if (item.type === 'law') {
-            navigation.navigate('LawDetail', { lawId: item.data.lawId });
-        } else if (item.type === 'law_article') {
-            navigation.navigate('LawDetail', { lawId: item.data.lawId, jumpToIndex: item.data.itemIndex });
-        } else if (item.type === 'juris') {
-            navigation.navigate('JurisprudenceDetail', {
-                url: item.data.url_original,
-                title: `Sentencia Exp: ${item.data.expediente}`
-            });
-        } else if (item.type === 'gaceta') {
-            navigation.navigate('JurisprudenceDetail', {
-                url: item.data.url_original,
-                title: item.title || 'Gaceta Oficial'
-            });
+    const renderFilterItem = useCallback(({ item }) => (
+        <Chip
+            selected={filter === item.id}
+            onPress={() => setFilter(item.id)}
+            style={styles.filterChip}
+        >
+            <Text>{item.label}</Text>
+        </Chip>
+    ), [filter]);
+
+    const getTypeColor = (type) => {
+        switch (type) {
+            case 'law':
+            case 'law_article':
+                return COLORS.primary;
+            case 'juris':
+                return COLORS.secondary;
+            case 'gaceta':
+                return COLORS.tertiary; // Assuming a tertiary color for gaceta
+            default:
+                return COLORS.gray;
         }
     };
+
+    const renderItem = useCallback(({ item }) => (
+        <TouchableOpacity
+            style={styles.card}
+            onPress={() => {
+                if (item.type === 'law') {
+                    navigation.navigate('LawDetail', { lawId: item.data.lawId });
+                } else if (item.type === 'law_article') {
+                    navigation.navigate('LawDetail', {
+                        lawId: item.data.lawId,
+                        jumpToIndex: item.data.itemIndex
+                    });
+                } else if (item.type === 'gaceta') {
+                    navigation.navigate('JurisprudenceDetail', {
+                        url: item.data.url_original,
+                        title: item.title || 'Gaceta Oficial'
+                    });
+                } else if (item.type === 'juris') {
+                    navigation.navigate('JurisprudenceDetail', {
+                        url: item.data.url_original,
+                        title: `Sentencia Exp: ${item.data.expediente}`
+                    });
+                }
+            }}
+        >
+            <Card style={styles.favoriteCard}>
+                <Card.Content>
+                    <View style={styles.cardHeader}>
+                        <View style={[styles.typeBadge, { backgroundColor: getTypeColor(item.type) }]}>
+                            <Text style={styles.typeText}>{item.type.toUpperCase()}</Text>
+                        </View>
+                        <IconButton
+                            icon="star"
+                            iconColor="#FFD700"
+                            size={20}
+                            style={{ margin: 0 }}
+                            onPress={() => toggleFavorite(item)}
+                        />
+                    </View>
+                    <Title style={styles.cardTitle} numberOfLines={2}>{item.title}</Title>
+                    <Paragraph style={styles.cardSubtitle} numberOfLines={2}>{item.subtitle}</Paragraph>
+                </Card.Content>
+            </Card>
+        </TouchableOpacity>
+    ), [navigation, toggleFavorite]);
 
     const filteredFavorites = filter === 'all'
         ? favorites
         : favorites.filter(f => f.type === filter || (filter === 'laws' && (f.type === 'law' || f.type === 'law_article')));
-
-    const renderItem = ({ item }) => (
-        <Card style={styles.card} onPress={() => handleNavigate(item)}>
-            <Card.Content>
-                <View style={styles.row}>
-                    <View style={styles.content}>
-                        <View style={styles.tagRow}>
-                            <Chip
-                                style={[
-                                    styles.tag,
-                                    { backgroundColor: item.type === 'juris' ? COLORS.secondary : COLORS.primary }
-                                ]}
-                                textStyle={styles.tagText}
-                                compact
-                            >
-                                {item.type === 'juris' ? 'Jurisprudencia' : 'Ley'}
-                            </Chip>
-                            <Text style={styles.dateText}>{new Date(item.timestamp).toLocaleDateString()}</Text>
-                        </View>
-                        <Title style={styles.title} numberOfLines={2}>{item.title}</Title>
-                        <Paragraph style={styles.subtitle} numberOfLines={2}>{item.subtitle}</Paragraph>
-                    </View>
-                    <IconButton
-                        icon="delete-outline"
-                        iconColor={COLORS.error}
-                        onPress={() => handleRemove(item)}
-                    />
-                </View>
-            </Card.Content>
-        </Card>
-    );
 
     return (
         <View style={styles.container}>
@@ -88,15 +108,7 @@ const FavoritesScreen = ({ navigation }) => {
                         { id: 'laws', label: 'Leyes/Arts' },
                         { id: 'juris', label: 'Jurisprudencia' }
                     ]}
-                    renderItem={({ item }) => (
-                        <Chip
-                            selected={filter === item.id}
-                            onPress={() => setFilter(item.id)}
-                            style={styles.filterChip}
-                        >
-                            {item.label}
-                        </Chip>
-                    )}
+                    renderItem={renderFilterItem}
                     keyExtractor={item => item.id}
                     showsHorizontalScrollIndicator={false}
                 />
@@ -120,16 +132,9 @@ const FavoritesScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.background },
-    filterContainer: { padding: 10, backgroundColor: '#fff', elevation: 2 },
+    filterContainer: { padding: 10, backgroundColor: '#fff', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)' },
     filterChip: { marginRight: 8 },
     list: { padding: 16 },
-    card: { marginBottom: 16, backgroundColor: '#fff', borderRadius: 8 },
-    row: { flexDirection: 'row', alignItems: 'center' },
-    content: { flex: 1 },
-    tagRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-    tag: { height: 32, alignItems: 'center', justifyContent: 'center' },
-    tagText: { color: '#fff', fontSize: 12, lineHeight: 18 },
-    dateText: { fontSize: 10, color: '#999' },
     title: { fontSize: 16, lineHeight: 22, color: COLORS.primary },
     subtitle: { fontSize: 13, color: '#666' },
     emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 },

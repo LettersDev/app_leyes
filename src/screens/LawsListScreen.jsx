@@ -74,7 +74,7 @@ const LawsListScreen = ({ route, navigation }) => {
                                 style={styles.chip}
                                 textStyle={styles.chipText}
                             >
-                                {item.type}
+                                <Text>{item.type}</Text>
                             </Chip>
                         )}
                         {lastSyncDate && item.last_updated && new Date(item.last_updated) > lastSyncDate && (
@@ -83,7 +83,7 @@ const LawsListScreen = ({ route, navigation }) => {
                                 style={styles.newChip}
                                 textStyle={styles.newChipText}
                             >
-                                NUEVA
+                                <Text>NUEVA</Text>
                             </Chip>
                         )}
                     </View>
@@ -96,7 +96,7 @@ const LawsListScreen = ({ route, navigation }) => {
 
                     {item.metadata?.gacetaNumber && (
                         <Paragraph style={styles.metadata}>
-                            Gaceta N° {item.metadata.gacetaNumber}
+                            <Text>Gaceta N° {item.metadata.gacetaNumber}</Text>
                         </Paragraph>
                     )}
                 </Card.Content>
@@ -118,16 +118,18 @@ const LawsListScreen = ({ route, navigation }) => {
             return (
                 <View style={styles.centerContainer}>
                     <IconButton icon="wifi-off" size={60} iconColor={COLORS.textSecondary} />
-                    <Title style={{ textAlign: 'center', marginBottom: 10 }}>Sin Conexión</Title>
+                    <Title style={{ textAlign: 'center', marginBottom: 10 }}>
+                        <Text>Sin Conexión</Text>
+                    </Title>
                     <Paragraph style={{ textAlign: 'center', color: COLORS.textSecondary, marginBottom: 20 }}>
-                        No se pudieron cargar las leyes de esta categoría. Por favor, verifica tu internet.
+                        <Text>No se pudieron cargar las leyes de esta categoría. Por favor, verifica tu internet.</Text>
                     </Paragraph>
                     <Button
                         mode="contained"
                         onPress={() => loadLaws()}
                         style={{ borderRadius: 20 }}
                     >
-                        Reintentar
+                        <Text>Reintentar</Text>
                     </Button>
                 </View>
             );
@@ -187,9 +189,9 @@ const styles = StyleSheet.create({
     },
     lawCard: {
         marginBottom: 12,
-        backgroundColor: COLORS.surface,
         borderRadius: 12,
-        elevation: 2,
+        backgroundColor: '#fff',
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
     },
     cardHeader: {
         flexDirection: 'row',

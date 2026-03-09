@@ -1,10 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Button, IconButton, useTheme } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../utils/constants';
-
-const { width, height } = Dimensions.get('window');
 
 const SLIDES = [
     {
@@ -45,6 +43,7 @@ const SLIDES = [
 ];
 
 const OnboardingScreen = ({ navigation }) => {
+    const { width } = useWindowDimensions();
     const [currentIndex, setCurrentIndex] = useState(0);
     const flatListRef = useRef(null);
 
@@ -59,7 +58,7 @@ const OnboardingScreen = ({ navigation }) => {
     };
 
     const renderItem = ({ item }) => (
-        <View style={styles.slide}>
+        <View style={[styles.slide, { width }]}>
             <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
                 <IconButton icon={item.icon} size={100} iconColor={item.color} />
             </View>
@@ -86,9 +85,9 @@ const OnboardingScreen = ({ navigation }) => {
 
             <View style={styles.footer}>
                 <View style={styles.pagination}>
-                    {SLIDES.map((_, index) => (
+                    {SLIDES.map((item, index) => (
                         <View
-                            key={index}
+                            key={item.id}
                             style={[
                                 styles.dot,
                                 currentIndex === index ? styles.activeDot : null
@@ -103,7 +102,7 @@ const OnboardingScreen = ({ navigation }) => {
                     style={styles.button}
                     labelStyle={styles.buttonLabel}
                 >
-                    {currentIndex === SLIDES.length - 1 ? 'Empezar' : 'Siguiente'}
+                    <Text>{currentIndex === SLIDES.length - 1 ? 'Empezar' : 'Siguiente'}</Text>
                 </Button>
 
                 {currentIndex < SLIDES.length - 1 && (
@@ -122,7 +121,6 @@ const OnboardingScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     slide: {
-        width,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 40,

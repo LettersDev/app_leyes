@@ -197,7 +197,7 @@ const GacetaDetailScreen = ({ route }) => {
                         buttonColor={COLORS.primary}
                         icon="book-open-variant"
                     >
-                        Ver Gaceta
+                        <Text>Ver Gaceta</Text>
                     </Button>
                 </Card.Actions>
             </Card>
@@ -207,8 +207,8 @@ const GacetaDetailScreen = ({ route }) => {
                 <>
                     <Divider style={{ marginVertical: 8 }} />
                     <Text style={styles.sectionLabel}>SUMARIO</Text>
-                    {finalLines.map((line, i) => (
-                        <View key={i}>
+                    {finalLines.map((line) => (
+                        <View key={line}>
                             <View style={styles.sumarioItem}>
                                 <Text style={styles.bullet}>•</Text>
                                 <Text style={styles.sumarioLine}>{line}</Text>
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', zIndex: 10,
     },
 
-    card: { marginBottom: 12, elevation: 2, backgroundColor: '#fff' },
+    card: { marginBottom: 12, boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)', backgroundColor: '#fff' },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
     numLabel: { fontSize: 17, fontWeight: 'bold', color: COLORS.primary },
     chipOrd: { backgroundColor: '#DBEAFE' },

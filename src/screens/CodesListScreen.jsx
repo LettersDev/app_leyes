@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         backgroundColor: COLORS.surface,
         borderRadius: 12,
-        elevation: 2,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     },
     cardContent: {
         flexDirection: 'row',
@@ -214,4 +214,3 @@ const styles = StyleSheet.create({
 });
 
 export default CodesListScreen;
-

@@ -91,11 +91,11 @@ const JurisprudenceCard = React.memo(({
                 </View>
                 <Title style={styles.title}>{item.titulo}</Title>
                 <View style={styles.metaRow}>
-                    <Text variant="labelSmall" style={styles.metaLabel}>Ponente:</Text>
+                    <Text variant="labelSmall" style={styles.metaLabel}><Text>Ponente:</Text></Text>
                     <Text variant="bodySmall" style={styles.metaValue}>{item.ponente}</Text>
                 </View>
                 <View style={styles.metaRow}>
-                    <Text variant="labelSmall" style={styles.metaLabel}>Fecha:</Text>
+                    <Text variant="labelSmall" style={styles.metaLabel}><Text>Fecha:</Text></Text>
                     <Text variant="bodySmall" style={styles.metaValue}>{item.fecha}</Text>
                 </View>
                 <Paragraph numberOfLines={3} style={styles.resumen}>
@@ -320,6 +320,17 @@ const JurisprudenceScreen = ({ navigation }) => {
         />
     ), [favoriteIds, toggleFavorite, handleShare, openOriginal]);
 
+    const renderSalaItem = useCallback(({ item }) => (
+        <Chip
+            selected={selectedSala === item.id}
+            onPress={() => setSelectedSala(item.id)}
+            style={styles.chip}
+            showSelectedOverlay
+        >
+            {item.label}
+        </Chip>
+    ), [selectedSala]);
+
     // Lógica para determinar qué vista principal mostrar
     let MainView;
     if (loading && rawData.length === 0) {
@@ -408,16 +419,7 @@ const JurisprudenceScreen = ({ navigation }) => {
                         showsHorizontalScrollIndicator={false}
                         keyExtractor={(item) => item.id}
                         contentContainerStyle={styles.chipsContainer}
-                        renderItem={({ item }) => (
-                            <Chip
-                                selected={selectedSala === item.id}
-                                onPress={() => setSelectedSala(item.id)}
-                                style={styles.chip}
-                                showSelectedOverlay
-                            >
-                                {item.label}
-                            </Chip>
-                        )}
+                        renderItem={renderSalaItem}
                     />
                     {/* Selector de Años (Menú Desplegable) */}
                     <View style={styles.yearFilterContainer}>
@@ -475,15 +477,14 @@ const styles = StyleSheet.create({
     header: {
         padding: 10,
         backgroundColor: '#fff',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     },
     searchbar: {
-        marginBottom: 10,
-        backgroundColor: '#f0f0f0',
+        margin: 16,
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        height: 55,
+        boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1)',
     },
     chipsContainer: {
         paddingVertical: 5,
@@ -494,10 +495,11 @@ const styles = StyleSheet.create({
     list: {
         padding: 10,
     },
-    card: {
-        marginBottom: 15,
-        elevation: 2,
+    jurisCard: {
+        marginBottom: 16,
+        borderRadius: 12,
         backgroundColor: '#fff',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.05)',
     },
     cardHeader: {
         flexDirection: 'row',

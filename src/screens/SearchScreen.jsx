@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Searchbar, Card, Title, Paragraph, ActivityIndicator } from 'react-native-paper';
 import { searchLaws } from '../services/lawService';
@@ -72,7 +72,7 @@ const SearchScreen = ({ navigation }) => {
         return <Text>{result}</Text>;
     };
 
-    const renderResultItem = ({ item }) => {
+    const renderResultItem = useCallback(({ item }) => {
         const isJurisprudence = item.type === 'jurisprudencia';
 
         return (
@@ -106,13 +106,13 @@ const SearchScreen = ({ navigation }) => {
                             {highlightText(
                                 (item.searchableText || item.resumen || "").substring(0, 150),
                                 searchQuery
-                            )}...
+                            )}<Text>...</Text>
                         </Paragraph>
                     </Card.Content>
                 </Card>
             </TouchableOpacity>
         );
-    };
+    }, [navigation, searchQuery]);
 
     return (
         <View style={styles.container}>
@@ -159,7 +159,7 @@ const SearchScreen = ({ navigation }) => {
                     contentContainerStyle={styles.resultsList}
                     ListHeaderComponent={
                         <Text style={styles.resultsCount}>
-                            {results.length} resultado{results.length !== 1 ? 's' : ''} encontrado{results.length !== 1 ? 's' : ''}
+                            <Text>{results.length} resultado{results.length !== 1 ? 's' : ''} encontrado{results.length !== 1 ? 's' : ''}</Text>
                         </Text>
                     }
                 />
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     },
     searchBar: {
         margin: 16,
-        elevation: 2,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
         borderRadius: 12,
     },
     searchInput: {
@@ -199,9 +199,9 @@ const styles = StyleSheet.create({
     },
     resultCard: {
         marginBottom: 12,
-        backgroundColor: COLORS.surface,
         borderRadius: 12,
-        elevation: 2,
+        backgroundColor: '#fff',
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
     },
     resultTitle: {
         fontSize: 16,

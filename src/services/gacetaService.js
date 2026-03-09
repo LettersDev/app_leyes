@@ -1,6 +1,6 @@
 import { supabase } from '../config/supabase';
 
-export const GacetaService = {
+const GacetaService = {
     fetchGacetas: async (filters = {}) => {
         const { selectedYear, selectedType = 'Todos', lastNumero, pageOffset = 0, searchQuery, pageSize = 25 } = filters;
 

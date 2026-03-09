@@ -1,8 +1,3 @@
-/**
- * UpdateModal.jsx
- * Modal premium que informa al usuario que hay una nueva versión disponible.
- * Aparece al iniciar la app si hay una versión más reciente en Supabase.
- */
 import React from 'react';
 import {
     Modal,
@@ -12,11 +7,9 @@ import {
     StyleSheet,
     Linking,
     Platform,
-    Dimensions,
+    useWindowDimensions,
 } from 'react-native';
 import { COLORS } from '../utils/constants';
-
-const { width } = Dimensions.get('window');
 
 // URLs de la app en las tiendas. Reemplaza con los links reales cuando estén disponibles.
 const STORE_URL = Platform.OS === 'ios'
@@ -30,6 +23,7 @@ const STORE_URL = Platform.OS === 'ios'
  * @param {function} onDismiss      - Callback al presionar "Más tarde"
  */
 export default function UpdateModal({ visible, currentVersion, latestVersion, onDismiss }) {
+    const { width } = useWindowDimensions();
     const handleUpdate = async () => {
         try {
             const supported = await Linking.canOpenURL(STORE_URL);
@@ -49,7 +43,7 @@ export default function UpdateModal({ visible, currentVersion, latestVersion, on
             statusBarTranslucent
         >
             <View style={styles.overlay}>
-                <View style={styles.card}>
+                <View style={[styles.card, { width: Math.min(width - 48, 380) }]}>
                     {/* Icono decorativo */}
                     <View style={styles.iconContainer}>
                         <Text style={styles.iconEmoji}>⚖️</Text>
@@ -110,13 +104,8 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.surface,
         borderRadius: 24,
         padding: 28,
-        width: Math.min(width - 48, 380),
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.25,
-        shadowRadius: 24,
-        elevation: 16,
+        boxShadow: '0px 20px 25px -5px rgba(0, 0, 0, 0.1)',
     },
 
     // Icono
@@ -226,11 +215,7 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: 'center',
         marginBottom: 10,
-        shadowColor: COLORS.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
+        boxShadow: '0px 10px 15px -3px rgba(15, 23, 42, 0.1)',
     },
     updateButtonText: {
         color: '#FFFFFF',

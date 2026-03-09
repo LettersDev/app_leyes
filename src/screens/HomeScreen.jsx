@@ -1,19 +1,40 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Linking } from 'react-native';
+import React, { useReducer, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Card, Title, Paragraph, IconButton, Avatar, Surface, Banner, Portal, Dialog, Button, Badge } from 'react-native-paper';
+import { IconButton, Banner } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HistoryManager from '../utils/historyManager';
 import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES, GRADIENTS } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
 
+// Sub-components
+import HomeHistory from '../components/HomeHistory';
+import HomeCategories from '../components/HomeCategories';
+import HomeDialogs from '../components/HomeDialogs';
+
+const initialState = {
+    history: [],
+    hasNewLaws: false,
+    showDisclaimer: false,
+    updateAvailable: null,
+    updatedCategories: [],
+};
+
+function reducer(state, action) {
+    switch (action.type) {
+        case 'SET_FIELD':
+            return { ...state, [action.field]: action.value };
+        case 'REMOVE_CATEGORY_UPDATE':
+            return { ...state, updatedCategories: state.updatedCategories.filter(c => c !== action.id) };
+        default:
+            return state;
+    }
+}
+
 const HomeScreen = ({ navigation }) => {
-    const [history, setHistory] = useState([]);
-    const [hasNewLaws, setHasNewLaws] = useState(false);
-    const [showDisclaimer, setShowDisclaimer] = useState(false);
-    const [updateAvailable, setUpdateAvailable] = useState(null); // { latestVersion: string }
-    const [updatedCategories, setUpdatedCategories] = useState([]);
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const { history, hasNewLaws, showDisclaimer, updateAvailable, updatedCategories } = state;
 
     useFocusEffect(
         useCallback(() => {
@@ -24,24 +45,23 @@ const HomeScreen = ({ navigation }) => {
     );
 
     useEffect(() => {
+        const checkDisclaimer = async () => {
+            try {
+                const hasSeenDisclaimer = await AsyncStorage.getItem('@disclaimer_seen_v2');
+                if (!hasSeenDisclaimer) {
+                    dispatch({ type: 'SET_FIELD', field: 'showDisclaimer', value: true });
+                }
+            } catch (error) {
+                console.error('Error checking disclaimer:', error);
+            }
+        };
         checkDisclaimer();
     }, []);
-
-    const checkDisclaimer = async () => {
-        try {
-            const hasSeenDisclaimer = await AsyncStorage.getItem('@disclaimer_seen_v2');
-            if (!hasSeenDisclaimer) {
-                setShowDisclaimer(true);
-            }
-        } catch (error) {
-            console.error('Error checking disclaimer:', error);
-        }
-    };
 
     const acceptDisclaimer = async () => {
         try {
             await AsyncStorage.setItem('@disclaimer_seen_v2', 'true');
-            setShowDisclaimer(false);
+            dispatch({ type: 'SET_FIELD', field: 'showDisclaimer', value: false });
         } catch (error) {
             console.error('Error saving disclaimer:', error);
         }
@@ -49,28 +69,26 @@ const HomeScreen = ({ navigation }) => {
 
     const loadHistory = async () => {
         const h = await HistoryManager.getHistory();
-        setHistory(h);
+        dispatch({ type: 'SET_FIELD', field: 'history', value: h });
     };
 
     const loadUpdatedCategories = async () => {
         const cats = await LawsIndexService.getUpdatedCategories();
-        setUpdatedCategories(cats);
+        dispatch({ type: 'SET_FIELD', field: 'updatedCategories', value: cats });
     };
 
     const checkUpdates = async () => {
-        // 1. Check laws (existing logic but getting full result)
         const updateResult = await LawsIndexService.checkAndUpdateIndex();
 
         if (updateResult.hasNewLaws) {
-            setHasNewLaws(true);
-            setUpdatedCategories(updateResult.updatedCategories || []);
+            dispatch({ type: 'SET_FIELD', field: 'hasNewLaws', value: true });
+            dispatch({ type: 'SET_FIELD', field: 'updatedCategories', value: updateResult.updatedCategories || [] });
         }
 
-        // 2. Check App Version
         if (updateResult.latestAppVersion) {
             const currentVersion = LawsIndexService.getCurrentAppVersion();
             if (isVersionLower(currentVersion, updateResult.latestAppVersion)) {
-                setUpdateAvailable({ latestVersion: updateResult.latestAppVersion });
+                dispatch({ type: 'SET_FIELD', field: 'updateAvailable', value: { latestVersion: updateResult.latestAppVersion } });
             }
         }
     };
@@ -87,10 +105,10 @@ const HomeScreen = ({ navigation }) => {
 
     const dismissNewLawsBanner = async () => {
         await LawsIndexService.clearNewLawsNotification();
-        setHasNewLaws(false);
+        dispatch({ type: 'SET_FIELD', field: 'hasNewLaws', value: false });
     };
 
-    const handleHistoryPress = (item) => {
+    const handleHistoryPress = useCallback((item) => {
         if (item.type === 'law') {
             navigation.navigate('LawDetail', {
                 lawId: item.id,
@@ -102,68 +120,26 @@ const HomeScreen = ({ navigation }) => {
                 title: `Sentencia Exp: ${item.data.expediente}`
             });
         }
-    };
+    }, [navigation]);
 
-    const handleRemoveHistory = async (id) => {
+    const handleRemoveHistory = useCallback(async (id) => {
         const newHistory = await HistoryManager.removeVisit(id);
-        setHistory(newHistory);
-    };
-    const categories = [
-        {
-            id: LAW_CATEGORIES.CONSTITUCION,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CONSTITUCION],
-            icon: 'book-open-variant',
-            description: 'Constitución de la República Bolivariana de Venezuela',
-            color: COLORS.primary,
-            navigateTo: 'LawsList',
-        },
-        {
-            id: LAW_CATEGORIES.CODIGOS,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGOS],
-            icon: 'book-multiple',
-            description: 'Códigos Civil, Penal, Comercio y más',
-            color: '#059669',
-            navigateTo: 'CodesList',
-        },
-        {
-            id: LAW_CATEGORIES.LEYES,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.LEYES],
-            icon: 'bookshelf',
-            description: 'Leyes Orgánicas, Especiales y Reglamentos',
-            color: '#8B5CF6',
-            navigateTo: 'LawsList',
-        },
-        {
-            id: LAW_CATEGORIES.TSJ,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.TSJ],
-            icon: 'gavel',
-            description: 'Sentencias del Tribunal Supremo de Justicia',
-            color: '#DC2626',
-            navigateTo: 'Jurisprudence',
-        },
-        {
-            id: LAW_CATEGORIES.GACETA,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.GACETA],
-            icon: 'newspaper',
-            description: 'Gaceta Oficial de la República',
-            color: '#D97706',
-            navigateTo: 'Gacetas',
-        },
-        {
-            id: LAW_CATEGORIES.CONVENIOS,
-            name: CATEGORY_NAMES[LAW_CATEGORIES.CONVENIOS],
-            icon: 'earth',
-            description: 'Acuerdos y tratados internacionales suscritos',
-            color: '#0891B2', // Cyan 600
-            navigateTo: 'LawsList',
-        },
+        dispatch({ type: 'SET_FIELD', field: 'history', value: newHistory });
+    }, []);
+
+    const categoriesList = [
+        { id: LAW_CATEGORIES.CONSTITUCION, name: CATEGORY_NAMES[LAW_CATEGORIES.CONSTITUCION], icon: 'book-open-variant', description: 'Constitución de la República Bolivariana de Venezuela', color: COLORS.primary, navigateTo: 'LawsList' },
+        { id: LAW_CATEGORIES.CODIGOS, name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGOS], icon: 'book-multiple', description: 'Códigos Civil, Penal, Comercio y más', color: '#059669', navigateTo: 'CodesList' },
+        { id: LAW_CATEGORIES.LEYES, name: CATEGORY_NAMES[LAW_CATEGORIES.LEYES], icon: 'bookshelf', description: 'Leyes Orgánicas, Especiales y Reglamentos', color: '#8B5CF6', navigateTo: 'LawsList' },
+        { id: LAW_CATEGORIES.TSJ, name: CATEGORY_NAMES[LAW_CATEGORIES.TSJ], icon: 'gavel', description: 'Sentencias del Tribunal Supremo de Justicia', color: '#DC2626', navigateTo: 'Jurisprudence' },
+        { id: LAW_CATEGORIES.GACETA, name: CATEGORY_NAMES[LAW_CATEGORIES.GACETA], icon: 'newspaper', description: 'Gaceta Oficial de la República', color: '#D97706', navigateTo: 'Gacetas' },
+        { id: LAW_CATEGORIES.CONVENIOS, name: CATEGORY_NAMES[LAW_CATEGORIES.CONVENIOS], icon: 'earth', description: 'Acuerdos y tratados internacionales suscritos', color: '#0891B2', navigateTo: 'LawsList' },
     ];
 
     const handleCategoryPress = async (category) => {
-        // Limpiar badge si existe
         if (updatedCategories.includes(category.id)) {
             await LawsIndexService.clearCategoryNotification(category.id);
-            setUpdatedCategories(prev => prev.filter(c => c !== category.id));
+            dispatch({ type: 'REMOVE_CATEGORY_UPDATE', id: category.id });
         }
 
         if (category.navigateTo === 'CodesList') {
@@ -189,241 +165,74 @@ const HomeScreen = ({ navigation }) => {
                     <Banner
                         visible={hasNewLaws}
                         icon="new-box"
-                        actions={[
-                            { label: 'Entendido', onPress: dismissNewLawsBanner }
-                        ]}
+                        actions={[{ label: 'Entendido', onPress: dismissNewLawsBanner }]}
                         style={styles.newLawsBanner}
                     >
-                        ¡Nuevas leyes disponibles! Revisa las categorías para ver las actualizaciones.
+                        <Text>¡Nuevas leyes disponibles! Revisa las categorías para ver las actualizaciones.</Text>
                     </Banner>
                 )}
-                <LinearGradient
-                    colors={GRADIENTS.legal}
-                    style={styles.header}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                >
+                <LinearGradient colors={GRADIENTS.legal} style={styles.header} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                     <View style={styles.headerTopRow}>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.greeting}>Hola, Bienvenido</Text>
                             <Text style={styles.title}>TuLey</Text>
                             <View style={styles.titleUnderline} />
                         </View>
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('Favorites')}
-                            style={styles.favoritesButton}
-                        >
-                            <IconButton
-                                icon="star"
-                                iconColor="#FFD700"
-                                size={28}
-                                style={{ margin: 0 }}
-                            />
+                        <TouchableOpacity onPress={() => navigation.navigate('Favorites')} style={styles.favoritesButton}>
+                            <IconButton icon="star" iconColor="#FFD700" size={28} style={{ margin: 0 }} />
                         </TouchableOpacity>
                     </View>
-                    <Text style={styles.subtitle}>
-                        Tu guía legal digital en Venezuela
-                    </Text>
+                    <Text style={styles.subtitle}>Tu guía legal digital en Venezuela</Text>
                 </LinearGradient>
 
-                <TouchableOpacity
-                    style={styles.searchButton}
-                    onPress={() => navigation.navigate('Search')}
-                >
+                <TouchableOpacity style={styles.searchButton} onPress={() => navigation.navigate('Search')}>
                     <IconButton icon="magnify" size={24} iconColor={COLORS.textSecondary} />
                     <Text style={styles.searchText}>Buscar leyes...</Text>
                 </TouchableOpacity>
 
-                {history.length > 0 && (
-                    <View style={styles.historySection}>
-                        <Text style={styles.sectionTitle}>Continuar leyendo</Text>
-                        <FlatList
-                            horizontal
-                            data={history}
-                            keyExtractor={(item, index) => `hist-${item.id}-${index}`}
-                            showsHorizontalScrollIndicator={false}
-                            renderItem={({ item }) => (
-                                <View style={styles.historyCardContainer}>
-                                    <TouchableOpacity onPress={() => handleHistoryPress(item)} style={{ flex: 1 }}>
-                                        <Surface elevation={2} style={styles.historyCard}>
-                                            <View style={styles.historyContent}>
-                                                <Avatar.Icon
-                                                    size={40}
-                                                    icon={item.type === 'juris' ? 'gavel' : 'book-outline'}
-                                                    style={{ backgroundColor: item.type === 'juris' ? COLORS.error : COLORS.accent }}
-                                                />
-                                                <View style={styles.historyInfo}>
-                                                    <Text style={styles.historyTitle} numberOfLines={1}>{item.title}</Text>
-                                                    <Text style={styles.historySubtitle} numberOfLines={1}>{item.subtitle}</Text>
-                                                </View>
-                                            </View>
-                                        </Surface>
-                                    </TouchableOpacity>
-                                    <IconButton
-                                        icon="close-circle"
-                                        size={20}
-                                        iconColor="#EF4444"
-                                        style={styles.removeHistoryButton}
-                                        onPress={() => handleRemoveHistory(item.id)}
-                                    />
-                                </View>
-                            )}
-                            contentContainerStyle={styles.historyList}
-                        />
-                    </View>
-                )}
+                <HomeHistory
+                    history={history}
+                    onHistoryPress={handleHistoryPress}
+                    onRemoveHistory={handleRemoveHistory}
+                />
 
-                <View style={styles.categoriesContainer}>
-                    <Text style={styles.sectionTitle}>Categorías</Text>
-
-                    {categories.map((category) => (
-                        <TouchableOpacity
-                            key={category.id}
-                            onPress={() => handleCategoryPress(category)}
-                            activeOpacity={0.8}
-                        >
-                            <Surface elevation={1} style={styles.categoryCard}>
-                                <View style={styles.cardContent}>
-                                    <LinearGradient
-                                        colors={[category.color, category.color + 'CC']}
-                                        style={styles.iconContainer}
-                                    >
-                                        <IconButton icon={category.icon} size={28} iconColor="#fff" style={{ margin: 0 }} />
-                                        {updatedCategories.includes(category.id) && (
-                                            <Badge
-                                                visible={true}
-                                                size={12}
-                                                style={styles.categoryBadge}
-                                            />
-                                        )}
-                                    </LinearGradient>
-                                    <View style={styles.categoryInfo}>
-                                        <Text style={styles.categoryTitle}>{category.name}</Text>
-                                        <Text style={styles.categoryDescription} numberOfLines={1}>
-                                            {category.description}
-                                        </Text>
-                                    </View>
-                                    <IconButton icon="chevron-right" size={20} iconColor={COLORS.textSecondary} />
-                                </View>
-                            </Surface>
-                        </TouchableOpacity>
-                    ))}
-                </View>
+                <HomeCategories
+                    categories={categoriesList}
+                    updatedCategories={updatedCategories}
+                    onCategoryPress={handleCategoryPress}
+                />
 
                 <View style={styles.disclaimerFooter}>
                     <Text style={styles.disclaimerText}>
-                        Esta aplicación NO representa a ninguna entidad gubernamental.
-                        {'\n'}Fuentes: TSJ, Asamblea Nacional, Gaceta Oficial.
+                        <Text>Esta aplicación NO representa a ninguna entidad gubernamental.</Text>
+                        <Text>{'\n'}</Text>
+                        <Text>Fuentes: TSJ, Asamblea Nacional, Gaceta Oficial.</Text>
                     </Text>
-                    <Text style={styles.versionText}>TuLey v{LawsIndexService.getCurrentAppVersion()}</Text>
+                    <Text style={styles.versionText}>
+                        <Text>TuLey v{LawsIndexService.getCurrentAppVersion()}</Text>
+                    </Text>
                 </View>
             </ScrollView>
 
-            <Portal>
-                {/* Modal de Actualización Disponible */}
-                <Dialog
-                    visible={!!updateAvailable}
-                    onDismiss={() => setUpdateAvailable(null)}
-                    style={{ backgroundColor: '#fff', borderRadius: 16 }}
-                >
-                    <Dialog.Icon icon="update" color={COLORS.accent} size={40} />
-                    <Dialog.Title style={{ textAlign: 'center', color: COLORS.primary }}>
-                        Actualización Disponible
-                    </Dialog.Title>
-                    <Dialog.Content>
-                        <Paragraph style={{ textAlign: 'center' }}>
-                            Hay una nueva versión de <Text style={{ fontWeight: 'bold' }}>TuLey ({updateAvailable?.latestVersion})</Text> disponible en el Play Store con mejoras y correcciones.
-                        </Paragraph>
-                    </Dialog.Content>
-                    <Dialog.Actions style={{ flexDirection: 'column', gap: 10, paddingBottom: 20 }}>
-                        <Button
-                            mode="contained"
-                            onPress={() => {
-                                Linking.openURL('market://details?id=com.lettersdev.tuley');
-                                setUpdateAvailable(null);
-                            }}
-                            style={{ width: '80%', borderRadius: 20 }}
-                        >
-                            Actualizar Ahora
-                        </Button>
-                        <Button onPress={() => setUpdateAvailable(null)}>Más tarde</Button>
-                    </Dialog.Actions>
-                </Dialog>
-
-                <Dialog visible={showDisclaimer} onDismiss={acceptDisclaimer} style={{ backgroundColor: '#fff', borderRadius: 16 }}>
-                    <Dialog.Icon icon="shield-alert" color={COLORS.error} size={40} />
-                    <Dialog.Title style={{ textAlign: 'center', color: COLORS.primary, fontSize: 20 }}>Aviso Legal Importante</Dialog.Title>
-                    <Dialog.Content>
-                        <Paragraph style={{ textAlign: 'center', marginBottom: 10, fontSize: 16, fontWeight: 'bold' }}>
-                            TuLey NO representa a ninguna entidad gubernamental.
-                        </Paragraph>
-                        <Paragraph style={{ textAlign: 'center', fontSize: 14, color: COLORS.textSecondary }}>
-                            La información mostrada en esta aplicación proviene de fuentes públicas oficiales para facilitar su consulta, pero no sustituye a los documentos oficiales.
-                        </Paragraph>
-                        <Paragraph style={{ textAlign: 'center', marginTop: 15, fontSize: 12, color: '#64748B' }}>
-                            Fuentes utilizadas:
-                            {'\n'}• Tribunal Supremo de Justicia (tsj.gob.ve)
-                            {'\n'}• Gaceta Oficial de la República
-                            {'\n'}• Asamblea Nacional
-                        </Paragraph>
-                    </Dialog.Content>
-                    <Dialog.Actions style={{ justifyContent: 'center', paddingBottom: 20 }}>
-                        <Button mode="contained" onPress={acceptDisclaimer} style={{ paddingHorizontal: 20, borderRadius: 20 }}>
-                            Entendido, Aceptar
-                        </Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+            <HomeDialogs
+                updateAvailable={updateAvailable}
+                setUpdateAvailable={(val) => dispatch({ type: 'SET_FIELD', field: 'updateAvailable', value: val })}
+                showDisclaimer={showDisclaimer}
+                acceptDisclaimer={acceptDisclaimer}
+            />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    header: {
-        paddingTop: 50,
-        paddingBottom: 40,
-        paddingHorizontal: 20,
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
-    },
-    greeting: {
-        fontSize: 14,
-        color: '#CBD5E1',
-        fontWeight: '500',
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#fff',
-        marginTop: 4,
-    },
-    titleUnderline: {
-        height: 4,
-        width: 40,
-        backgroundColor: COLORS.accent,
-        borderRadius: 2,
-        marginTop: 4,
-    },
-    subtitle: {
-        fontSize: 14,
-        color: '#94A3B8',
-        marginTop: 20,
-        fontStyle: 'italic',
-    },
-    headerTopRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    favoritesButton: {
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: 12,
-        padding: 4,
-    },
+    container: { flex: 1, backgroundColor: COLORS.background },
+    header: { paddingTop: 50, paddingBottom: 40, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
+    greeting: { fontSize: 14, color: '#CBD5E1', fontWeight: '500' },
+    title: { fontSize: 32, fontWeight: 'bold', color: '#fff', marginTop: 4 },
+    titleUnderline: { height: 4, width: 40, backgroundColor: COLORS.accent, borderRadius: 2, marginTop: 4 },
+    subtitle: { fontSize: 14, color: '#94A3B8', marginTop: 20, fontStyle: 'italic' },
+    headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    favoritesButton: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 4 },
     searchButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -432,135 +241,13 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         padding: 12,
         borderRadius: 15,
-        elevation: 10,
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
+        boxShadow: '0px 4px 10px rgba(15, 23, 42, 0.1)',
     },
-    searchText: {
-        flex: 1,
-        fontSize: 16,
-        color: COLORS.textSecondary,
-        fontWeight: '500',
-    },
-    categoriesContainer: {
-        padding: 20,
-        marginTop: 10,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: COLORS.primary,
-        marginBottom: 16,
-        letterSpacing: 0.5,
-    },
-    categoryCard: {
-        marginBottom: 16,
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        overflow: 'hidden',
-    },
-    cardContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-    },
-    iconContainer: {
-        borderRadius: 12,
-        marginRight: 15,
-        width: 48,
-        height: 48,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    categoryInfo: {
-        flex: 1,
-    },
-    categoryTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: 2,
-    },
-    categoryDescription: {
-        fontSize: 12,
-        color: COLORS.textSecondary,
-    },
-    historySection: {
-        marginTop: 10,
-    },
-    historyList: {
-        paddingHorizontal: 20,
-        paddingBottom: 10,
-    },
-    historyCard: {
-        flex: 1,
-        backgroundColor: '#fff',
-        borderRadius: 16,
-    },
-    historyCardContainer: {
-        width: 240,
-        marginRight: 15,
-        paddingTop: 10,
-    },
-    removeHistoryButton: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        margin: 0,
-        zIndex: 2,
-    },
-    historyContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 15,
-    },
-    historyInfo: {
-        marginLeft: 12,
-        flex: 1,
-    },
-    historyTitle: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: COLORS.text,
-    },
-    historySubtitle: {
-        fontSize: 11,
-        color: COLORS.textSecondary,
-    },
-    newLawsBanner: {
-        backgroundColor: '#ECFDF5',
-        marginHorizontal: 16,
-        marginTop: 10,
-        borderRadius: 12,
-    },
-    disclaimerFooter: {
-        paddingHorizontal: 24,
-        paddingVertical: 15,
-        marginBottom: 80,
-        alignItems: 'center',
-    },
-    disclaimerText: {
-        fontSize: 11,
-        color: '#94A3B8',
-        textAlign: 'center',
-        lineHeight: 16,
-        fontStyle: 'italic',
-    },
-    versionText: {
-        fontSize: 10,
-        color: '#CBD5E1',
-        marginTop: 8,
-    },
-    categoryBadge: {
-        position: 'absolute',
-        top: 2,
-        right: 2,
-        backgroundColor: '#EF4444', // Red-500
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
+    searchText: { flex: 1, fontSize: 16, color: COLORS.textSecondary, fontWeight: '500' },
+    newLawsBanner: { backgroundColor: '#ECFDF5', marginHorizontal: 16, marginTop: 10, borderRadius: 12 },
+    disclaimerFooter: { paddingHorizontal: 24, paddingVertical: 15, marginBottom: 80, alignItems: 'center' },
+    disclaimerText: { fontSize: 11, color: '#94A3B8', textAlign: 'center', lineHeight: 16, fontStyle: 'italic' },
+    versionText: { fontSize: 10, color: '#CBD5E1', marginTop: 8 },
 });
 
 export default HomeScreen;

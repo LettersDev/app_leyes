@@ -45,7 +45,7 @@ const ReadingSettingsModal = ({ visible, onDismiss }) => {
                 </View>
 
                 <Button mode="contained" onPress={onDismiss} style={styles.closeButton}>
-                    Listo
+                    <Text>Listo</Text>
                 </Button>
             </Modal>
         </Portal>
