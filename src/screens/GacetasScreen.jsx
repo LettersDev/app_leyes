@@ -87,7 +87,8 @@ const GacetasScreen = ({ navigation }) => {
     }, []);
 
     const fetchGacetas = async (isReset = false) => {
-        if (loading) return;
+        // Permitir el 'isReset' (cambio de filtros) aunque esté cargando para evitar bloqueos
+        if (loading && !isReset) return;
         dispatch({ type: 'SET_FIELD', field: 'loading', value: true });
 
         try {
@@ -221,12 +222,15 @@ const GacetasScreen = ({ navigation }) => {
                             anchor={
                                 <Button
                                     mode="outlined"
-                                    onPress={() => dispatch({ type: 'SET_FIELD', field: 'yearMenuVisible', value: true })}
+                                    onPress={() => {
+                                        require('react-native').Keyboard.dismiss();
+                                        dispatch({ type: 'SET_FIELD', field: 'yearMenuVisible', value: true });
+                                    }}
                                     style={styles.yearButton}
                                     icon="calendar"
                                     compact
                                 >
-                                    <Text>{selectedYear === 'Todos' ? 'Año' : selectedYear}</Text>
+                                    {selectedYear === 'Todos' ? 'Año' : selectedYear}
                                 </Button>
                             }
                         >
@@ -250,12 +254,15 @@ const GacetasScreen = ({ navigation }) => {
                             anchor={
                                 <Button
                                     mode="outlined"
-                                    onPress={() => dispatch({ type: 'SET_FIELD', field: 'typeMenuVisible', value: true })}
+                                    onPress={() => {
+                                        require('react-native').Keyboard.dismiss(); // Cerrar teclado para evitar bloqueos de touch
+                                        dispatch({ type: 'SET_FIELD', field: 'typeMenuVisible', value: true });
+                                    }}
                                     style={[styles.yearButton, { marginLeft: 8 }]}
                                     icon="filter-variant"
                                     compact
                                 >
-                                    <Text>{selectedType === 'Todos' ? 'Tipo' : selectedType}</Text>
+                                    {selectedType === 'Todos' ? 'Tipo' : selectedType}
                                 </Button>
                             }
                         >
@@ -287,23 +294,24 @@ const GacetasScreen = ({ navigation }) => {
                 <View style={styles.errorContainer}>
                     <IconButton
                         icon={indexError === 'OFFLINE_ERROR' ? "wifi-off" : "alert-circle"}
-                        size={60}
+                        size={80}
                         iconColor={indexError === 'OFFLINE_ERROR' ? COLORS.textSecondary : COLORS.error}
                     />
-                    <Title style={{ textAlign: 'center', marginBottom: 10 }}>
-                        <Text>{indexError === 'OFFLINE_ERROR' ? 'Sin Conexión' : 'Error de Conexión'}</Text>
+                    <Title style={styles.errorTitle}>
+                        {indexError === 'OFFLINE_ERROR' ? 'Sin Conexión' : 'Error de Conexión'}
                     </Title>
-                    <Paragraph style={{ textAlign: 'center', color: COLORS.textSecondary, marginBottom: 20 }}>
-                        <Text>{indexError === 'OFFLINE_ERROR'
+                    <Paragraph style={styles.errorText}>
+                        {indexError === 'OFFLINE_ERROR'
                             ? 'No se pudieron cargar las gacetas. Por favor, verifica tu internet.'
-                            : 'Error al cargar Gacetas. Verifica tu conexión.'}</Text>
+                            : 'Hubo un problema al cargar los datos. Verifica tu conexión.'}
                     </Paragraph>
                     <Button
                         mode="contained"
                         onPress={() => fetchGacetas(true)}
-                        style={{ borderRadius: 20 }}
+                        style={styles.retryButton}
+                        labelStyle={styles.retryButtonLabel}
                     >
-                        <Text>Reintentar</Text>
+                        Reintentar
                     </Button>
                 </View>
             ) : (
@@ -375,6 +383,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: COLORS.background,
     },
     sectionHeader: {
         backgroundColor: COLORS.background,
@@ -391,7 +400,30 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20
+        padding: 40,
+        backgroundColor: COLORS.background,
+    },
+    errorTitle: {
+        textAlign: 'center',
+        marginBottom: 8,
+        fontWeight: 'bold',
+        color: COLORS.text,
+    },
+    errorText: {
+        textAlign: 'center',
+        color: COLORS.textSecondary,
+        marginBottom: 24,
+        lineHeight: 20,
+    },
+    retryButton: {
+        borderRadius: 25,
+        paddingHorizontal: 16,
+        backgroundColor: COLORS.primary,
+    },
+    retryButtonLabel: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
     emptyContainer: {
         alignItems: 'center',

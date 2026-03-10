@@ -79,10 +79,10 @@ const LawDetailScreen = ({ route, navigation }) => {
             const offline = await OfflineService.isLawOffline(lawId);
             dispatch({ type: 'SET_FIELD', field: 'isOfflineAvailable', value: offline });
 
-            const startIdx = jumpToIndex || 0;
+            const startIdx = (jumpToIndex !== undefined && jumpToIndex > 0) ? jumpToIndex - 1 : -1;
             const initialItems = await getLawItems(lawId, startIdx, PAGE_SIZE);
             dispatch({ type: 'SET_FIELD', field: 'items', value: initialItems });
-            dispatch({ type: 'SET_FIELD', field: 'lastIndex', value: initialItems[initialItems.length - 1]?.index || 0 });
+            dispatch({ type: 'SET_FIELD', field: 'lastIndex', value: initialItems[initialItems.length - 1]?.index || (startIdx === -1 ? 0 : startIdx) });
 
             loadFavoriteStatus();
             loadNotes();
@@ -162,21 +162,41 @@ const LawDetailScreen = ({ route, navigation }) => {
         loadFavoriteStatus();
     };
 
-    const toggleFavoriteArticle = async (item) => {
+    const toggleFavoriteArticle = useCallback(async (item) => {
         if (!law) return;
         const id = `${lawId}-${item.id || item.index}`;
         await FavoritesManager.toggleFavorite({ id, type: 'law_article', title: `Art. ${item.number} - ${law.title}`, subtitle: item.text.substring(0, 100) + '...', data: { lawId, itemIndex: item.index, articleNumber: item.number } });
         loadFavoriteStatus();
-    };
+    }, [law, lawId, loadFavoriteStatus]);
 
     const handleShareLaw = () => {
         if (!law) return;
         FavoritesManager.shareContent(law.title, `Te comparto la ${law.title} desde TuLey.`);
     };
-    const handleShareArticle = (item) => {
+    const handleShareArticle = useCallback((item) => {
         if (!law) return;
         FavoritesManager.shareContent(item.title || 'Artículo', `"${item.text}"\n\nFuente: ${law.title}`);
-    };
+    }, [law]);
+
+    const handleOpenNote = useCallback((it) => {
+        dispatch({
+            type: 'UPDATE',
+            updates: {
+                editingNote: {
+                    id: `${lawId}-${it.id || it.index}`,
+                    text: notes[`${lawId}-${it.id || it.index}`]?.text || '',
+                    title: it.title || `Art. ${it.number}`
+                },
+                noteDialogVisible: true
+            }
+        });
+    }, [lawId, notes]);
+
+    const handleJumpToContext = useCallback((idx) => {
+        dispatch({ type: 'SET_FIELD', field: 'loading', value: true });
+        dispatch({ type: 'RESET_SEARCH' });
+        navigation.setParams({ jumpToIndex: idx });
+    }, [navigation]);
 
     const handleDownloadContent = async () => {
         dispatch({ type: 'SET_FIELD', field: 'isDownloadingContent', value: true });
@@ -203,22 +223,15 @@ const LawDetailScreen = ({ route, navigation }) => {
         <LawArticle
             item={item} index={index} fontSize={fontSize} fontFamily={fontFamily} searchQuery={searchQuery}
             isSearching={isSearching} isExactMatch={searchTargetNum && item.number === searchTargetNum}
-            onOpenNote={(it) => dispatch({
-                type: 'UPDATE',
-                updates: {
-                    editingNote: {
-                        id: `${lawId}-${it.id || it.index}`,
-                        text: notes[`${lawId}-${it.id || it.index}`]?.text || '',
-                        title: it.title || `Art. ${it.number}`
-                    },
-                    noteDialogVisible: true
-                }
-            })}
-            onToggleFavorite={toggleFavoriteArticle} onShare={handleShareArticle}
-            onJumpToContext={(idx) => navigation.setParams({ jumpToIndex: idx })}
-            hasNote={!!notes[`${lawId}-${item.id || item.index}`]} isFavorite={favoriteIds.has(`${lawId}-${item.id || item.index}`)}
+            onOpenNote={handleOpenNote}
+            onToggleFavorite={toggleFavoriteArticle}
+            onShare={handleShareArticle}
+            onJumpToContext={handleJumpToContext}
+            hasNote={!!notes[`${lawId}-${item.id || item.index}`]}
+            noteText={notes[`${lawId}-${item.id || item.index}`]?.text}
+            isFavorite={favoriteIds.has(`${lawId}-${item.id || item.index}`)}
         />
-    ), [lawId, fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, notes, favoriteIds, navigation]);
+    ), [fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, handleOpenNote, toggleFavoriteArticle, handleShareArticle, handleJumpToContext, notes, lawId, favoriteIds]);
 
     if (loading && !isSearching) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /><Text>Cargando ley...</Text></View>;
     if (error || !law) {
@@ -289,9 +302,10 @@ const LawDetailScreen = ({ route, navigation }) => {
                 onEndReached={isSearching ? null : loadMoreItems}
                 onEndReachedThreshold={0.5}
                 contentContainerStyle={{ paddingBottom: 20 }}
-                initialNumToRender={15}
-                maxToRenderPerBatch={20}
-                windowSize={10}
+                initialNumToRender={6}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                updateCellsBatchingPeriod={50}
                 removeClippedSubviews={true}
             />
             <ReadingSettingsModal visible={settingsVisible} onDismiss={() => dispatch({ type: 'SET_FIELD', field: 'settingsVisible', value: false })} />

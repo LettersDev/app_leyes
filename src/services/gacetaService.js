@@ -7,8 +7,24 @@ const GacetaService = {
         try {
             let q = supabase.from('gacetas').select('*');
 
-            const term = searchQuery?.trim();
 
+
+            // Aplicar filtros de navegación si están seleccionados
+            if (selectedYear && selectedYear !== 'Todos') {
+                q = q.eq('ano', parseInt(selectedYear));
+            }
+
+            // Aplicar filtro de tipo si no es 'Todos'
+            if (selectedType && selectedType !== 'Todos') {
+                if (selectedType === 'Ordinaria') {
+                    // Para evitar que 'Ordinaria' incluya 'Extraordinaria', usamos búsqueda exacta
+                    q = q.eq('tipo', 'Ordinaria');
+                } else {
+                    q = q.ilike('tipo', `%${selectedType}%`);
+                }
+            }
+
+            const term = searchQuery?.trim();
             if (term) {
                 // Limpiar puntos para búsqueda numérica (ej: "6.809" -> "6809")
                 const cleanTerm = term.replace(/\./g, '');
@@ -16,23 +32,11 @@ const GacetaService = {
 
                 if (isNumeric) {
                     console.log('🔍 Buscando Gaceta por número:', cleanTerm);
-                    // Buscamos coincidencia exacta en numero O parcial en numero_display
                     q = q.or(`numero.eq.${parseInt(cleanTerm)},numero_display.ilike.%${term}%`);
                 } else {
                     console.log('🔍 Buscando por texto (ILIKE):', term);
                     q = q.or(`titulo.ilike.%${term}%,sumario.ilike.%${term}%,numero_display.ilike.%${term}%`);
                 }
-            } else {
-                // Navegación normal (por año o general)
-                if (selectedYear && selectedYear !== 'Todos') {
-                    q = q.eq('ano', parseInt(selectedYear));
-                }
-            }
-
-            // Aplicar filtro de tipo si no es 'Todos'
-            if (selectedType && selectedType !== 'Todos') {
-                // Usamos ilike para ser más flexibles (ej: Extraordinaria matches Extraordinaria/Antigua)
-                q = q.ilike('tipo', `%${selectedType}%`);
             }
 
             // Aplicar orden y límite siempre para consistencia

@@ -20,10 +20,16 @@ const LawArticle = React.memo(({
 }) => {
     const highlightText = (text, query) => {
         if (!text || !query) return <Text>{text}</Text>;
+
         const normalize = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
         const normText = normalize(text);
         const normQuery = normalize(query.trim());
         if (!normQuery) return <Text>{text}</Text>;
+
+        // Optimización: Si la query no está en el texto normalizado, no intentes procesar regex
+        if (normQuery.length > 2 && !normText.includes(normQuery)) {
+            return <Text>{text}</Text>;
+        }
 
         let lastIndex = 0;
         const result = [];
@@ -126,6 +132,25 @@ const LawArticle = React.memo(({
     }
 
     return Content;
+}, (prevProps, nextProps) => {
+    // Si el usuario está escribiendo pero no ha activado la búsqueda, no re-renderizar
+    if (!nextProps.isSearching && prevProps.searchQuery !== nextProps.searchQuery) {
+        return true;
+    }
+
+    // Comparación profunda de props relevantes
+    return (
+        prevProps.item.id === nextProps.item.id &&
+        prevProps.item.index === nextProps.item.index &&
+        prevProps.fontSize === nextProps.fontSize &&
+        prevProps.fontFamily === nextProps.fontFamily &&
+        prevProps.searchQuery === nextProps.searchQuery &&
+        prevProps.isSearching === nextProps.isSearching &&
+        prevProps.isExactMatch === nextProps.isExactMatch &&
+        prevProps.hasNote === nextProps.hasNote &&
+        prevProps.isFavorite === nextProps.isFavorite &&
+        prevProps.noteText === nextProps.noteText
+    );
 });
 
 const styles = StyleSheet.create({

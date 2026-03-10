@@ -175,8 +175,9 @@ const styles = StyleSheet.create({
     },
     searchBar: {
         margin: 16,
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
         borderRadius: 12,
+        backgroundColor: '#fff',
     },
     searchInput: {
         fontSize: 16,
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         borderRadius: 12,
         backgroundColor: '#fff',
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
+        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.05)',
     },
     resultTitle: {
         fontSize: 16,
@@ -215,9 +216,9 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
     highlight: {
-        backgroundColor: COLORS.secondary,
+        backgroundColor: '#FFEB3B', // Yellow background for visibility
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: '#000', // Black text for contrast
     },
     loadingText: {
         marginTop: 12,

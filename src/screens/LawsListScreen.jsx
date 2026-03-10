@@ -64,10 +64,11 @@ const LawsListScreen = ({ route, navigation }) => {
         >
             <Card style={styles.lawCard}>
                 <Card.Content>
-                    <View style={styles.cardHeader}>
-                        <Title style={styles.lawTitle} numberOfLines={2}>
-                            {item.title}
-                        </Title>
+                    <Title style={styles.lawTitle} numberOfLines={3}>
+                        {item.title}
+                    </Title>
+
+                    <View style={styles.chipsRow}>
                         {item.type && (
                             <Chip
                                 mode="outlined"
@@ -88,17 +89,19 @@ const LawsListScreen = ({ route, navigation }) => {
                         )}
                     </View>
 
-                    {item.date && (
-                        <Paragraph style={styles.date}>
-                            {formatDate(item.date)}
-                        </Paragraph>
-                    )}
+                    <View style={styles.footerRow}>
+                        {item.date && (
+                            <Paragraph style={styles.date}>
+                                {formatDate(item.date)}
+                            </Paragraph>
+                        )}
 
-                    {item.metadata?.gacetaNumber && (
-                        <Paragraph style={styles.metadata}>
-                            <Text>Gaceta N° {item.metadata.gacetaNumber}</Text>
-                        </Paragraph>
-                    )}
+                        {item.metadata?.gacetaNumber && (
+                            <Paragraph style={styles.metadata}>
+                                <Text>Gaceta N° {item.metadata.gacetaNumber}</Text>
+                            </Paragraph>
+                        )}
+                    </View>
                 </Card.Content>
             </Card>
         </TouchableOpacity>
@@ -188,61 +191,68 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     lawCard: {
-        marginBottom: 12,
-        borderRadius: 12,
+        marginBottom: 16,
+        borderRadius: 16,
         backgroundColor: '#fff',
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 8,
+        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.08)',
+        overflow: 'hidden',
     },
     lawTitle: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: '600',
+        fontSize: 18,
+        fontWeight: '700',
         color: COLORS.text,
-        marginRight: 8,
+        lineHeight: 24,
+        marginBottom: 8,
+    },
+    chipsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        marginBottom: 12,
+        gap: 8,
     },
     chip: {
-        paddingHorizontal: 0,
-        backgroundColor: COLORS.secondary + '20',
+        backgroundColor: COLORS.secondary + '15',
         borderColor: COLORS.secondary,
-        borderWidth: 0.5,
-        borderRadius: 4,
-        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderRadius: 8,
+        height: 28,
     },
     chipText: {
-        fontSize: 8,
-        fontWeight: 'bold',
+        fontSize: 11,
+        fontWeight: '700',
         color: COLORS.secondary,
         textTransform: 'uppercase',
-        paddingHorizontal: 4,
-        paddingVertical: 1,
+        paddingHorizontal: 8,
     },
     newChip: {
         backgroundColor: '#EF4444',
-        height: 20,
-        borderRadius: 4,
-        marginLeft: 8,
+        height: 28,
+        borderRadius: 8,
     },
     newChipText: {
-        fontSize: 9,
-        fontWeight: 'bold',
+        fontSize: 11,
+        fontWeight: '800',
         color: '#fff',
-        lineHeight: 12,
+        paddingHorizontal: 10,
+    },
+    footerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+        paddingTop: 8,
     },
     date: {
-        fontSize: 14,
+        fontSize: 13,
         color: COLORS.textSecondary,
-        marginBottom: 4,
+        marginBottom: 0,
     },
     metadata: {
         fontSize: 13,
         color: COLORS.primary,
-        fontWeight: '500',
+        fontWeight: '600',
     },
     loadingText: {
         marginTop: 12,

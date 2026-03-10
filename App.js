@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { MD3LightTheme, Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
@@ -25,9 +25,10 @@ const theme = {
 };
 
 export default function App() {
-  // Empezamos asumiendo que ya está inicializada para evitar el "flash" del loading
-  const [isInitializing, setIsInitializing] = useState(false);
+  // Empezamos asumiendo que está inicializando para mostrar el splash animado
+  const [isInitializing, setIsInitializing] = useState(true);
   const [initStatus, setInitStatus] = useState('');
+  const pulseValue = useRef(new Animated.Value(1)).current;
   const notificationListener = useRef();
   const responseListener = useRef();
   const [updateInfo, setUpdateInfo] = useState({ visible: false, currentVersion: '', latestVersion: '' });
@@ -49,21 +50,44 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (isInitializing) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseValue, {
+            toValue: 1.1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseValue, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [isInitializing]);
+
   const checkIfFirstLaunch = async () => {
     try {
+      // Siempre mostramos el splash animado al menos 1.5 segundos para el efecto "WOW"
+      const animationPromise = new Promise(resolve => setTimeout(resolve, 1500));
+
       const hasIndex = await LawsIndexService.hasLocalIndex();
 
       if (!hasIndex) {
-        // Primera vez: mostrar pantalla de carga mientras se configura el índice
-        setIsInitializing(true);
         setInitStatus('Configurando leyes...');
         await LawsIndexService.initialize();
         setInitStatus('¡Listo!');
-        // Pequeño retraso de 500ms solo para que el usuario vea el "¡Listo!"
+        // Si es la primera vez, quizás tardó más de 1.5s, así que esperamos un poco más
         await new Promise(resolve => setTimeout(resolve, 500));
-        setIsInitializing(false);
+      } else {
+        // Si ya está inicializada, esperamos a que se cumplan al menos los 1.5s de animación
+        await animationPromise;
       }
 
+      setIsInitializing(false);
       // Siempre ejecutar tareas en background, tanto en primer como en sucesivos lanzamientos.
       // El registro de notificaciones ocurre siempre aquí (sin bloquear la UI).
       runBackgroundTasks();
@@ -93,7 +117,20 @@ export default function App() {
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.primary} />
+            <Animated.Image
+              source={require('./assets/splash-icon.png')}
+              style={[
+                styles.splashLogo,
+                {
+                  transform: [{ scale: pulseValue }],
+                  opacity: pulseValue.interpolate({
+                    inputRange: [1, 1.1],
+                    outputRange: [0.8, 1],
+                  }),
+                },
+              ]}
+              resizeMode="contain"
+            />
             <Text style={styles.loadingText}>{initStatus}</Text>
             <Text style={styles.loadingSubtext}>
               Esto solo ocurre la primera vez
@@ -126,18 +163,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: '#000000', // Matches the new logo background for seamless blend
     padding: 20,
+  },
+  splashLogo: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
   },
   loadingText: {
     marginTop: 20,
-    fontSize: 16,
-    color: COLORS.primary,
+    fontSize: 18,
+    color: '#FFFFFF',
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
   loadingSubtext: {
     marginTop: 8,
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: '#94A3B8',
   },
 });

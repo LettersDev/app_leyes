@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         padding: 12,
         borderRadius: 15,
-        boxShadow: '0px 4px 10px rgba(15, 23, 42, 0.1)',
+        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
     },
     searchText: { flex: 1, fontSize: 16, color: COLORS.textSecondary, fontWeight: '500' },
     newLawsBanner: { backgroundColor: '#ECFDF5', marginHorizontal: 16, marginTop: 10, borderRadius: 12 },

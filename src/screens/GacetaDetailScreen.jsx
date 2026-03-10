@@ -207,7 +207,7 @@ const GacetaDetailScreen = ({ route }) => {
                 <>
                     <Divider style={{ marginVertical: 8 }} />
                     <Text style={styles.sectionLabel}>SUMARIO</Text>
-                    {finalLines.map((line) => (
+                    {finalLines.map((line, i) => (
                         <View key={line}>
                             <View style={styles.sumarioItem}>
                                 <Text style={styles.bullet}>•</Text>

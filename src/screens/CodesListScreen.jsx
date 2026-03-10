@@ -114,7 +114,9 @@ const CodesListScreen = ({ navigation }) => {
                                     <View style={styles.titleRow}>
                                         <Title style={styles.codeTitle}>{code.name}</Title>
                                         {lastSyncDate && code.last_updated && new Date(code.last_updated) > lastSyncDate && (
-                                            <View style={styles.newIndicator} />
+                                            <View style={styles.newChip}>
+                                                <Text style={styles.newChipText}>NUEVA</Text>
+                                            </View>
                                         )}
                                     </View>
                                     <Paragraph style={styles.codeDescription}>
@@ -204,13 +206,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    newIndicator: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+    newChip: {
         backgroundColor: '#EF4444',
+        paddingHorizontal: 6,
+        paddingVertical: 1,
+        borderRadius: 4,
         marginLeft: 8,
-    }
+        height: 18,
+        justifyContent: 'center',
+    },
+    newChipText: {
+        fontSize: 10,
+        fontWeight: '900',
+        color: '#fff',
+        lineHeight: 12,
+    },
 });
 
 export default CodesListScreen;

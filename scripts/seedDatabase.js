@@ -154,9 +154,8 @@ async function run() {
 
     console.log(`📁 Procesando ${files.length} leyes\n`);
 
-    let uploadedCount = 0;
-    let skippedCount = 0;
-    let totalLaws = 0;
+    let firstLawTitle = null;
+    let firstLawCategory = null;
 
     for (const file of files) {
         const fileName = path.basename(file);
@@ -176,6 +175,10 @@ async function run() {
                 } else {
                     await uploadLaw(lawData);
                     uploadedCount++;
+                    if (!firstLawTitle) {
+                        firstLawTitle = lawData.title;
+                        firstLawCategory = lawData.type || 'Ley';
+                    }
                 }
             }
         } catch (error) {
@@ -191,7 +194,7 @@ async function run() {
         const PushNotifier = require('./pushNotifier');
         const title = uploadedCount === 1 ? 'Nueva Ley Disponible' : 'Nuevas Leyes Actualizadas';
         const body = uploadedCount === 1
-            ? `Se ha cargado una nueva ley en la aplicación.`
+            ? `Se ha añadido: ${firstLawTitle} (${firstLawCategory})`
             : `Se han actualizado/agregado ${uploadedCount} leyes.`;
 
         await PushNotifier.notifyAll(title, body, { type: 'laws', count: uploadedCount });
