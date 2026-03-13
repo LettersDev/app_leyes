@@ -1,4 +1,5 @@
 import React, { useReducer, useCallback, useEffect, useRef } from 'react';
+import { useSettings } from '../context/SettingsContext';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Searchbar, IconButton, Title, Paragraph, Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,8 +32,6 @@ const initialState = {
     searchTargetNum: null,
     error: null,
     settingsVisible: false,
-    fontSize: 16,
-    fontFamily: 'default',
     favoriteIds: new Set(),
     notes: {},
     noteDialogVisible: false,
@@ -61,9 +60,10 @@ const LawDetailScreen = ({ route, navigation }) => {
     const {
         law, items, searchResults, loading, loadingMore, hasMore, lastIndex,
         searching, searchQuery, isSearching, searchTargetNum, error,
-        settingsVisible, fontSize, fontFamily, favoriteIds, notes,
+        settingsVisible, favoriteIds, notes,
         noteDialogVisible, editingNote, isDownloadingContent, isOfflineAvailable
     } = state;
+    const { fontSize, fontFamily } = useSettings();
 
     const flatListRef = useRef(null);
     const searchTimeout = useRef(null);
@@ -99,17 +99,9 @@ const LawDetailScreen = ({ route, navigation }) => {
         }
     }, [lawId, jumpToIndex, loadFavoriteStatus, loadNotes]);
 
-    const loadSettings = useCallback(async () => {
-        const size = await AsyncStorage.getItem('@reading_font_size');
-        const family = await AsyncStorage.getItem('@reading_font_family');
-        if (size) dispatch({ type: 'SET_FIELD', field: 'fontSize', value: parseInt(size) });
-        if (family) dispatch({ type: 'SET_FIELD', field: 'fontFamily', value: family });
-    }, []);
-
     useEffect(() => {
-        loadSettings();
         loadInitialData();
-    }, [loadSettings, loadInitialData]);
+    }, [loadInitialData]);
 
     const loadFavoriteStatus = async () => {
         const favs = await FavoritesManager.getFavorites();

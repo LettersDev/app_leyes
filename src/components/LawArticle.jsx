@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 
@@ -26,7 +26,6 @@ const LawArticle = React.memo(({
         const normQuery = normalize(query.trim());
         if (!normQuery) return <Text>{text}</Text>;
 
-        // Optimización: Si la query no está en el texto normalizado, no intentes procesar regex
         if (normQuery.length > 2 && !normText.includes(normQuery)) {
             return <Text>{text}</Text>;
         }
@@ -46,6 +45,70 @@ const LawArticle = React.memo(({
         }
         result.push(text.substring(lastIndex));
         return <Text>{result}</Text>;
+    };
+
+    // Parsea el texto y renderiza [TABLA]...[FIN TABLA] como tablas visuales
+    const renderArticleBody = (text, query, textStyle) => {
+        if (!text) return null;
+        const TABLE_RE = /\[TABLA\]([\s\S]*?)\[FIN TABLA\]/g;
+        const segments = [];
+        let lastIdx = 0;
+        let match;
+        let key = 0;
+
+        while ((match = TABLE_RE.exec(text)) !== null) {
+            // Texto antes de la tabla
+            if (match.index > lastIdx) {
+                const before = text.slice(lastIdx, match.index).trim();
+                if (before) {
+                    segments.push(
+                        <Text key={key++} selectable style={textStyle}>
+                            {query ? highlightText(before, query) : before}
+                        </Text>
+                    );
+                }
+            }
+            // La tabla
+            const tableLines = match[1].trim().split('\n').filter(l => l.trim().startsWith('|'));
+            const rows = tableLines.map(line =>
+                line.split('|').map(c => c.trim()).filter(c => c !== '')
+            );
+            const colCount = Math.max(...rows.map(r => r.length), 1);
+            segments.push(
+                <ScrollView key={key++} horizontal showsHorizontalScrollIndicator={false} style={styles.tableWrapper}>
+                    <View style={styles.table}>
+                        {rows.map((row, rIdx) => (
+                            <View key={rIdx} style={[styles.tableRow, rIdx === 0 && styles.tableHeaderRow]}>
+                                {Array.from({ length: colCount }).map((_, cIdx) => (
+                                    <View key={cIdx} style={[styles.tableCell, rIdx === 0 && styles.tableHeaderCell]}>
+                                        <Text style={[styles.tableCellText, rIdx === 0 && styles.tableHeaderText]}>
+                                            {row[cIdx] || ''}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        ))}
+                    </View>
+                </ScrollView>
+            );
+            lastIdx = match.index + match[0].length;
+        }
+
+        // Texto después de la última tabla
+        const after = text.slice(lastIdx).trim();
+        if (after) {
+            segments.push(
+                <Text key={key++} selectable style={textStyle}>
+                    {query ? highlightText(after, query) : after}
+                </Text>
+            );
+        }
+
+        return segments.length > 0 ? segments : (
+            <Text selectable style={textStyle}>
+                {query ? highlightText(text, query) : text}
+            </Text>
+        );
     };
 
     if (item.type === 'header') {
@@ -99,9 +162,10 @@ const LawArticle = React.memo(({
                 </View>
             </View>
 
-            <Text
-                selectable={true}
-                style={[
+            {renderArticleBody(
+                item.text,
+                isSearching ? searchQuery : null,
+                [
                     styles.articleText,
                     {
                         fontSize,
@@ -109,10 +173,8 @@ const LawArticle = React.memo(({
                         marginTop: 10,
                         lineHeight: fontSize * 1.6
                     }
-                ]}
-            >
-                {highlightText(item.text, searchQuery)}
-            </Text>
+                ]
+            )}
 
             {hasNote && (
                 <View style={styles.noteContent}>
@@ -230,6 +292,49 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#475569',
         fontStyle: 'italic',
+    },
+    // --- Estilos de tabla ---
+    tableWrapper: {
+        marginVertical: 12,
+        borderRadius: 8,
+    },
+    table: {
+        borderWidth: 1,
+        borderColor: '#CBD5E1',
+        borderRadius: 8,
+        overflow: 'hidden',
+        minWidth: '100%',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2E8F0',
+        backgroundColor: '#fff',
+    },
+    tableHeaderRow: {
+        backgroundColor: COLORS.primary,
+    },
+    tableCell: {
+        minWidth: 100,
+        maxWidth: 220,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderRightWidth: 1,
+        borderRightColor: '#E2E8F0',
+        justifyContent: 'center',
+    },
+    tableHeaderCell: {
+        borderRightColor: 'rgba(255,255,255,0.3)',
+    },
+    tableCellText: {
+        fontSize: 13,
+        color: '#334155',
+        flexWrap: 'wrap',
+    },
+    tableHeaderText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 12,
     },
 });
 

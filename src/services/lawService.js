@@ -204,8 +204,28 @@ export const searchLawItemsByText = async (lawId, searchText) => {
                 .slice(0, 50);
         }
 
-        // Supabase: búsqueda ilike (rápido, soporta acentos via unaccent si está configurado)
-        const { data, error } = await supabase
+        // Supabase: búsqueda priorizada
+        console.log(`[Remote Search] law:${lawId}, query:${searchText}`);
+
+        // 1. Si es un número, intentar coincidencia exacta primero
+        let prioritizedResults = [];
+        const isNumber = /^\d+$/.test(searchText.trim());
+
+        if (isNumber) {
+            const { data: exactMatch } = await supabase
+                .from('law_items')
+                .select('*')
+                .eq('law_id', lawId)
+                .eq('number', parseInt(searchText))
+                .limit(1);
+
+            if (exactMatch && exactMatch.length > 0) {
+                prioritizedResults.push(exactMatch[0]);
+            }
+        }
+
+        // 2. Búsqueda por texto (ilike)
+        const { data: textMatches, error } = await supabase
             .from('law_items')
             .select('*')
             .eq('law_id', lawId)
@@ -214,7 +234,15 @@ export const searchLawItemsByText = async (lawId, searchText) => {
             .limit(50);
 
         if (error) throw error;
-        return data || [];
+
+        // Combinar evitando duplicados
+        const exactId = prioritizedResults[0]?.id;
+        const finalResults = [
+            ...prioritizedResults,
+            ...(textMatches || []).filter(item => item.id !== exactId)
+        ];
+
+        return finalResults;
     } catch (error) {
         if (error.message && error.message.toLowerCase().includes('network')) {
             throw new Error('OFFLINE_ERROR');

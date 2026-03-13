@@ -2,6 +2,7 @@ require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 // --- CONFIGURACIÓN SUPABASE ---
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -10,16 +11,25 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const BATCH_SIZE = 400;
 const DELAY_MS = 200;
-const SCHEMA_VERSION = "v5_unique_ids";
+
+// Pasa --force para re-subir todo aunque no haya cambios
+const FORCE_ALL = process.argv.includes('--force');
 
 // --- UTILIDADES ---
 
+/**
+ * Genera un hash SHA256 basado en el CONTENIDO REAL de los artículos.
+ * Así, si el texto no cambió, el hash es el mismo y la ley se omite.
+ */
 function getLawHash(law) {
-    const articleCount = law.content?.articles?.length || 0;
-    return `${law.title}_${articleCount}_${law.date}_${SCHEMA_VERSION}`;
+    const articles = law.content?.articles || [];
+    // Serializar solo los campos relevantes (tipo, número y texto)
+    const content = articles.map(a => `${a.type}|${a.number || ''}|${a.text || ''}`).join('\n');
+    return crypto.createHash('sha256').update(`${law.title}\n${content}`).digest('hex');
 }
 
 async function lawExistsAndIsSame(category, newHash) {
+    if (FORCE_ALL) return false;
     try {
         const { data, error } = await supabase
             .from('laws')
@@ -61,7 +71,16 @@ async function uploadLaw(lawData) {
 
     if (lawError) throw lawError;
 
-    // 2. Guardar Artículos en tabla law_items (por lotes)
+    // 2. LIMPIAR artículos viejos antes de re-subir
+    console.log(`   🧹 Eliminando artículos antiguos de law_items...`);
+    const { error: deleteError } = await supabase
+        .from('law_items')
+        .delete()
+        .eq('law_id', category);
+
+    if (deleteError) throw deleteError;
+
+    // 3. Guardar Artículos en tabla law_items (por lotes)
     const totalBatches = Math.ceil(articles.length / BATCH_SIZE);
 
     for (let i = 0; i < articles.length; i += BATCH_SIZE) {
@@ -70,7 +89,6 @@ async function uploadLaw(lawData) {
 
         const rows = currentBatch.map((item, j) => {
             const index = i + j;
-            // Usamos el índice para garantizar unicidad y evitar el error ON CONFLICT
             const itemId = `${item.type}_${index}`;
             return {
                 id: itemId,
@@ -86,7 +104,7 @@ async function uploadLaw(lawData) {
 
         const { error: itemsError } = await supabase
             .from('law_items')
-            .upsert(rows, { onConflict: 'law_id,id' });
+            .insert(rows);  // insert en vez de upsert porque ya limpiamos
 
         if (itemsError) throw itemsError;
 
@@ -95,7 +113,7 @@ async function uploadLaw(lawData) {
         }
     }
 
-    // 3. ACTUALIZAR HASH - Solo si todo lo anterior tuvo éxito
+    // 4. ACTUALIZAR HASH - Solo si todo lo anterior tuvo éxito
     console.log(`   ⏳ Finalizando (actualizando hash)...`);
     await supabase.from('laws').update({ hash: hash }).eq('id', category);
 
@@ -114,7 +132,6 @@ async function updateMetadata(uploadedCount, totalLaws) {
             laws_last_updated: new Date().toISOString(),
             laws_count: totalLaws,
             last_upload_count: uploadedCount,
-            schema_version: SCHEMA_VERSION,
             updated_at: new Date().toISOString()
         });
 
@@ -127,6 +144,10 @@ async function run() {
     console.log('║   CARGA RESILIENTE DE LEYES (SUPABASE) ║');
     console.log('╚═══════════════════════════════════════╝\n');
 
+    if (FORCE_ALL) {
+        console.log('⚠️  Modo --force activado: se re-subirán TODAS las leyes.\n');
+    }
+
     if (!supabaseUrl || !supabaseKey) {
         console.error('❌ Faltan variables SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env');
         return;
@@ -135,7 +156,7 @@ async function run() {
     const startTime = Date.now();
     const dataDir = path.join(__dirname, '../data');
 
-    const specificFileName = process.argv[2];
+    const specificFileName = process.argv.find(a => a.endsWith('.json'));
     let files = [];
 
     if (specificFileName) {
@@ -156,6 +177,9 @@ async function run() {
 
     let firstLawTitle = null;
     let firstLawCategory = null;
+    let totalLaws = 0;
+    let uploadedCount = 0;
+    let skippedCount = 0;
 
     for (const file of files) {
         const fileName = path.basename(file);
@@ -170,7 +194,7 @@ async function run() {
                 const isSame = await lawExistsAndIsSame(lawData.category, newHash);
 
                 if (isSame) {
-                    console.log(`⏭️  ${lawData.title} - Ya existe (sin cambios)`);
+                    console.log(`⏭️  ${lawData.title} - Sin cambios (omitida)`);
                     skippedCount++;
                 } else {
                     await uploadLaw(lawData);
@@ -189,15 +213,6 @@ async function run() {
     // Actualizar metadata global si hubo cambios
     if (uploadedCount > 0) {
         await updateMetadata(uploadedCount, totalLaws);
-
-        // 🔔 NOTIFICACIÓN PUSH
-        const PushNotifier = require('./pushNotifier');
-        const title = uploadedCount === 1 ? 'Nueva Ley Disponible' : 'Nuevas Leyes Actualizadas';
-        const body = uploadedCount === 1
-            ? `Se ha añadido: ${firstLawTitle} (${firstLawCategory})`
-            : `Se han actualizado/agregado ${uploadedCount} leyes.`;
-
-        await PushNotifier.notifyAll(title, body, { type: 'laws', count: uploadedCount });
     }
 
     const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -207,6 +222,7 @@ async function run() {
     console.log(`📊 Nuevas/Actualizadas: ${uploadedCount}`);
     console.log(`⏭️  Omitidas (sin cambios): ${skippedCount}`);
     console.log('═══════════════════════════════════════\n');
+    console.log('💡 Tip: usa "node scripts/seedDatabase.js --force" para re-subir todo.');
 }
 
 run().catch(err => {
