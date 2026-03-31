@@ -1,5 +1,5 @@
 /**
- * getGacetas.js - Scraper de Gacetas Oficiales de Venezuela (V3.1 - Confirmed Sumario Structure)
+ * getGacetas.js - Scraper de Gacetas Oficiales de Venezuela (V3.2 - Weekly Strategy)
  *
  * La página sumario.asp?fecha=DD/MM/YYYY tiene esta estructura:
  *   <p class="numero">N°:43314</p>
@@ -8,10 +8,11 @@
  * Estrategia: Visita cada día hábil → encuentra todos los p.numero → extrae el sumario de los <a> siguientes → guarda.
  *
  * Modos:
- *   (sin args)        → últimas 2 semanas
- *   --mode=smart      → últimas 4 semanas (cron diario)
- *   --mode=full       → 2020 a hoy
- *   --year=2025       → solo ese año
+ *   (sin args)         → daily (hoy + ayer) con notificación  ← cron diario opcional
+ *   --mode=weekly      → últimos 15 días con notificación      ← cron semanal recomendado
+ *   --mode=smart       → últimas 4 semanas, sin notificación   ← recuperación manual
+ *   --mode=full        → 2020 a hoy, sin notificación
+ *   --year=2025        → solo ese año, sin notificación
  */
 
 require('dotenv').config();
@@ -256,6 +257,22 @@ function generarFechasRecientes(semanas = 4) {
         });
 }
 
+/**
+ * Retorna las fechas hábiles de los últimos N días naturales (incluyendo hoy).
+ * Ideal para el cron semanal con ventana de 15 días.
+ */
+function generarFechasUltimoDias(dias = 15) {
+    const hoy = new Date();
+    const inicio = new Date(hoy);
+    inicio.setDate(inicio.getDate() - dias);
+    inicio.setHours(0, 0, 0, 0);
+    return generarFechas(inicio.getFullYear(), hoy.getFullYear())
+        .filter(f => {
+            const [d, m, a] = f.split('/');
+            return new Date(`${a}-${m}-${d}`) >= inicio;
+        });
+}
+
 // ─── MAIN ────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -271,8 +288,14 @@ async function main() {
     let fechas;
     let shouldNotify = false;
 
-    if (args.includes('--mode=daily')) {
-        // ✅ MODO CRON DIARIO: solo hoy y ayer, igual que jurisprudencia
+    if (args.includes('--mode=weekly')) {
+        // ✅ MODO CRON SEMANAL: retrocede 15 días naturales (cubre retrasos de publicación)
+        console.log('📆 Modo: Weekly (últimos 15 días) — CON notificación push\n');
+        fechas = generarFechasUltimoDias(15);
+        shouldNotify = true;
+
+    } else if (args.includes('--mode=daily')) {
+        // Modo diario clásico: solo hoy y ayer
         const hoy = new Date();
         const ayer = new Date();
         ayer.setDate(hoy.getDate() - 1);
@@ -282,7 +305,7 @@ async function main() {
 
         fechas = [fmt(ayer), fmt(hoy)];
         console.log(`📅 Modo: Daily (${fechas.join(' y ')})\n`);
-        shouldNotify = true; // Solo notificamos en modo diario
+        shouldNotify = true;
 
     } else if (args.includes('--mode=smart')) {
         // 🧠 MODO RECUPERACIÓN: últimas 4 semanas, solo para uso manual
@@ -303,14 +326,9 @@ async function main() {
             fechas = generarFechas(y, y);
             shouldNotify = false;
         } else {
-            // Sin argumento → modo daily por defecto (igual que jurisprudencia)
-            const hoy = new Date();
-            const ayer = new Date();
-            ayer.setDate(hoy.getDate() - 1);
-            const fmt = (d) =>
-                `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-            fechas = [fmt(ayer), fmt(hoy)];
-            console.log(`📅 Modo: Daily por defecto (${fechas.join(' y ')})\n`);
+            // Sin argumento → modo weekly por defecto (recomendado)
+            console.log('📆 Modo: Weekly por defecto (últimos 15 días) — CON notificación push\n');
+            fechas = generarFechasUltimoDias(15);
             shouldNotify = true;
         }
     }

@@ -2,13 +2,15 @@ name: Gacetas Sync Bot
 
 on:
   schedule:
-    - cron: '0 21 * * *' # 5:00 PM Venezuela (VET)
+    # Cada lunes a la 1:00 PM UTC = 9:00 AM Venezuela (VET, UTC-4)
+    # Escanea los últimos 15 días → cubre retrasos de publicación del TSJ
+    - cron: '0 13 * * 1'
   workflow_dispatch:
     inputs:
       mode:
-        description: 'Sync mode: daily (default), smart (4 weeks), full (2020→hoy), or a year like 2024'
+        description: 'Sync mode: weekly (default, 15d+notify), daily (hoy+ayer+notify), smart (4 semanas), full (2020→hoy), o un año como 2024'
         required: false
-        default: 'daily'
+        default: 'weekly'
 
 jobs:
   sync_gacetas:
@@ -29,7 +31,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          MODE="${{ github.event.inputs.mode || 'daily' }}"
+          MODE="${{ github.event.inputs.mode || 'weekly' }}"
           if echo "$MODE" | grep -qE '^[0-9]{4}$'; then
             echo "Running for year: $MODE"
             node scripts/getGacetas.js --year=$MODE
