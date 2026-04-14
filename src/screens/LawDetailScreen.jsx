@@ -8,6 +8,7 @@ import FavoritesManager from '../utils/favoritesManager';
 import NotesManager from '../utils/notesManager';
 import OfflineService from '../services/offlineService';
 import { getLawById, getLawItems, getLawItemsAround, searchLawItemsByText, downloadLawContent } from '../services/lawService';
+import ReviewService from '../services/reviewService';
 import { COLORS } from '../utils/constants';
 
 // Components
@@ -86,6 +87,9 @@ const LawDetailScreen = ({ route, navigation }) => {
 
             loadFavoriteStatus();
             loadNotes();
+
+            // Solicitar reseña tras la 5ª ley abierta (con delay para no interrumpir la carga)
+            setTimeout(() => ReviewService.recordLawOpen(), 2000);
 
             if (jumpToIndex !== undefined) {
                 setTimeout(() => {
