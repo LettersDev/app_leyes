@@ -95,8 +95,16 @@ async function getEmbedding(text, retries = 3) {
                 }
 
                 const data = await response.json();
-                const values = data?.embedding?.values;
-                if (values) return values;
+                let values = data?.embedding?.values;
+                
+                if (values) {
+                    // Truncar a 768 si es mayor (Matryoshka Embeddings)
+                    // pgvector HNSW tiene un límite de 2000 dimensiones.
+                    if (values.length > 768) {
+                        values = values.slice(0, 768);
+                    }
+                    return values;
+                }
 
             } catch (e) {
                 if (attempt < retries) {
@@ -170,6 +178,11 @@ async function processLaws() {
                     .update({ embedding: embStr })
                     .eq('id', u.id);
                 if (upErr) {
+                    if (upErr.message.includes('dimensions')) {
+                        console.error(`\n   ❌ ERROR DE DIMENSIONES: La base de datos espera otra longitud de vector.`);
+                        console.error(`      Asegúrate de ejecutar docs/pgvector_fix_dimensions.sql en Supabase.\n`);
+                        process.exit(1); // Detenemos para no seguir fallando
+                    }
                     console.error(`\n   ❌ Error guardando ley ${u.id}:`, upErr.message);
                     failed++;
                     ok--;

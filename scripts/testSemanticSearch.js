@@ -60,17 +60,23 @@ async function run() {
         if (res.ok) {
             const data = await res.json();
             testEmbedding = data?.embedding?.values;
+            
+            // Truncar si es mayor a 768
+            if (testEmbedding && testEmbedding.length > 768) {
+                testEmbedding = testEmbedding.slice(0, 768);
+            }
+            
             console.log(`   ✅ Vector generado (${testEmbedding?.length} dims)`);
         } else {
             const err = await res.json();
             console.log('   ⚠️ Gemini no disponible (cuota diaria):', err?.error?.message?.substring(0, 80));
-            // Usamos vector vacío para testear las funciones RPC igualmente
-            testEmbedding = new Array(3072).fill(0);
+            // Usamos vector vacío de 768
+            testEmbedding = new Array(768).fill(0);
             console.log('   ℹ️  Usando vector cero para verificar funciones RPC...');
         }
     } catch (e) {
         console.log('   ❌ Fetch error:', e.message);
-        testEmbedding = new Array(3072).fill(0);
+        testEmbedding = new Array(768).fill(0);
     }
 
     // ── 4. Probar función match_laws ──────────────────────────
