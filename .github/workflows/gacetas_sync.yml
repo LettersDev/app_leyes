@@ -2,9 +2,9 @@ name: Gacetas Sync Bot
 
 on:
   schedule:
-    # Cada lunes a la 1:00 PM UTC = 9:00 AM Venezuela (VET, UTC-4)
-    # Escanea los últimos 15 días → cubre retrasos de publicación del TSJ
-    - cron: '0 13 * * 1'
+    # Cada día a la 1:00 PM UTC = 9:00 AM Venezuela (VET, UTC-4)
+    # Escanea los últimos 15 días → detecta nuevas gacetas en menos de 24h
+    - cron: '0 13 * * *'
   workflow_dispatch:
     inputs:
       mode:
