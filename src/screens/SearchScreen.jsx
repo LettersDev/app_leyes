@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
     View, Text, StyleSheet, FlatList,
     TouchableOpacity, Animated, Easing,
@@ -7,14 +7,10 @@ import { Searchbar, Card, ActivityIndicator } from 'react-native-paper';
 
 import { searchLaws } from '../services/lawService';
 import JurisprudenceService from '../services/jurisprudenceService';
-import SemanticSearchService from '../services/semanticSearchService';
+import HybridSearchService from '../services/hybridSearchService';
 import { COLORS } from '../utils/constants';
 
-// ─── Modos de búsqueda ───────────────────────────────────────
-const MODES = {
-    KEYWORD:  'keyword',   // Búsqueda por palabra clave (actual)
-    SEMANTIC: 'semantic',  // Búsqueda por significado (nueva)
-};
+// Eliminamos MODES ya que ahora es híbrido e invisible
 
 // ─── Debounce para no spamear la API ─────────────────────────
 function useDebounce(fn, delay) {
@@ -50,13 +46,21 @@ const ResultBadge = ({ type, similarity }) => {
 };
 
 // ─── Componente principal ─────────────────────────────────────
-const SearchScreen = ({ navigation }) => {
-    const [searchQuery, setSearchQuery]   = useState('');
+const SearchScreen = ({ navigation, route }) => {
+    const [searchQuery, setSearchQuery]   = useState(route.params?.initialQuery || '');
     const [results, setResults]           = useState([]);
     const [loading, setLoading]           = useState(false);
     const [searched, setSearched]         = useState(false);
-    const [mode, setMode]                 = useState(MODES.KEYWORD);
+    const [mode, setMode]                 = useState('hybrid');
     const [semanticAvailable, setSemanticAvailable] = useState(true);
+
+    // Efecto para búsquedas iniciales (desde otras pantallas)
+    useEffect(() => {
+        if (route.params?.initialQuery) {
+            setSearchQuery(route.params.initialQuery);
+            runUnifiedSearch(route.params.initialQuery);
+        }
+    }, [route.params?.initialQuery, runUnifiedSearch]);
 
     // Animación del spinner semántico
     const spin = useRef(new Animated.Value(0)).current;
@@ -68,46 +72,22 @@ const SearchScreen = ({ navigation }) => {
     };
     const stopSpin = () => spin.stopAnimation();
 
-    // ── Búsqueda por palabra clave ────────────────────────────
-    const runKeywordSearch = useCallback(async (query) => {
-        setLoading(true);
-        try {
-            const [lawsData, jurData] = await Promise.all([
-                searchLaws(query),
-                JurisprudenceService.searchSentences(query),
-            ]);
-            setResults([...jurData, ...lawsData]);
-            setSearched(true);
-        } catch (e) {
-            if (e.message !== 'OFFLINE_ERROR') console.error('Keyword search error:', e);
-            setResults([]);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    // ── Búsqueda semántica ────────────────────────────────────
-    const runSemanticSearch = useCallback(async (query) => {
+    // ── Búsqueda Unificada (Híbrida) ──────────────────────────
+    const runUnifiedSearch = useCallback(async (query) => {
         setLoading(true);
         startSpin();
         try {
-            const data = await SemanticSearchService.search(query, 12);
-            if (data.length === 0 && !searched) {
-                // Si no hay resultados semánticos, caer a keyword
-                await runKeywordSearch(query);
-                return;
-            }
+            const data = await HybridSearchService.searchAll(query);
             setResults(data);
             setSearched(true);
         } catch (e) {
-            console.warn('Semantic search error:', e);
-            setSemanticAvailable(false);
-            await runKeywordSearch(query);
+            console.warn('Search error:', e);
+            setResults([]);
         } finally {
             setLoading(false);
             stopSpin();
         }
-    }, [runKeywordSearch]);
+    }, []);
 
     // ── Manejador de texto con debounce ───────────────────────
     const performSearch = useCallback(async (query) => {
@@ -116,12 +96,8 @@ const SearchScreen = ({ navigation }) => {
             setSearched(false);
             return;
         }
-        if (mode === MODES.SEMANTIC && semanticAvailable) {
-            await runSemanticSearch(query);
-        } else {
-            await runKeywordSearch(query);
-        }
-    }, [mode, semanticAvailable, runSemanticSearch, runKeywordSearch]);
+        await runUnifiedSearch(query);
+    }, [runUnifiedSearch]);
 
     const debouncedSearch = useDebounce(performSearch, 600);
 
@@ -130,20 +106,11 @@ const SearchScreen = ({ navigation }) => {
         debouncedSearch(text);
     };
 
-    const handleModeChange = async (newMode) => {
-        setMode(newMode);
-        if (searchQuery.trim().length >= 3) {
-            if (newMode === MODES.SEMANTIC && semanticAvailable) {
-                await runSemanticSearch(searchQuery);
-            } else {
-                await runKeywordSearch(searchQuery);
-            }
-        }
-    };
+    // Ya no manejamos cambios de modo manuales
 
     // ── highlight de texto para modo keyword ─────────────────
     const highlightText = (text, query) => {
-        if (!text || !query || mode === MODES.SEMANTIC) return <Text>{text}</Text>;
+        if (!text || !query) return <Text>{text}</Text>;
         const normalize = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
         const normText  = normalize(text);
         const normQuery = normalize(query.trim());
@@ -228,121 +195,33 @@ const SearchScreen = ({ navigation }) => {
 
             {/* ── Barra de búsqueda ── */}
             <Searchbar
-                placeholder={mode === MODES.SEMANTIC
-                    ? '🔮 Busca por significado: "me despidieron"'
-                    : '🔍 Buscar en leyes y jurisprudencia...'}
+                placeholder={'Buscar en leyes venezolanas...'}
                 onChangeText={handleChangeText}
                 value={searchQuery}
                 style={styles.searchBar}
-                iconColor={mode === MODES.SEMANTIC ? '#7C3AED' : COLORS.primary}
+                iconColor={COLORS.primary}
                 inputStyle={styles.searchInput}
             />
 
-            {/* ── Selector de modo ── */}
-            <View style={styles.modeRow}>
-                <TouchableOpacity
-                    style={[styles.modeBtn, mode === MODES.KEYWORD && styles.modeBtnActive]}
-                    onPress={() => handleModeChange(MODES.KEYWORD)}
-                >
-                    <Text style={[styles.modeBtnText, mode === MODES.KEYWORD && styles.modeBtnTextActive]}>
-                        🔍 Palabras clave
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[
-                        styles.modeBtn,
-                        mode === MODES.SEMANTIC && styles.modeBtnActiveSemantic,
-                        !semanticAvailable && styles.modeBtnDisabled,
-                    ]}
-                    onPress={() => semanticAvailable && handleModeChange(MODES.SEMANTIC)}
-                    disabled={!semanticAvailable}
-                >
-                    <Text style={[
-                        styles.modeBtnText,
-                        mode === MODES.SEMANTIC && styles.modeBtnTextActiveSemantic,
-                        !semanticAvailable && styles.modeBtnTextDisabled,
-                    ]}>
-                        🔮 Búsqueda semántica
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* ── Hint del modo semántico ── */}
-            {mode === MODES.SEMANTIC && (
-                <View style={styles.semanticHint}>
-                    <Text style={{ fontSize: 13, color: '#7C3AED' }}>ℹ️</Text>
-                    <Text style={styles.semanticHintText}>
-                        Busca por el <Text style={{ fontWeight: '700' }}>significado</Text>, no solo las palabras exactas
-                    </Text>
-                </View>
-            )}
+            {/* Eliminamos el selector de modo y el hint semántico */}
 
             {/* ── Loading ── */}
             {loading && (
                 <View style={styles.centerContainer}>
-                    {mode === MODES.SEMANTIC ? (
-                        <View style={styles.semanticLoading}>
-                            <Animated.Text style={[styles.semanticSpinner, { transform: [{ rotate: spinInterpolation }] }]}>
-                                🔮
-                            </Animated.Text>
-                            <Text style={styles.loadingText}>Analizando el significado...</Text>
-                            <Text style={styles.loadingSubtext}>Comparando con {results.length > 0 ? 'más de ' : ''}26 leyes venezolanas</Text>
-                        </View>
-                    ) : (
-                        <>
-                            <ActivityIndicator size="large" color={COLORS.primary} />
-                            <Text style={styles.loadingText}>Buscando...</Text>
-                        </>
-                    )}
+                    <View style={styles.semanticLoading}>
+                        <ActivityIndicator size="large" color={COLORS.primary} />
+                        <Text style={styles.loadingText}>Buscando...</Text>
+                    </View>
                 </View>
             )}
 
-            {/* ── Sin resultados ── */}
-            {!loading && searched && results.length === 0 && (
-                <View style={styles.centerContainer}>
-                    <Text style={styles.emptyIcon}>🔎</Text>
-                    <Text style={styles.emptyText}>
-                        No se encontraron resultados para "{searchQuery}"
-                    </Text>
-                    {mode === MODES.SEMANTIC && (
-                        <Text style={styles.emptySubtext}>
-                            Prueba con otras palabras o cambia a búsqueda por palabras clave
-                        </Text>
-                    )}
-                </View>
-            )}
-
-            {/* ── Estado vacío inicial ── */}
+            {/* ── Estado inicial (sin búsqueda aún) ── */}
             {!loading && !searched && (
                 <View style={styles.centerContainer}>
-                    <Text style={styles.emptyIcon}>{mode === MODES.SEMANTIC ? '🔮' : '⚖️'}</Text>
+                    <Text style={styles.emptyIcon}>⚖️</Text>
                     <Text style={styles.instructionText}>
-                        {mode === MODES.SEMANTIC
-                            ? 'Describe tu situación en lenguaje natural'
-                            : 'Escribe al menos 3 caracteres para buscar'}
+                        Escribe al menos 3 caracteres para buscar
                     </Text>
-                    {mode === MODES.SEMANTIC && (
-                        <View style={styles.examplesContainer}>
-                            {[
-                                '"me despidieron injustamente"',
-                                '"herencia de bienes inmuebles"',
-                                '"accidente de tránsito"',
-                            ].map((ex, i) => (
-                                <TouchableOpacity
-                                    key={i}
-                                    style={styles.exampleChip}
-                                    onPress={() => {
-                                        const q = ex.replace(/"/g, '');
-                                        setSearchQuery(q);
-                                        runSemanticSearch(q);
-                                    }}
-                                >
-                                    <Text style={styles.exampleChipText}>{ex}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
                 </View>
             )}
 
@@ -355,8 +234,7 @@ const SearchScreen = ({ navigation }) => {
                     contentContainerStyle={styles.resultsList}
                     ListHeaderComponent={
                         <Text style={styles.resultsCount}>
-                            {results.length} resultado{results.length !== 1 ? 's' : ''}
-                            {mode === MODES.SEMANTIC ? ' semánticos' : ''} para "{searchQuery}"
+                            {results.length} resultado{results.length !== 1 ? 's' : ''} para "{searchQuery}"
                         </Text>
                     }
                 />

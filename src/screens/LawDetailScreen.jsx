@@ -8,6 +8,7 @@ import FavoritesManager from '../utils/favoritesManager';
 import NotesManager from '../utils/notesManager';
 import OfflineService from '../services/offlineService';
 import { getLawById, getLawItems, getLawItemsAround, searchLawItemsByText, downloadLawContent } from '../services/lawService';
+import HybridSearchService from '../services/hybridSearchService';
 import ReviewService from '../services/reviewService';
 import { COLORS } from '../utils/constants';
 
@@ -135,14 +136,29 @@ const LawDetailScreen = ({ route, navigation }) => {
         if (!trimmed) { dispatch({ type: 'RESET_SEARCH' }); return; }
         dispatch({ type: 'SET_FIELD', field: 'searching', value: true });
         dispatch({ type: 'SET_FIELD', field: 'isSearching', value: true });
+        
         try {
             const numMatch = trimmed.match(/\d+/);
-            if (numMatch && trimmed.length < 10) {
+            const isPotentialSemantic = trimmed.split(' ').length > 2; // Más de 2 palabras = probable semántica
+
+            if (numMatch && trimmed.length < 5) {
+                // 1. Prioridad: Búsqueda por número exacto (Art 23)
                 const targetNum = parseInt(numMatch[0]);
                 dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: targetNum });
                 const res = await getLawItemsAround(lawId, targetNum, 1);
                 dispatch({ type: 'SET_FIELD', field: 'searchResults', value: res });
+            } else if (isPotentialSemantic) {
+                // 2. Búsqueda Híbrida/Semántica Interna
+                const semanticRes = await HybridSearchService.searchInLaw(lawId, trimmed);
+                if (semanticRes && semanticRes.length > 0) {
+                    dispatch({ type: 'SET_FIELD', field: 'searchResults', value: semanticRes });
+                } else {
+                    // Fallback a keyword si falla la semántica interna
+                    const res = await searchLawItemsByText(lawId, trimmed);
+                    dispatch({ type: 'SET_FIELD', field: 'searchResults', value: res });
+                }
             } else {
+                // 3. Búsqueda por palabra clave normal
                 dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: null });
                 const res = await searchLawItemsByText(lawId, trimmed);
                 dispatch({ type: 'SET_FIELD', field: 'searchResults', value: res });
@@ -276,7 +292,23 @@ const LawDetailScreen = ({ route, navigation }) => {
             />
             {isSearching && (
                 <View style={styles.searchResultsHeader}>
-                    <Text style={styles.resultsText}>{searching ? 'Buscando...' : `${searchResults.length} resultados`}</Text>
+                    {searchResults.length === 0 && !searching ? (
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.resultsText}>
+                                No hay resultados en esta ley.
+                            </Text>
+                            <TouchableOpacity 
+                                style={styles.globalSearchBtn}
+                                onPress={() => {
+                                    navigation.navigate('Search', { screen: 'Search', params: { initialQuery: searchQuery } });
+                                }}
+                            >
+                                <Text style={styles.globalSearchBtnText}>🔎 Buscar en todas las leyes</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <Text style={styles.resultsText}>{searching ? 'Buscando...' : `${searchResults.length} resultados`}</Text>
+                    )}
                     <TouchableOpacity onPress={() => dispatch({ type: 'RESET_SEARCH' })}><Text style={styles.clearText}>Ver todo</Text></TouchableOpacity>
                 </View>
             )}
@@ -321,6 +353,19 @@ const styles = StyleSheet.create({
     searchResultsHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, backgroundColor: '#f1f5f9' },
     resultsText: { fontWeight: 'bold', color: COLORS.primary },
     clearText: { color: COLORS.accent, fontWeight: 'bold' },
+    globalSearchBtn: {
+        marginTop: 8,
+        backgroundColor: COLORS.primary,
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 20,
+        alignSelf: 'flex-start'
+    },
+    globalSearchBtnText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '700'
+    }
 });
 
 export default LawDetailScreen;

@@ -1,0 +1,121 @@
+name: Embeddings Bot (Daily)
+
+on:
+  schedule:
+    # Cada día a las 10:00 AM UTC = 6:00 AM Venezuela (VET, UTC-4)
+    # Gemini resetea la cuota diaria a las 00:00 UTC → corremos 10h después para asegurar reset
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Regenerar TODOS los embeddings (--force). Usar con cuidado.'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  generate_embeddings:
+    name: Generar Embeddings Vectoriales
+    runs-on: ubuntu-latest
+    timeout-minutes: 100  # Máx ~75 min de proceso + margen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install @supabase/supabase-js dotenv
+
+      - name: Mostrar progreso previo
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node -e "
+          require('dotenv').config();
+          const { createClient } = require('@supabase/supabase-js');
+          const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          (async () => {
+            const { data: l } = await sb.from('laws').select('id, embedding');
+            const { data: a } = await sb.from('law_items').select('id, embedding').eq('type', 'article');
+            const lawsOk  = (l || []).filter(r => r.embedding).length;
+            const artsOk  = (a || []).filter(r => r.embedding).length;
+            const lawsTot = (l || []).length;
+            const artsTot = (a || []).length;
+            console.log('📊 Estado ANTES del run:');
+            console.log('   Leyes:     ' + lawsOk + ' / ' + lawsTot + ' con embedding');
+            console.log('   Artículos: ' + artsOk + ' / ' + artsTot + ' con embedding');
+            const pct = artsTot > 0 ? Math.round(artsOk / artsTot * 100) : 0;
+            console.log('   Progreso:  ' + pct + '% completado');
+            if (artsOk === artsTot && lawsOk === lawsTot) {
+              console.log('✅ Todos los embeddings están completos. Nada que hacer.');
+              process.exit(0);
+            }
+          })();
+          "
+
+      - name: Embeber Leyes
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            echo "🔴 Modo FORCE activado — regenerando todas las leyes"
+            node scripts/generateEmbeddings.js --force
+          else
+            echo "🟢 Modo incremental — solo leyes sin embedding"
+            node scripts/generateEmbeddings.js
+          fi
+
+      - name: Embeber Artículos (incremental, para cuando sea cuota)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            echo "🔴 Modo FORCE activado — regenerando todos los artículos"
+            node scripts/generateEmbeddings.js --items --force
+          else
+            echo "🟢 Modo incremental — solo artículos sin embedding"
+            node scripts/generateEmbeddings.js --items
+          fi
+
+      - name: Mostrar progreso final
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node -e "
+          require('dotenv').config();
+          const { createClient } = require('@supabase/supabase-js');
+          const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          (async () => {
+            const { data: l } = await sb.from('laws').select('id, embedding');
+            const { data: a } = await sb.from('law_items').select('id, embedding').eq('type', 'article');
+            const lawsOk  = (l || []).filter(r => r.embedding).length;
+            const artsOk  = (a || []).filter(r => r.embedding).length;
+            const lawsTot = (l || []).length;
+            const artsTot = (a || []).length;
+            console.log('📊 Estado DESPUÉS del run:');
+            console.log('   Leyes:     ' + lawsOk + ' / ' + lawsTot + ' con embedding');
+            console.log('   Artículos: ' + artsOk + ' / ' + artsTot + ' con embedding');
+            const pct = artsTot > 0 ? Math.round(artsOk / artsTot * 100) : 0;
+            console.log('   Progreso:  ' + pct + '% completado');
+            if (artsOk === artsTot && lawsOk === lawsTot) {
+              console.log('🎉 ¡Embeddings 100% completos! El bot puede pausarse.');
+            } else {
+              console.log('⏭️  Pendientes: ' + (artsTot - artsOk) + ' artículos. Continuará mañana.');
+            }
+          })();
+          "

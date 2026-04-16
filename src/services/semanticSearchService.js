@@ -55,7 +55,14 @@ const getQueryEmbedding = async (text) => {
         }
 
         const data = await response.json();
-        return data?.embedding?.values || null;
+        let values = data?.embedding?.values || null;
+
+        // Matryoshka: truncar a 768 para compatibilidad con pgvector HNSW
+        // (igual que en generateEmbeddings.js — los vectores en BD son vector(768))
+        if (values && values.length > 768) {
+            values = values.slice(0, 768);
+        }
+        return values;
     } catch (e) {
         console.warn('[SemanticSearch] Fetch error:', e.message);
         return null;
@@ -150,9 +157,10 @@ const SemanticSearchService = {
      * @param {string} query
      * @param {number} limit
      * @param {number} [threshold]
+     * @param {string} [targetLawId] - Opcional: filtro por ley
      * @returns {Promise<Array>}
      */
-    searchArticles: async (query, limit = 10, threshold = DEFAULT_THRESHOLD - 0.02) => {
+    searchArticles: async (query, limit = 10, threshold = DEFAULT_THRESHOLD - 0.05, targetLawId = null) => {
         try {
             const embedding = await getQueryEmbedding(query);
             if (!embedding) return [];
@@ -161,6 +169,7 @@ const SemanticSearchService = {
                 query_embedding: embedding,
                 match_threshold: threshold,
                 match_count:     limit,
+                target_law_id:   targetLawId, // NUEVO
             });
 
             if (error) {
@@ -191,7 +200,7 @@ const SemanticSearchService = {
         try {
             // Comprobamos que la función RPC existe haciendo una llamada con un vector vacío
             const { error } = await supabase.rpc('match_laws', {
-                query_embedding: new Array(3072).fill(0),
+                query_embedding: new Array(768).fill(0),  // 768 = dimensión real en BD
                 match_threshold: 0.99,
                 match_count:     1,
             });
