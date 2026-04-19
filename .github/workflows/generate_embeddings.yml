@@ -44,20 +44,19 @@ jobs:
           const { createClient } = require('@supabase/supabase-js');
           const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
           (async () => {
-            const { data: l } = await sb.from('laws').select('id, embedding');
-            const { data: a } = await sb.from('law_items').select('id, embedding').eq('type', 'article');
-            const lawsOk  = (l || []).filter(r => r.embedding).length;
-            const artsOk  = (a || []).filter(r => r.embedding).length;
-            const lawsTot = (l || []).length;
-            const artsTot = (a || []).length;
+            const { count: lawsTot } = await sb.from('laws').select('*', { count: 'exact', head: true });
+            const { count: lawsOk }  = await sb.from('laws').select('*', { count: 'exact', head: true }).not('embedding', 'is', null);
+            const { count: artsTot } = await sb.from('law_items').select('*', { count: 'exact', head: true }).eq('type', 'article');
+            const { count: artsOk }  = await sb.from('law_items').select('*', { count: 'exact', head: true }).eq('type', 'article').not('embedding', 'is', null);
             console.log('📊 Estado ANTES del run:');
             console.log('   Leyes:     ' + lawsOk + ' / ' + lawsTot + ' con embedding');
             console.log('   Artículos: ' + artsOk + ' / ' + artsTot + ' con embedding');
             const pct = artsTot > 0 ? Math.round(artsOk / artsTot * 100) : 0;
             console.log('   Progreso:  ' + pct + '% completado');
             if (artsOk === artsTot && lawsOk === lawsTot) {
-              console.log('✅ Todos los embeddings están completos. Nada que hacer.');
-              process.exit(0);
+              console.log('✅ Todos los embeddings están completos. El bot puede pausarse.');
+            } else {
+              console.log('⏭️  Pendientes: ' + (artsTot - artsOk) + ' artículos por procesar.');
             }
           })();
           "
@@ -101,12 +100,10 @@ jobs:
           const { createClient } = require('@supabase/supabase-js');
           const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
           (async () => {
-            const { data: l } = await sb.from('laws').select('id, embedding');
-            const { data: a } = await sb.from('law_items').select('id, embedding').eq('type', 'article');
-            const lawsOk  = (l || []).filter(r => r.embedding).length;
-            const artsOk  = (a || []).filter(r => r.embedding).length;
-            const lawsTot = (l || []).length;
-            const artsTot = (a || []).length;
+            const { count: lawsTot } = await sb.from('laws').select('*', { count: 'exact', head: true });
+            const { count: lawsOk }  = await sb.from('laws').select('*', { count: 'exact', head: true }).not('embedding', 'is', null);
+            const { count: artsTot } = await sb.from('law_items').select('*', { count: 'exact', head: true }).eq('type', 'article');
+            const { count: artsOk }  = await sb.from('law_items').select('*', { count: 'exact', head: true }).eq('type', 'article').not('embedding', 'is', null);
             console.log('📊 Estado DESPUÉS del run:');
             console.log('   Leyes:     ' + lawsOk + ' / ' + lawsTot + ' con embedding');
             console.log('   Artículos: ' + artsOk + ' / ' + artsTot + ' con embedding');

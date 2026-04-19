@@ -278,9 +278,20 @@ async function processLaws() {
 async function processItems() {
     console.log('\n📄 ── ARTÍCULOS (tabla: law_items) — MODO BATCH ───────────────');
 
+    // 1. Obtener el total real de artículos pendientes (independiente del límite de descarga de query)
+    const pendingQuery = supabase
+        .from('law_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'article')
+        .not('text', 'is', null);
+    
+    if (!FORCE_ALL) pendingQuery.is('embedding', null);
+    const { count: totalPending } = await pendingQuery;
+
+    // 2. Definir la consulta para traer los artículos (Supabase limita a 1000 por defecto)
     const query = supabase
         .from('law_items')
-        .select('id, law_id, number, title, text, type')
+        .select('id, law_id, number, title, text')
         .eq('type', 'article')
         .not('text', 'is', null);
 
@@ -295,7 +306,7 @@ async function processItems() {
 
     const totalBatches = Math.ceil(items.length / EMBED_BATCH);
     const estMins = Math.ceil(totalBatches * DELAY_ITEMS_MS / 60000);
-    console.log(`📋 ${items.length} artículos en ${totalBatches} lotes de ${EMBED_BATCH}`);
+    console.log(`📋 Procesando ${items.length} de ${totalPending || items.length} pendientes (${totalBatches} lotes de ${EMBED_BATCH})`);
     console.log(`⏱️  Tiempo estimado: ~${estMins} minutos\n`);
 
     let ok = 0, failed = 0, consecFailed = 0;
