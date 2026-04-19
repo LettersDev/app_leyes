@@ -10,8 +10,17 @@ const BUNDLED_LAWS = {
     'codigo_comercio': require('../../assets/bundled_laws/codigo_comercio.json'),
     'codigo_procedimiento_civil': require('../../assets/bundled_laws/codigo_procedimiento_civil.json'),
     'copp': require('../../assets/bundled_laws/copp.json'),
-    'lottt': require('../../assets/bundled_laws/lottt.json')
+    'lottt': require('../../assets/bundled_laws/lottt.json'),
+    'carta_nu': require('../../assets/bundled_laws/carta_nu.json'),
+    'codigo_abogado': require('../../assets/bundled_laws/codigo_abogado.json'),
+    'codigo_deontologia': require('../../assets/bundled_laws/codigo_deontologia.json'),
+    'ley-organica-contra-el-trafico-ilicito-y-el-consumo-de-sustancias-estupefacientes-y-psicotropicas': require('../../assets/bundled_laws/ley-organica-contra-el-trafico-ilicito-y-el-consumo-de-sustancias-estupefacientes-y-psicotropicas.json'),
+    'cojm': require('../../assets/bundled_laws/cojm.json'),
+    'cot': require('../../assets/bundled_laws/cot.json'),
+    'ley_de_proteccion': require('../../assets/bundled_laws/ley_de_proteccion.json'),
+    'ley-organica-contra-la-delincuencia-organizada': require('../../assets/bundled_laws/ley-organica-contra-la-delincuencia-organizada.json')
 };
+
 
 /**
  * offlineService.js
