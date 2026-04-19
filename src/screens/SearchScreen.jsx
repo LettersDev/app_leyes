@@ -146,10 +146,14 @@ const SearchScreen = ({ navigation, route }) => {
                 });
             } else if (item.result_type === 'article' || item.searchType === 'semantic_article') {
                 // Artículo → ir a la ley y hacer scroll al artículo
-                navigation.navigate('LawDetail', { lawId: item.law_id });
+                navigation.navigate('LawDetail', { 
+                    lawId: item.law_id, 
+                    jumpToIndex: item.index // PASAR EL ÍNDICE PARA EL SALTO
+                });
             } else {
                 navigation.navigate('LawDetail', { lawId: item.id });
             }
+
         };
 
         const title   = item.title || item.titulo || '';

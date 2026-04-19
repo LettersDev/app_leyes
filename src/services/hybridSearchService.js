@@ -20,12 +20,20 @@ const HybridSearchService = {
      */
     searchAll: async (query, limit = 20) => {
         try {
-            // Lanzamos búsquedas en paralelo
-            const [keywordLaws, jurisprudence, semanticItems] = await Promise.all([
+            // Lanzamos búsquedas en paralelo (allSettled para robustez)
+            const results = await Promise.allSettled([
                 searchLaws(query),
                 JurisprudenceService.searchSentences(query),
                 SemanticSearchService.search(query, 12)
             ]);
+
+            const keywordLaws = results[0].status === 'fulfilled' ? results[0].value : [];
+            const jurisprudence = results[1].status === 'fulfilled' ? results[1].value : [];
+            const semanticItems = results[2].status === 'fulfilled' ? results[2].value : [];
+
+            // Logs de depuración para identificar fallos silenciosos
+            if (results[2].status === 'rejected') console.warn('[HybridSearch] Semantic search failed:', results[2].reason);
+            if (results[1].status === 'rejected') console.warn('[HybridSearch] Jurisprudence search failed:', results[1].reason);
 
             // Mezclar y deduplicar
             const merged = [];
@@ -39,18 +47,8 @@ const HybridSearchService = {
                 }
             });
 
-            // 2. Jurisprudencia
-            jurisprudence.forEach(item => {
-                const jurId = `jur-${item.id}`;
-                if (!seenIds.has(jurId)) {
-                    seenIds.add(jurId);
-                    merged.push({ ...item, searchType: 'keyword' });
-                }
-            });
-
-            // 3. Resultados Semánticos (Significado)
+            // 2. Resultados Semánticos (Significado)
             semanticItems.forEach(item => {
-                // El ID semántico para artículos es lawId-itemId
                 const semId = item.id; 
                 if (!seenIds.has(semId)) {
                     seenIds.add(semId);
@@ -58,13 +56,24 @@ const HybridSearchService = {
                 }
             });
 
+            // 3. Jurisprudencia (Al final, como solicitó el usuario)
+            jurisprudence.forEach(item => {
+                const jurId = `jur-${item.id}`;
+                if (!seenIds.has(jurId)) {
+                    seenIds.add(jurId);
+                    merged.push({ ...item, searchType: 'jurisprudencia' });
+                }
+            });
+
             return merged;
+
         } catch (error) {
-            console.error('[HybridSearch] Error:', error);
-            // Fallback: solo palabras clave si algo falla
-            return searchLaws(query);
+            console.error('[HybridSearch] Critical Failure:', error);
+            // Fallback total a búsqueda local de leyes
+            return searchLaws(query).catch(() => []);
         }
     },
+
 
     /**
      * Búsqueda Interna en una Ley (Híbrida)

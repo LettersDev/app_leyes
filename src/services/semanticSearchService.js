@@ -107,8 +107,10 @@ const SemanticSearchService = {
                 id: item.result_type === 'article'
                     ? `${item.law_id}-${item.id}`
                     : item.id,
+                index: item.index, // NUEVO: Para salto directo
                 searchableText: item.excerpt,
             }));
+
         } catch (e) {
             console.warn('[SemanticSearch] search error:', e.message);
             return [];
