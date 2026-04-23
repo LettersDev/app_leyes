@@ -103,10 +103,15 @@ function fechaToTimestamp(fecha) {
 function extractFechaFromPdfPath(pdfHref) {
     const m = pdfHref.match(/\/(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\/([0-9]{7,9})\//i);
     if (!m) return null;
-    const mes = MESES_MAP[m[1].toLowerCase()] || '01';
+    const mesStr = m[1].toLowerCase();
+    const mes = MESES_MAP[mesStr] || '01';
     const code = m[2];
+
+    const monthId = parseInt(mes, 10);
+    const monthDigits = monthId >= 10 ? 2 : 1;
     const year = code.slice(-4);
-    const day = code.slice(0, -4).padStart(2, '0');
+    const day = code.slice(0, -(4 + monthDigits)).padStart(2, '0');
+
     return `${day}/${mes}/${year}`;
 }
 
@@ -231,6 +236,22 @@ async function scanFechas(fechas) {
     console.log(`\n\n✅ Dias escaneados: ${fechas.length} | Gacetas encontradas: ${found} | Nuevas guardadas: ${newGacetasCount}`);
 }
 
+async function getUltimaFechaGaceta() {
+    console.log('🔍 Consultando última gaceta en base de datos...');
+    const { data, error } = await supabase
+        .from('gacetas')
+        .select('timestamp')
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error || !data) {
+        console.log('⚠️ No se encontró última fecha, usando inicio de año.');
+        return null;
+    }
+    return new Date(data.timestamp);
+}
+
 // ─── GENERACIÓN DE FECHAS ─────────────────────────────────────────────────────
 
 function generarFechas(startYear, endYear) {
@@ -288,27 +309,46 @@ async function main() {
     let fechas;
     let shouldNotify = false;
 
-    if (args.includes('--mode=weekly')) {
-        // ✅ MODO CRON SEMANAL: retrocede 15 días naturales (cubre retrasos de publicación)
+    if (args.includes('--mode=auto')) {
+        // 🚀 MODO AUTO: Empieza desde la última gaceta guardada - 7 días (margen de seguridad)
+        console.log('🚀 Modo: Auto (Continuar desde última gaceta) — CON notificación push\n');
+        const ultima = await getUltimaFechaGaceta();
+        const hoy = new Date();
+        let inicio = new Date(hoy.getFullYear(), 0, 1); // Default 1 Jan
+
+        if (ultima) {
+            inicio = new Date(ultima);
+            inicio.setDate(inicio.getDate() - 7); // Retroceder 7 días por seguridad
+            if (inicio.getFullYear() < hoy.getFullYear()) {
+                inicio = new Date(hoy.getFullYear(), 0, 1);
+            }
+        }
+
+        console.log(`⏳ Sincronizando desde: ${inicio.toLocaleDateString('es-VE')}`);
+        
+        fechas = [];
+        for (let d = new Date(inicio); d <= hoy; d.setDate(d.getDate() + 1)) {
+            const dow = d.getDay();
+            if (dow === 0 || dow === 6) continue;
+            fechas.push(`${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`);
+        }
+        shouldNotify = true;
+
+    } else if (args.includes('--mode=weekly')) {
         console.log('📆 Modo: Weekly (últimos 15 días) — CON notificación push\n');
         fechas = generarFechasUltimoDias(15);
         shouldNotify = true;
 
     } else if (args.includes('--mode=daily')) {
-        // Modo diario clásico: solo hoy y ayer
         const hoy = new Date();
         const ayer = new Date();
         ayer.setDate(hoy.getDate() - 1);
-
-        const fmt = (d) =>
-            `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-
+        const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
         fechas = [fmt(ayer), fmt(hoy)];
         console.log(`📅 Modo: Daily (${fechas.join(' y ')})\n`);
         shouldNotify = true;
 
     } else if (args.includes('--mode=smart')) {
-        // 🧠 MODO RECUPERACIÓN: últimas 4 semanas, solo para uso manual
         console.log('🧠 Modo: Smart (últimas 4 semanas) — SIN notificación push\n');
         fechas = generarFechasRecientes(4);
         shouldNotify = false;
@@ -322,13 +362,14 @@ async function main() {
         const yearArg = args.find(a => a.startsWith('--year='));
         if (yearArg) {
             const y = parseInt(yearArg.split('=')[1]);
-            console.log(`📅 Modo: Año ${y} — SIN notificación push\n`);
+            console.log(`📅 Modo: Año ${y} — CON notificación push\n`);
             fechas = generarFechas(y, y);
-            shouldNotify = false;
+            shouldNotify = true;
         } else {
-            // Sin argumento → modo weekly por defecto (recomendado)
-            console.log('📆 Modo: Weekly por defecto (últimos 15 días) — CON notificación push\n');
-            fechas = generarFechasUltimoDias(15);
+            // Sin argumento → modo year por defecto (año actual) con ventana de 15 días para balancear
+            console.log('📅 Modo: Año actual por defecto — CON notificación push\n');
+            const currentYear = new Date().getFullYear();
+            fechas = generarFechas(currentYear, currentYear);
             shouldNotify = true;
         }
     }

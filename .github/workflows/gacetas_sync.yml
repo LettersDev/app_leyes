@@ -2,15 +2,15 @@ name: Gacetas Sync Bot
 
 on:
   schedule:
-    # Cada día a la 1:00 PM UTC = 9:00 AM Venezuela (VET, UTC-4)
-    # Escanea los últimos 15 días → detecta nuevas gacetas en menos de 24h
-    - cron: '0 13 * * *'
+    # Cada 2 días a la 1:00 PM UTC = 9:00 AM Venezuela (VET, UTC-4)
+    # Escanea todo el año actual para asegurar que no falte nada
+    - cron: '0 13 */2 * *'
   workflow_dispatch:
     inputs:
       mode:
-        description: 'Sync mode: weekly (default, 15d+notify), daily (hoy+ayer+notify), smart (4 semanas), full (2020→hoy), o un año como 2024'
+        description: 'Sync mode: auto (default, from last gaceta), year (current year), weekly (15d), full (2020→hoy)'
         required: false
-        default: 'weekly'
+        default: 'auto'
 
 jobs:
   sync_gacetas:
@@ -31,8 +31,12 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          MODE="${{ github.event.inputs.mode || 'weekly' }}"
-          if echo "$MODE" | grep -qE '^[0-9]{4}$'; then
+          MODE="${{ github.event.inputs.mode || 'year' }}"
+          if [ "$MODE" = "year" ]; then
+            CURRENT_YEAR=$(date +%Y)
+            echo "Running for current year: $CURRENT_YEAR"
+            node scripts/getGacetas.js --year=$CURRENT_YEAR
+          elif echo "$MODE" | grep -qE '^[0-9]{4}$'; then
             echo "Running for year: $MODE"
             node scripts/getGacetas.js --year=$MODE
           else

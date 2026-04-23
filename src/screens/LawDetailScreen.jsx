@@ -17,8 +17,10 @@ import LawArticle from '../components/LawArticle';
 import ReadingSettingsModal from '../components/ReadingSettingsModal';
 import LawDetailHeader from '../components/LawDetailHeader';
 import LawDetailDialogs from '../components/LawDetailDialogs';
+import SearchInfoModal from '../components/SearchInfoModal';
 
 const PAGE_SIZE = 20;
+const INTERNAL_SEARCH_INTRO_KEY = '@internal_search_intro_shown';
 
 const initialState = {
     law: null,
@@ -40,6 +42,7 @@ const initialState = {
     editingNote: { id: '', text: '', title: '' },
     isDownloadingContent: false,
     isOfflineAvailable: false,
+    infoVisible: false,
 };
 
 function reducer(state, action) {
@@ -63,12 +66,24 @@ const LawDetailScreen = ({ route, navigation }) => {
         law, items, searchResults, loading, loadingMore, hasMore, lastIndex,
         searching, searchQuery, isSearching, searchTargetNum, error,
         settingsVisible, favoriteIds, notes,
-        noteDialogVisible, editingNote, isDownloadingContent, isOfflineAvailable
+        noteDialogVisible, editingNote, isDownloadingContent, isOfflineAvailable,
+        infoVisible
     } = state;
     const { fontSize, fontFamily } = useSettings();
 
     const flatListRef = useRef(null);
     const searchTimeout = useRef(null);
+    const introShownRef = useRef(false); // evita doble disparo
+
+    // Mostrar intro la primera vez que el usuario toca la barra de búsqueda
+    const checkAndShowInternalIntro = useCallback(async () => {
+        if (introShownRef.current) return;
+        introShownRef.current = true;
+        const seen = await AsyncStorage.getItem(INTERNAL_SEARCH_INTRO_KEY);
+        if (!seen) {
+            dispatch({ type: 'SET_FIELD', field: 'infoVisible', value: true });
+        }
+    }, []);
 
     const loadInitialData = useCallback(async () => {
         dispatch({ type: 'SET_FIELD', field: 'loading', value: true });
@@ -89,9 +104,6 @@ const LawDetailScreen = ({ route, navigation }) => {
             loadFavoriteStatus();
             loadNotes();
 
-            // Solicitar reseña tras la 5ª ley abierta (con delay para no interrumpir la carga)
-            setTimeout(() => ReviewService.recordLawOpen(), 2000);
-
             if (jumpToIndex !== undefined) {
                 setTimeout(() => {
                     flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
@@ -106,6 +118,10 @@ const LawDetailScreen = ({ route, navigation }) => {
 
     useEffect(() => {
         loadInitialData();
+        // Al desmontar la pantalla (usuario cierra la ley) → registrar cierre para la reseña
+        return () => {
+            ReviewService.recordLawClose();
+        };
     }, [loadInitialData]);
 
     const loadFavoriteStatus = async () => {
@@ -131,34 +147,65 @@ const LawDetailScreen = ({ route, navigation }) => {
         }
     };
 
+    // Extrae palabras clave descartando stopwords del español
+    const extractKeywords = (text) => {
+        const stopwords = new Set([
+            'me', 'mi', 'mis', 'tu', 'te', 'se', 'le', 'lo', 'la', 'los', 'las',
+            'el', 'de', 'en', 'un', 'una', 'por', 'con', 'que', 'del', 'al', 'y',
+            'a', 'es', 'no', 'si', 'su', 'sus', 'fue', 'han', 'hay', 'ser',
+        ]);
+        return text
+            .toLowerCase()
+            .split(/\s+/)
+            .filter(w => w.length > 3 && !stopwords.has(w));
+    };
+
     const handleSearch = async (query = searchQuery) => {
         const trimmed = query.trim();
         if (!trimmed) { dispatch({ type: 'RESET_SEARCH' }); return; }
         dispatch({ type: 'SET_FIELD', field: 'searching', value: true });
         dispatch({ type: 'SET_FIELD', field: 'isSearching', value: true });
-        
+
         try {
             const numMatch = trimmed.match(/\d+/);
-            const isPotentialSemantic = trimmed.split(' ').length > 2; // Más de 2 palabras = probable semántica
+            const isPotentialSemantic = trimmed.split(' ').length > 2;
 
             if (numMatch && trimmed.length < 5) {
-                // 1. Prioridad: Búsqueda por número exacto (Art 23)
+                // 1. Salto directo por número de artículo
                 const targetNum = parseInt(numMatch[0]);
                 dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: targetNum });
                 const res = await getLawItemsAround(lawId, targetNum, 1);
                 dispatch({ type: 'SET_FIELD', field: 'searchResults', value: res });
+
             } else if (isPotentialSemantic) {
-                // 2. Búsqueda Híbrida/Semántica Interna
+                // 2. Búsqueda semántica (IA) para frases largas
                 const semanticRes = await HybridSearchService.searchInLaw(lawId, trimmed);
                 if (semanticRes && semanticRes.length > 0) {
                     dispatch({ type: 'SET_FIELD', field: 'searchResults', value: semanticRes });
                 } else {
-                    // Fallback a keyword si falla la semántica interna
-                    const res = await searchLawItemsByText(lawId, trimmed);
-                    dispatch({ type: 'SET_FIELD', field: 'searchResults', value: res });
+                    // Fallback inteligente: buscar cada palabra clave por separado
+                    const keywords = extractKeywords(trimmed);
+                    const combinedResults = [];
+                    const seenIds = new Set();
+                    for (const kw of keywords) {
+                        const res = await searchLawItemsByText(lawId, kw);
+                        for (const item of res) {
+                            const uid = item.id || item.index;
+                            if (!seenIds.has(uid)) {
+                                seenIds.add(uid);
+                                combinedResults.push(item);
+                            }
+                        }
+                    }
+                    // Si keywords no dieron resultado, intentar con la frase completa
+                    if (combinedResults.length === 0) {
+                        const res = await searchLawItemsByText(lawId, trimmed);
+                        combinedResults.push(...res);
+                    }
+                    dispatch({ type: 'SET_FIELD', field: 'searchResults', value: combinedResults });
                 }
             } else {
-                // 3. Búsqueda por palabra clave normal
+                // 3. Búsqueda por palabra clave normal (1-2 palabras)
                 dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: null });
                 const res = await searchLawItemsByText(lawId, trimmed);
                 dispatch({ type: 'SET_FIELD', field: 'searchResults', value: res });
@@ -280,15 +327,26 @@ const LawDetailScreen = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Searchbar
-                placeholder="Buscar..."
-                onChangeText={(q) => dispatch({ type: 'SET_FIELD', field: 'searchQuery', value: q })}
-                onIconPress={() => handleSearch()}
-                onSubmitEditing={() => handleSearch()}
-                value={searchQuery}
-                style={styles.searchBar}
-                onClearIconPress={() => dispatch({ type: 'RESET_SEARCH' })}
-                loading={searching}
+            <View style={styles.searchRow}>
+                <Searchbar
+                    placeholder="Buscar..."
+                    onChangeText={(q) => dispatch({ type: 'SET_FIELD', field: 'searchQuery', value: q })}
+                    onIconPress={() => handleSearch()}
+                    onSubmitEditing={() => handleSearch()}
+                    onFocus={checkAndShowInternalIntro}
+                    value={searchQuery}
+                    style={styles.searchBar}
+                    onClearIconPress={() => dispatch({ type: 'RESET_SEARCH' })}
+                    loading={searching}
+                />
+            </View>
+            <SearchInfoModal
+                visible={infoVisible}
+                onDismiss={async () => {
+                    await AsyncStorage.setItem(INTERNAL_SEARCH_INTRO_KEY, 'true');
+                    dispatch({ type: 'SET_FIELD', field: 'infoVisible', value: false });
+                }}
+                mode="internal"
             />
             {isSearching && (
                 <View style={styles.searchResultsHeader}>
@@ -349,7 +407,17 @@ const LawDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.surface },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-    searchBar: { margin: 10, borderRadius: 10, backgroundColor: '#fff', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)' },
+    searchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    searchBar: {
+        flex: 1,
+        margin: 10,
+        borderRadius: 10,
+        backgroundColor: '#fff',
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
+    },
     searchResultsHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, backgroundColor: '#f1f5f9' },
     resultsText: { fontWeight: 'bold', color: COLORS.primary },
     clearText: { color: COLORS.accent, fontWeight: 'bold' },

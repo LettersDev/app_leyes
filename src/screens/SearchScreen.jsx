@@ -4,11 +4,15 @@ import {
     TouchableOpacity, Animated, Easing,
 } from 'react-native';
 import { Searchbar, Card, ActivityIndicator } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { searchLaws } from '../services/lawService';
 import JurisprudenceService from '../services/jurisprudenceService';
 import HybridSearchService from '../services/hybridSearchService';
 import { COLORS } from '../utils/constants';
+import SearchInfoModal from '../components/SearchInfoModal';
+
+const SEARCH_INTRO_KEY = '@search_intro_shown';
 
 // Eliminamos MODES ya que ahora es híbrido e invisible
 
@@ -24,11 +28,11 @@ function useDebounce(fn, delay) {
 // ─── Badge de tipo de resultado ──────────────────────────────
 const ResultBadge = ({ type, similarity }) => {
     const config = {
-        semantic:         { label: '🔮 Semántico',    color: '#7C3AED', bg: '#EDE9FE' },
-        semantic_article: { label: '📄 Artículo',     color: '#0369A1', bg: '#E0F2FE' },
-        law:              { label: '📚 Ley',           color: '#065F46', bg: '#D1FAE5' },
-        article:          { label: '📄 Artículo',      color: '#0369A1', bg: '#E0F2FE' },
-        jurisprudencia:   { label: '⚖️ Jurisprudencia', color: '#92400E', bg: '#FEF3C7' },
+        semantic: { label: '🔮 Semántico', color: '#7C3AED', bg: '#EDE9FE' },
+        semantic_article: { label: '📄 Artículo', color: '#0369A1', bg: '#E0F2FE' },
+        law: { label: '📚 Ley', color: '#065F46', bg: '#D1FAE5' },
+        article: { label: '📄 Artículo', color: '#0369A1', bg: '#E0F2FE' },
+        jurisprudencia: { label: '⚖️ Jurisprudencia', color: '#92400E', bg: '#FEF3C7' },
     };
     const c = config[type] || config.law;
     return (
@@ -47,12 +51,20 @@ const ResultBadge = ({ type, similarity }) => {
 
 // ─── Componente principal ─────────────────────────────────────
 const SearchScreen = ({ navigation, route }) => {
-    const [searchQuery, setSearchQuery]   = useState(route.params?.initialQuery || '');
-    const [results, setResults]           = useState([]);
-    const [loading, setLoading]           = useState(false);
-    const [searched, setSearched]         = useState(false);
-    const [mode, setMode]                 = useState('hybrid');
+    const [searchQuery, setSearchQuery] = useState(route.params?.initialQuery || '');
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searched, setSearched] = useState(false);
+    const [mode, setMode] = useState('hybrid');
     const [semanticAvailable, setSemanticAvailable] = useState(true);
+    const [infoVisible, setInfoVisible] = useState(false);
+
+    // Mostrar intro una sola vez en la primera visita
+    useEffect(() => {
+        AsyncStorage.getItem(SEARCH_INTRO_KEY).then(seen => {
+            if (!seen) setInfoVisible(true);
+        });
+    }, []);
 
     // Efecto para búsquedas iniciales (desde otras pantallas)
     useEffect(() => {
@@ -112,7 +124,7 @@ const SearchScreen = ({ navigation, route }) => {
     const highlightText = (text, query) => {
         if (!text || !query) return <Text>{text}</Text>;
         const normalize = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        const normText  = normalize(text);
+        const normText = normalize(text);
         const normQuery = normalize(query.trim());
         if (!normQuery) return <Text>{text}</Text>;
         const parts = [];
@@ -134,29 +146,32 @@ const SearchScreen = ({ navigation, route }) => {
 
     // ── Render de cada resultado ──────────────────────────────
     const renderResultItem = useCallback(({ item }) => {
-        const isJур    = item.type === 'jurisprudencia';
+        const isJур = item.type === 'jurisprudencia';
         const isSemantic = item.searchType?.startsWith('semantic');
+        const isArticle = item.result_type === 'article' || item.searchType === 'semantic_article';
         const resultType = item.result_type || item.searchType || (isJур ? 'jurisprudencia' : 'law');
+
+        // Nombre de la ley fuente (para artículos)
+        const lawSourceName = item.law_title || item.law_id || null;
 
         const onPress = () => {
             if (isJур) {
                 navigation.navigate('JurisprudenceDetail', {
-                    url:   item.url_original,
+                    url: item.url_original,
                     title: `Sentencia Exp: ${item.expediente}`,
                 });
-            } else if (item.result_type === 'article' || item.searchType === 'semantic_article') {
+            } else if (isArticle) {
                 // Artículo → ir a la ley y hacer scroll al artículo
-                navigation.navigate('LawDetail', { 
-                    lawId: item.law_id, 
+                navigation.navigate('LawDetail', {
+                    lawId: item.law_id,
                     jumpToIndex: item.index // PASAR EL ÍNDICE PARA EL SALTO
                 });
             } else {
                 navigation.navigate('LawDetail', { lawId: item.id });
             }
-
         };
 
-        const title   = item.title || item.titulo || '';
+        const title = item.title || item.titulo || '';
         const snippet = (item.excerpt || item.searchableText || item.resumen || item.description || '').substring(0, 180);
 
         return (
@@ -164,7 +179,7 @@ const SearchScreen = ({ navigation, route }) => {
                 <Card style={[
                     styles.resultCard,
                     isSemantic && styles.resultCardSemantic,
-                    isJур      && styles.resultCardJur,
+                    isJур && styles.resultCardJur,
                 ]}>
                     <Card.Content>
                         <ResultBadge type={resultType} similarity={item.similarity} />
@@ -172,6 +187,16 @@ const SearchScreen = ({ navigation, route }) => {
                         <Text style={styles.resultTitle} numberOfLines={2}>
                             {highlightText(title, searchQuery)}
                         </Text>
+
+                        {/* Ley de origen — solo para artículos */}
+                        {isArticle && lawSourceName ? (
+                            <View style={styles.lawSourceRow}>
+                                <Text style={styles.lawSourceIcon}>📚</Text>
+                                <Text style={styles.lawSourceText} numberOfLines={1}>
+                                    {lawSourceName}
+                                </Text>
+                            </View>
+                        ) : null}
 
                         {snippet ? (
                             <Text style={styles.resultSnippet} numberOfLines={3}>
@@ -207,6 +232,15 @@ const SearchScreen = ({ navigation, route }) => {
                 inputStyle={styles.searchInput}
             />
 
+            <SearchInfoModal
+                visible={infoVisible}
+                onDismiss={async () => {
+                    await AsyncStorage.setItem(SEARCH_INTRO_KEY, 'true');
+                    setInfoVisible(false);
+                }}
+                mode="general"
+            />
+
             {/* Eliminamos el selector de modo y el hint semántico */}
 
             {/* ── Loading ── */}
@@ -224,7 +258,7 @@ const SearchScreen = ({ navigation, route }) => {
                 <View style={styles.centerContainer}>
                     <Text style={styles.emptyIcon}>⚖️</Text>
                     <Text style={styles.instructionText}>
-                        Escribe al menos 3 caracteres para buscar
+                        Escribe al menos 3 caracteres para buscar o escribe una frase para buscar semánticamente.
                     </Text>
                 </View>
             )}
@@ -365,6 +399,22 @@ const styles = StyleSheet.create({
         fontSize: 11,
         color: COLORS.accent,
         fontWeight: '600',
+    },
+    lawSourceRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+        marginBottom: 4,
+        gap: 4,
+    },
+    lawSourceIcon: {
+        fontSize: 11,
+    },
+    lawSourceText: {
+        fontSize: 11,
+        color: COLORS.primary,
+        fontWeight: '700',
+        flexShrink: 1,
     },
     highlight: {
         backgroundColor: '#FBBF24',
