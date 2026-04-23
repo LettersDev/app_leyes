@@ -2,7 +2,7 @@
   "expo": {
     "name": "TuLey",
     "slug": "tuley",
-    "version": "1.1.9",
+    "version": "1.1.10",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.lettersdev.tuley",
-      "versionCode": 18,
+      "versionCode": 19,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
