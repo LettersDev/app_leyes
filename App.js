@@ -103,7 +103,12 @@ export default function App() {
 
     // Actualizar token en silencio (con reintento)
     NotificationService.registerForPushNotificationsAsync()
-      .then(token => console.log('BG Push Success:', token ? 'Registered' : 'No Token'))
+      .then(token => {
+        console.log('BG Push Success:', token ? 'Registered' : 'No Token');
+        // Programar notificación local diaria del quiz como respaldo (8:00 AM)
+        NotificationService.scheduleLocalDailyQuizReminder(8, 0)
+          .catch(e => console.log('BG Quiz Reminder Error:', e.message));
+      })
       .catch(e => console.log('BG Push Error:', e.message));
 
     // Buscar updates de la app

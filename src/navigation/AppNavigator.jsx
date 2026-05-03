@@ -16,6 +16,8 @@ import JurisprudenceDetailScreen from '../screens/JurisprudenceDetailScreen';
 import GacetaDetailScreen from '../screens/GacetaDetailScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
+import DailyQuizScreen from '../screens/DailyQuizScreen';
+import QuizHistoryScreen from '../screens/QuizHistoryScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -30,6 +32,8 @@ const linking = {
             Gacetas: 'gacetas',
             LawDetail: 'law/:id',
             JurisprudenceDetail: 'sentencia/:id',
+            DailyQuiz: 'quiz',
+            QuizHistory: 'quiz-history',
         },
     },
 };
@@ -142,6 +146,16 @@ const AppNavigator = () => {
                     name="Onboarding"
                     component={OnboardingScreen}
                     options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="DailyQuiz"
+                    component={DailyQuizScreen}
+                    options={{ title: 'Pregunta del Día', headerShown: false }}
+                />
+                <Stack.Screen
+                    name="QuizHistory"
+                    component={QuizHistoryScreen}
+                    options={{ title: 'Historial', headerShown: false }}
                 />
             </Stack.Navigator>
         </NavigationContainer>

@@ -225,6 +225,44 @@ const NotificationService = {
     },
 
     /**
+     * Programa una notificación local diaria de respaldo para el Quiz Legal.
+     * Se cancela si ya hay una programada para evitar duplicados.
+     * Ideal llamarla al abrir la app (ej: en App.js).
+     *
+     * @param {number} hour   - Hora local (24h). Default: 8
+     * @param {number} minute - Minuto local. Default: 0
+     */
+    scheduleLocalDailyQuizReminder: async (hour = 8, minute = 0) => {
+        try {
+            // Cancelar notificaciones anteriores de quiz para evitar duplicados
+            const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+            const quizNotifs = scheduled.filter(n => n.content?.data?.type === 'daily_quiz');
+            for (const notif of quizNotifs) {
+                await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+            }
+
+            // Programar notificación diaria a la hora indicada
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: '🤖 Pregunta Legal del Día',
+                    body: '¡Tu pregunta legal diaria está lista! ¿Cuánto sabes de derecho?',
+                    data: { screen: 'DailyQuiz', type: 'daily_quiz' },
+                    sound: 'default',
+                },
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.DAILY,
+                    hour,
+                    minute,
+                },
+            });
+
+            console.log(`[NotificationService] Notificación quiz local programada ✓ (${hour}:${String(minute).padStart(2,'0')} diario)`);
+        } catch (e) {
+            console.warn('[NotificationService] Error programando notificación local quiz:', e.message);
+        }
+    },
+
+    /**
      * Listener para cuando llega una notificación con la app abierta
      */
     addListener: (callback) => {

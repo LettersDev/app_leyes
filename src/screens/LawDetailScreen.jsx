@@ -11,6 +11,7 @@ import { getLawById, getLawItems, getLawItemsAround, searchLawItemsByText, downl
 import HybridSearchService from '../services/hybridSearchService';
 import ReviewService from '../services/reviewService';
 import { COLORS } from '../utils/constants';
+import { supabase } from '../config/supabase';
 
 // Components
 import LawArticle from '../components/LawArticle';
@@ -60,7 +61,7 @@ function reducer(state, action) {
 }
 
 const LawDetailScreen = ({ route, navigation }) => {
-    const { lawId, jumpToIndex } = route.params;
+    const { lawId, jumpToIndex, initialItemId, initialItemNumber } = route.params;
     const [state, dispatch] = useReducer(reducer, initialState);
     const {
         law, items, searchResults, loading, loadingMore, hasMore, lastIndex,
@@ -96,7 +97,47 @@ const LawDetailScreen = ({ route, navigation }) => {
             const offline = await OfflineService.isLawOffline(lawId);
             dispatch({ type: 'SET_FIELD', field: 'isOfflineAvailable', value: offline });
 
-            const startIdx = (jumpToIndex !== undefined && jumpToIndex > 0) ? jumpToIndex - 1 : -1;
+            let startIdx = (jumpToIndex !== undefined && jumpToIndex > 0) ? jumpToIndex - 1 : -1;
+            let targetItemIndex = jumpToIndex;
+
+            // Prioridad 1: Salto por número de artículo (más robusto)
+            const jumpNumber = initialItemNumber || (initialItemId?.match(/\d+/)?.[0]);
+            
+            if (jumpNumber) {
+                console.log('[DeepLink] Buscando por número:', jumpNumber);
+                const { data: numData } = await supabase
+                    .from('law_items')
+                    .select('index, number')
+                    .eq('law_id', lawId)
+                    .eq('number', parseInt(jumpNumber))
+                    .limit(1)
+                    .maybeSingle();
+
+                if (numData) {
+                    console.log('[DeepLink] Encontrado por número en índice:', numData.index);
+                    startIdx = numData.index - 1;
+                    targetItemIndex = numData.index;
+                    dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: numData.number.toString() });
+                }
+            } 
+            // Prioridad 2: Salto por ID técnico (si no hay número)
+            else if (initialItemId) {
+                console.log('[DeepLink] Buscando por ID:', initialItemId);
+                const { data: itemData } = await supabase
+                    .from('law_items')
+                    .select('index, number')
+                    .eq('id', initialItemId)
+                    .single();
+                
+                if (itemData) {
+                    startIdx = itemData.index - 1;
+                    targetItemIndex = itemData.index;
+                    if (itemData.number) {
+                        dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: itemData.number.toString() });
+                    }
+                }
+            }
+
             const initialItems = await getLawItems(lawId, startIdx, PAGE_SIZE);
             dispatch({ type: 'SET_FIELD', field: 'items', value: initialItems });
             dispatch({ type: 'SET_FIELD', field: 'lastIndex', value: initialItems[initialItems.length - 1]?.index || (startIdx === -1 ? 0 : startIdx) });
@@ -104,8 +145,9 @@ const LawDetailScreen = ({ route, navigation }) => {
             loadFavoriteStatus();
             loadNotes();
 
-            if (jumpToIndex !== undefined) {
+            if (targetItemIndex !== undefined) {
                 setTimeout(() => {
+                    // Si saltamos a un índice específico, scrollear al inicio del resultado
                     flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
                 }, 500);
             }
@@ -281,7 +323,7 @@ const LawDetailScreen = ({ route, navigation }) => {
     const renderItem = useCallback(({ item, index }) => (
         <LawArticle
             item={item} index={index} fontSize={fontSize} fontFamily={fontFamily} searchQuery={searchQuery}
-            isSearching={isSearching} isExactMatch={searchTargetNum && item.number === searchTargetNum}
+            isSearching={isSearching} isExactMatch={searchTargetNum && item.number?.toString() === searchTargetNum?.toString()}
             onOpenNote={handleOpenNote}
             onToggleFavorite={toggleFavoriteArticle}
             onShare={handleShareArticle}

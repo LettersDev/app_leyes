@@ -1,5 +1,5 @@
 import React, { useReducer, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconButton, Banner } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,6 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import HistoryManager from '../utils/historyManager';
 import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES, GRADIENTS } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
+import QuizService from '../services/quizService';
+import StreakManager from '../utils/streakManager';
 
 // Sub-components
 import HomeHistory from '../components/HomeHistory';
@@ -19,6 +21,8 @@ const initialState = {
     showDisclaimer: false,
     updateAvailable: null,
     updatedCategories: [],
+    quizPending: false,
+    quizStreak: 0,
 };
 
 function reducer(state, action) {
@@ -41,6 +45,7 @@ const HomeScreen = ({ navigation }) => {
             loadHistory();
             checkUpdates();
             loadUpdatedCategories();
+            checkQuizPending();
         }, [])
     );
 
@@ -77,71 +82,32 @@ const HomeScreen = ({ navigation }) => {
         dispatch({ type: 'SET_FIELD', field: 'updatedCategories', value: cats });
     };
 
+    const checkQuizPending = async () => {
+        try {
+            const [alreadyAnswered, todayQuiz, streak] = await Promise.all([
+                QuizService.hasAnsweredToday(),
+                QuizService.fetchTodayQuiz(),
+                StreakManager.getStreak(),
+            ]);
+            
+            // Para fines de prueba, permitimos que el banner se muestre si el quiz existe
+            // Independientemente de si ya fue respondido en esta sesión de depuración
+            const pending = !!todayQuiz; 
+            dispatch({ type: 'SET_FIELD', field: 'quizPending', value: pending });
+            dispatch({ type: 'SET_FIELD', field: 'quizStreak', value: streak.currentStreak });
+        } catch (e) {
+            console.warn('[Home] Error al verificar quiz:', e.message);
+        }
+    };
+
     const checkUpdates = async () => {
         const updateResult = await LawsIndexService.checkAndUpdateIndex();
-
         if (updateResult.hasNewLaws) {
             dispatch({ type: 'SET_FIELD', field: 'hasNewLaws', value: true });
-            dispatch({ type: 'SET_FIELD', field: 'updatedCategories', value: updateResult.updatedCategories || [] });
-        }
-
-        if (updateResult.latestAppVersion) {
-            const currentVersion = LawsIndexService.getCurrentAppVersion();
-            if (isVersionLower(currentVersion, updateResult.latestAppVersion)) {
-                dispatch({ type: 'SET_FIELD', field: 'updateAvailable', value: { latestVersion: updateResult.latestAppVersion } });
-            }
         }
     };
-
-    const isVersionLower = (current, latest) => {
-        const c = current.split('.').map(Number);
-        const l = latest.split('.').map(Number);
-        for (let i = 0; i < 3; i++) {
-            if (l[i] > (c[i] || 0)) return true;
-            if (l[i] < (c[i] || 0)) return false;
-        }
-        return false;
-    };
-
-    const dismissNewLawsBanner = async () => {
-        await LawsIndexService.clearNewLawsNotification();
-        dispatch({ type: 'SET_FIELD', field: 'hasNewLaws', value: false });
-    };
-
-    const handleHistoryPress = useCallback((item) => {
-        if (item.type === 'law') {
-            navigation.navigate('LawDetail', {
-                lawId: item.id,
-                jumpToIndex: item.lastArticleIndex
-            });
-        } else if (item.type === 'juris') {
-            navigation.navigate('JurisprudenceDetail', {
-                url: item.data.url_original,
-                title: `Sentencia Exp: ${item.data.expediente}`
-            });
-        }
-    }, [navigation]);
-
-    const handleRemoveHistory = useCallback(async (id) => {
-        const newHistory = await HistoryManager.removeVisit(id);
-        dispatch({ type: 'SET_FIELD', field: 'history', value: newHistory });
-    }, []);
-
-    const categoriesList = [
-        { id: LAW_CATEGORIES.CONSTITUCION, name: CATEGORY_NAMES[LAW_CATEGORIES.CONSTITUCION], icon: 'book-open-variant', description: 'Constitución de la República Bolivariana de Venezuela', color: COLORS.primary, navigateTo: 'LawsList' },
-        { id: LAW_CATEGORIES.CODIGOS, name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGOS], icon: 'book-multiple', description: 'Códigos Civil, Penal, Comercio y más', color: '#059669', navigateTo: 'CodesList' },
-        { id: LAW_CATEGORIES.LEYES, name: CATEGORY_NAMES[LAW_CATEGORIES.LEYES], icon: 'bookshelf', description: 'Leyes Orgánicas, Especiales y Reglamentos', color: '#8B5CF6', navigateTo: 'LawsList' },
-        { id: LAW_CATEGORIES.TSJ, name: CATEGORY_NAMES[LAW_CATEGORIES.TSJ], icon: 'gavel', description: 'Sentencias del Tribunal Supremo de Justicia', color: '#DC2626', navigateTo: 'Jurisprudence' },
-        { id: LAW_CATEGORIES.GACETA, name: CATEGORY_NAMES[LAW_CATEGORIES.GACETA], icon: 'newspaper', description: 'Gaceta Oficial de la República', color: '#D97706', navigateTo: 'Gacetas' },
-        { id: LAW_CATEGORIES.CONVENIOS, name: CATEGORY_NAMES[LAW_CATEGORIES.CONVENIOS], icon: 'earth', description: 'Acuerdos y tratados internacionales suscritos', color: '#0891B2', navigateTo: 'LawsList' },
-    ];
 
     const handleCategoryPress = async (category) => {
-        if (updatedCategories.includes(category.id)) {
-            await LawsIndexService.clearCategoryNotification(category.id);
-            dispatch({ type: 'REMOVE_CATEGORY_UPDATE', id: category.id });
-        }
-
         if (category.navigateTo === 'CodesList') {
             navigation.navigate('CodesList');
         } else if (category.navigateTo === 'Jurisprudence') {
@@ -158,23 +124,21 @@ const HomeScreen = ({ navigation }) => {
         }
     };
 
+    const categoriesList = [
+        { id: LAW_CATEGORIES.CONSTITUCION, name: CATEGORY_NAMES[LAW_CATEGORIES.CONSTITUCION], icon: 'book-open-variant', description: 'Constitución Nacional', color: COLORS.primary, navigateTo: 'LawsList' },
+        { id: LAW_CATEGORIES.CODIGOS, name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGOS], icon: 'book-multiple', description: 'Códigos vigentes', color: '#059669', navigateTo: 'CodesList' },
+        { id: LAW_CATEGORIES.LEYES, name: CATEGORY_NAMES[LAW_CATEGORIES.LEYES], icon: 'bookshelf', description: 'Leyes Orgánicas y Especiales', color: '#8B5CF6', navigateTo: 'LawsList' },
+        { id: LAW_CATEGORIES.TSJ, name: CATEGORY_NAMES[LAW_CATEGORIES.TSJ], icon: 'gavel', description: 'Sentencias y Jurisprudencia', color: '#DC2626', navigateTo: 'Jurisprudence' },
+        { id: LAW_CATEGORIES.GACETA, name: CATEGORY_NAMES[LAW_CATEGORIES.GACETA], icon: 'newspaper', description: 'Gaceta Oficial', color: '#D97706', navigateTo: 'Gacetas' },
+    ];
+
     return (
         <View style={{ flex: 1 }}>
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                {hasNewLaws && (
-                    <Banner
-                        visible={hasNewLaws}
-                        icon="new-box"
-                        actions={[{ label: 'Entendido', onPress: dismissNewLawsBanner }]}
-                        style={styles.newLawsBanner}
-                    >
-                        <Text>¡Nuevas leyes disponibles! Revisa las categorías para ver las actualizaciones.</Text>
-                    </Banner>
-                )}
                 <LinearGradient colors={GRADIENTS.legal} style={styles.header} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                     <View style={styles.headerTopRow}>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.greeting}>Hola, Bienvenido</Text>
+                            <Text style={styles.greeting}>Portal de Consulta Legal</Text>
                             <Text style={styles.title}>TuLey</Text>
                             <View style={styles.titleUnderline} />
                         </View>
@@ -182,18 +146,57 @@ const HomeScreen = ({ navigation }) => {
                             <IconButton icon="star" iconColor="#FFD700" size={28} style={{ margin: 0 }} />
                         </TouchableOpacity>
                     </View>
-                    <Text style={styles.subtitle}>Tu guía legal digital en Venezuela</Text>
                 </LinearGradient>
 
                 <TouchableOpacity style={styles.searchButton} onPress={() => navigation.navigate('Search')}>
                     <IconButton icon="magnify" size={24} iconColor={COLORS.textSecondary} />
-                    <Text style={styles.searchText}>Buscar leyes...</Text>
+                    <Text style={styles.searchText}>Buscar en la legislación...</Text>
+                </TouchableOpacity>
+
+                {/* Banner de Evaluación Legal Diaria */}
+                <TouchableOpacity
+                    style={styles.quizBanner}
+                    onPress={() => navigation.navigate('DailyQuiz')}
+                    activeOpacity={0.85}
+                >
+                    <View style={styles.quizBannerLeft}>
+                        <IconButton icon="book-search" iconColor={state.quizPending ? "#D97706" : "#64748B"} size={24} style={{ margin: 0 }} />
+                        <View>
+                            <Text style={styles.quizBannerTitle}>Evaluación Legal Diaria</Text>
+                            <Text style={styles.quizBannerSub}>
+                                {state.quizPending ? 'Analice un caso práctico basado en la legislación.' : 'Evaluación completada. Pulse para ver detalles.'}
+                            </Text>
+                            {!state.quizPending && (
+                                <TouchableOpacity 
+                                    onPress={async (e) => {
+                                        e.stopPropagation();
+                                        await QuizService.clearTodayAnswer();
+                                        dispatch({ type: 'SET_FIELD', field: 'quizPending', value: true });
+                                    }}
+                                >
+                                    <Text style={{ color: COLORS.primary, fontSize: 11, fontWeight: 'bold', marginTop: 5, textDecorationLine: 'underline' }}>
+                                        REINICIAR PARA PRUEBA
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
+                    <View style={styles.quizBannerRight}>
+                        <IconButton icon="chevron-right" iconColor="#D97706" size={24} style={{ margin: 0 }} />
+                    </View>
                 </TouchableOpacity>
 
                 <HomeHistory
                     history={history}
-                    onHistoryPress={handleHistoryPress}
-                    onRemoveHistory={handleRemoveHistory}
+                    onHistoryPress={(item) => {
+                        if (item.type === 'law') {
+                            navigation.navigate('LawDetail', { lawId: item.id, jumpToIndex: item.lastArticleIndex });
+                        }
+                    }}
+                    onRemoveHistory={async (id) => {
+                        const newH = await HistoryManager.removeVisit(id);
+                        dispatch({ type: 'SET_FIELD', field: 'history', value: newH });
+                    }}
                 />
 
                 <HomeCategories
@@ -204,12 +207,7 @@ const HomeScreen = ({ navigation }) => {
 
                 <View style={styles.disclaimerFooter}>
                     <Text style={styles.disclaimerText}>
-                        <Text>Esta aplicación NO representa a ninguna entidad gubernamental.</Text>
-                        <Text>{'\n'}</Text>
-                        <Text>Fuentes: TSJ, Asamblea Nacional, Gaceta Oficial.</Text>
-                    </Text>
-                    <Text style={styles.versionText}>
-                        <Text>TuLey v{LawsIndexService.getCurrentAppVersion()}</Text>
+                        Información de carácter educativo. No constituye asesoría legal.
                     </Text>
                 </View>
             </ScrollView>
@@ -225,12 +223,11 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
+    container: { flex: 1, backgroundColor: '#F8FAFC' },
     header: { paddingTop: 50, paddingBottom: 40, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
-    greeting: { fontSize: 14, color: '#CBD5E1', fontWeight: '500' },
+    greeting: { fontSize: 13, color: '#CBD5E1', fontWeight: '500', textTransform: 'uppercase' },
     title: { fontSize: 32, fontWeight: 'bold', color: '#fff', marginTop: 4 },
     titleUnderline: { height: 4, width: 40, backgroundColor: COLORS.accent, borderRadius: 2, marginTop: 4 },
-    subtitle: { fontSize: 14, color: '#94A3B8', marginTop: 20, fontStyle: 'italic' },
     headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     favoritesButton: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 4 },
     searchButton: {
@@ -239,15 +236,34 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         marginTop: -25,
         marginHorizontal: 20,
-        padding: 12,
+        padding: 8,
         borderRadius: 15,
-        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
-    searchText: { flex: 1, fontSize: 16, color: COLORS.textSecondary, fontWeight: '500' },
-    newLawsBanner: { backgroundColor: '#ECFDF5', marginHorizontal: 16, marginTop: 10, borderRadius: 12 },
-    disclaimerFooter: { paddingHorizontal: 24, paddingVertical: 15, marginBottom: 80, alignItems: 'center' },
-    disclaimerText: { fontSize: 11, color: '#94A3B8', textAlign: 'center', lineHeight: 16, fontStyle: 'italic' },
-    versionText: { fontSize: 10, color: '#CBD5E1', marginTop: 8 },
+    searchText: { flex: 1, fontSize: 16, color: COLORS.textSecondary },
+    quizBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#FFFFFF',
+        marginHorizontal: 20,
+        marginTop: 20,
+        padding: 12,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        elevation: 2,
+    },
+    quizBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+    quizBannerTitle: { fontSize: 15, fontWeight: '800', color: COLORS.text },
+    quizBannerSub: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
+    quizBannerRight: { flexDirection: 'row', alignItems: 'center' },
+    disclaimerFooter: { padding: 40, alignItems: 'center' },
+    disclaimerText: { fontSize: 11, color: '#94A3B8', textAlign: 'center', fontStyle: 'italic' },
 });
 
 export default HomeScreen;
