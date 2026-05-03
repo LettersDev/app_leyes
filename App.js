@@ -4,6 +4,8 @@ import * as Notifications from 'expo-notifications';
 import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { MD3LightTheme, Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as NavigationBar from 'expo-navigation-bar';
+import { Platform } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { COLORS } from './src/utils/constants';
 import { SettingsProvider } from './src/context/SettingsContext';
@@ -32,6 +34,14 @@ export default function App() {
   const notificationListener = useRef();
   const responseListener = useRef();
   const [updateInfo, setUpdateInfo] = useState({ visible: false, currentVersion: '', latestVersion: '' });
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      // Oculta los botones del sistema pero permite que aparezcan con un swipe (sticky-immersive)
+      NavigationBar.setVisibilityAsync('hidden');
+      NavigationBar.setBehaviorAsync('sticky-immersive');
+    }
+  }, []);
 
   useEffect(() => {
     // Verificamos si realmente necesitamos inicializar

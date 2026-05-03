@@ -95,21 +95,31 @@ const DailyQuizScreen = ({ navigation }) => {
 
     if (screenState === 'LOADING') {
         return (
-            <View style={styles.center}>
+            <SafeAreaView style={styles.center}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
                 <Text style={styles.infoText}>Cargando evaluación técnica...</Text>
-            </View>
+            </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={['bottom']}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <View style={styles.header}>
                 <View style={styles.headerTitleRow}>
-                    <IconButton icon="arrow-left" iconColor={COLORS.text} onPress={() => navigation.goBack()} />
-                    <Text style={styles.headerTitle}>Evaluación Legal</Text>
+                    <IconButton 
+                        icon="arrow-left" 
+                        iconColor={COLORS.text} 
+                        onPress={() => navigation.goBack()} 
+                        style={{ marginLeft: 0 }}
+                    />
+                    <Text style={styles.headerTitle} numberOfLines={1}>Evaluación Legal</Text>
                 </View>
-                <IconButton icon="history" iconColor={COLORS.primary} onPress={() => navigation.navigate('QuizHistory')} />
+                <IconButton 
+                    icon="history" 
+                    iconColor={COLORS.primary} 
+                    onPress={() => navigation.navigate('QuizHistory')} 
+                    style={{ marginRight: 0 }}
+                />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -207,32 +217,55 @@ const DailyQuizScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F8FAFC' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
-    headerTitleRow: { flexDirection: 'row', alignItems: 'center' },
-    headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
+    header: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        backgroundColor: '#FFF', 
+        borderBottomWidth: 1, 
+        borderBottomColor: '#E2E8F0',
+        paddingHorizontal: 16,
+    },
+    headerTitleRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginLeft: -4 },
     scrollContent: { padding: 20 },
     dateCard: { marginBottom: 20 },
     dateLabel: { fontSize: 11, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1 },
     dateValue: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginTop: 4 },
     lawCard: { backgroundColor: '#F1F5F9', padding: 12, borderRadius: 8, marginBottom: 15 },
     lawLabel: { fontSize: 10, color: '#475569', fontWeight: '700' },
-    lawValue: { fontSize: 13, color: COLORS.primary, marginTop: 2, fontWeight: '600' },
+    lawValue: { fontSize: 13, color: COLORS.primary, marginTop: 2, fontWeight: '600', lineHeight: 18 },
     questionCard: { backgroundColor: '#FFF', padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 20 },
     questionText: { fontSize: 16, color: COLORS.text, lineHeight: 24, fontWeight: '600' },
     optionsContainer: { gap: 12 },
-    option: { flexDirection: 'row', padding: 16, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
+    option: { flexDirection: 'row', padding: 16, borderRadius: 12, borderWidth: 1, alignItems: 'center', backgroundColor: '#FFF' },
     optionId: { fontSize: 15, fontWeight: '800', marginRight: 15 },
-    optionText: { fontSize: 14, flex: 1, fontWeight: '500' },
+    optionText: { fontSize: 14, flex: 1, fontWeight: '500', lineHeight: 20 },
     actionButton: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 10, marginTop: 25, alignItems: 'center' },
     actionButtonText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-    modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%', padding: 20 },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-    modalTitle: { fontSize: 18, fontWeight: '700' },
-    explanationText: { fontSize: 15, color: '#334155', lineHeight: 24 },
-    linkButton: { marginTop: 25, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 20 },
+    modalContent: { 
+        backgroundColor: '#FFF', 
+        borderTopLeftRadius: 24, 
+        borderTopRightRadius: 24, 
+        maxHeight: '85%', 
+        padding: 24,
+        paddingBottom: 40, // Espacio extra para el margen inferior
+    },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+    modalTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text },
+    explanationText: { fontSize: 16, color: '#334155', lineHeight: 26 },
+    linkButton: { 
+        marginTop: 30, 
+        borderTopWidth: 1, 
+        borderTopColor: '#F1F5F9', 
+        paddingTop: 20,
+        backgroundColor: '#F8FAFC',
+        borderRadius: 12,
+        paddingVertical: 12,
+    },
     linkButtonText: { color: COLORS.primary, fontWeight: '700', textAlign: 'center' },
-    infoText: { marginTop: 10, color: '#64748B' }
+    infoText: { marginTop: 12, color: '#64748B', fontSize: 14, fontWeight: '500' }
 });
 
 export default DailyQuizScreen;

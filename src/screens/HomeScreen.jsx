@@ -1,9 +1,10 @@
 import React, { useReducer, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { IconButton, Banner } from 'react-native-paper';
+import { IconButton } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import HistoryManager from '../utils/historyManager';
 import { COLORS, LAW_CATEGORIES, CATEGORY_NAMES, GRADIENTS } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
@@ -114,6 +115,8 @@ const HomeScreen = ({ navigation }) => {
             navigation.navigate('Jurisprudence');
         } else if (category.navigateTo === 'Gacetas') {
             navigation.navigate('Gacetas');
+        } else if (category.navigateTo === 'DailyQuiz') {
+            navigation.navigate('DailyQuiz');
         } else if (category.navigateTo === 'LawsList' && category.id === LAW_CATEGORIES.LEYES) {
             navigation.navigate('LawsCategorySelector');
         } else {
@@ -130,6 +133,7 @@ const HomeScreen = ({ navigation }) => {
         { id: LAW_CATEGORIES.LEYES, name: CATEGORY_NAMES[LAW_CATEGORIES.LEYES], icon: 'bookshelf', description: 'Leyes Orgánicas y Especiales', color: '#8B5CF6', navigateTo: 'LawsList' },
         { id: LAW_CATEGORIES.TSJ, name: CATEGORY_NAMES[LAW_CATEGORIES.TSJ], icon: 'gavel', description: 'Sentencias y Jurisprudencia', color: '#DC2626', navigateTo: 'Jurisprudence' },
         { id: LAW_CATEGORIES.GACETA, name: CATEGORY_NAMES[LAW_CATEGORIES.GACETA], icon: 'newspaper', description: 'Gaceta Oficial', color: '#D97706', navigateTo: 'Gacetas' },
+        { id: 'daily-quiz', name: 'Evaluación Legal Diaria', icon: 'book-search', description: state.quizPending ? 'Analice un caso práctico basado en la legislación.' : 'Evaluación completada. Pulse para ver detalles.', color: '#6366f1', navigateTo: 'DailyQuiz' },
     ];
 
     return (
@@ -153,38 +157,6 @@ const HomeScreen = ({ navigation }) => {
                     <Text style={styles.searchText}>Buscar en la legislación...</Text>
                 </TouchableOpacity>
 
-                {/* Banner de Evaluación Legal Diaria */}
-                <TouchableOpacity
-                    style={styles.quizBanner}
-                    onPress={() => navigation.navigate('DailyQuiz')}
-                    activeOpacity={0.85}
-                >
-                    <View style={styles.quizBannerLeft}>
-                        <IconButton icon="book-search" iconColor={state.quizPending ? "#D97706" : "#64748B"} size={24} style={{ margin: 0 }} />
-                        <View>
-                            <Text style={styles.quizBannerTitle}>Evaluación Legal Diaria</Text>
-                            <Text style={styles.quizBannerSub}>
-                                {state.quizPending ? 'Analice un caso práctico basado en la legislación.' : 'Evaluación completada. Pulse para ver detalles.'}
-                            </Text>
-                            {!state.quizPending && (
-                                <TouchableOpacity 
-                                    onPress={async (e) => {
-                                        e.stopPropagation();
-                                        await QuizService.clearTodayAnswer();
-                                        dispatch({ type: 'SET_FIELD', field: 'quizPending', value: true });
-                                    }}
-                                >
-                                    <Text style={{ color: COLORS.primary, fontSize: 11, fontWeight: 'bold', marginTop: 5, textDecorationLine: 'underline' }}>
-                                        REINICIAR PARA PRUEBA
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </View>
-                    <View style={styles.quizBannerRight}>
-                        <IconButton icon="chevron-right" iconColor="#D97706" size={24} style={{ margin: 0 }} />
-                    </View>
-                </TouchableOpacity>
 
                 <HomeHistory
                     history={history}
@@ -208,6 +180,9 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.disclaimerFooter}>
                     <Text style={styles.disclaimerText}>
                         Información de carácter educativo. No constituye asesoría legal.
+                    </Text>
+                    <Text style={[styles.disclaimerText, { marginTop: 8, opacity: 0.6 }]}>
+                        Versión {Constants.expoConfig?.version || '1.1.10'}
                     </Text>
                 </View>
             </ScrollView>

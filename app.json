@@ -22,7 +22,11 @@
       "edgeToEdgeEnabled": true,
       "package": "com.lettersdev.tuley",
       "versionCode": 19,
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "navigationBar": {
+        "visible": "sticky-immersive",
+        "backgroundColor": "#00000000"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
