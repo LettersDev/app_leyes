@@ -3,7 +3,7 @@ import {
     View, Text, StyleSheet, FlatList,
     TouchableOpacity, Modal, useWindowDimensions,
 } from 'react-native';
-import { Button, IconButton } from 'react-native-paper';
+import { Button, IconButton, ActivityIndicator } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 
 const SLIDES_GENERAL = [
@@ -55,9 +55,9 @@ const SLIDES_INTERNAL = [
 ];
 
 /**
- * @param {'general' | 'internal'} mode
+ * @param {'general' | 'internal' | 'interpretation'} mode
  */
-const SearchInfoModal = ({ visible, onDismiss, mode = 'general' }) => {
+const SearchInfoModal = ({ visible, onDismiss, mode = 'general', data, loading }) => {
     const { width } = useWindowDimensions();
     const [currentIndex, setCurrentIndex] = useState(0);
     const flatListRef = useRef(null);
@@ -82,6 +82,53 @@ const SearchInfoModal = ({ visible, onDismiss, mode = 'general' }) => {
             <Text style={styles.description}>{item.description}</Text>
         </View>
     );
+    
+    if (mode === 'interpretation') {
+        return (
+            <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onDismiss}>
+                <View style={styles.overlay}>
+                    <View style={styles.interpretationContainer}>
+                        <View style={styles.interpretationHeader}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.interpretationTag}>ANÁLISIS DE LA LEY</Text>
+                                {data?.lawTitle && <Text style={styles.lawTitleSmall} numberOfLines={1}>{data.lawTitle}</Text>}
+                            </View>
+                            <TouchableOpacity onPress={onDismiss}>
+                                <Text style={styles.closeText}>CERRAR</Text>
+                            </TouchableOpacity>
+                        </View>
+                        
+                        {loading ? (
+                            <View style={styles.loadingContainer}>
+                                <ActivityIndicator color={COLORS.accent} />
+                                <Text style={styles.loadingText}>La IA está analizando este artículo...</Text>
+                            </View>
+                        ) : data ? (
+                            <FlatList
+                                data={[data.error || data.interpretation]}
+                                renderItem={({ item }) => (
+                                    <View>
+                                        <Text style={[styles.interpretationText, data.error && { color: COLORS.error, fontWeight: 'bold' }]}>
+                                            {item}
+                                        </Text>
+                                        {!data.error && (
+                                            <View style={styles.footerNote}>
+                                                <Text style={styles.footerNoteText}>
+                                                    Interpretado por {data.provider === 'groq' ? 'Llama 3' : 'Gemini'}. No es asesoría legal.
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                )}
+                                keyExtractor={(_, index) => index.toString()}
+                                showsVerticalScrollIndicator={false}
+                            />
+                        ) : null}
+                    </View>
+                </View>
+            </Modal>
+        );
+    }
 
     return (
         <Modal
@@ -202,6 +249,73 @@ const styles = StyleSheet.create({
         marginTop: 20,
         color: '#9CA3AF',
         fontSize: 14,
+    },
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 23, 42, 0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    interpretationContainer: {
+        backgroundColor: '#fff',
+        width: '100%',
+        maxHeight: '80%',
+        borderRadius: 24,
+        padding: 24,
+    },
+    interpretationHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingBottom: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+    },
+    interpretationTag: {
+        fontSize: 10,
+        fontWeight: '900',
+        color: COLORS.accent,
+        letterSpacing: 2,
+    },
+    lawTitleSmall: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: COLORS.primary,
+        marginTop: 2,
+    },
+    closeText: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: COLORS.textSecondary,
+    },
+    interpretationText: {
+        fontSize: 16,
+        color: COLORS.text,
+        lineHeight: 26,
+    },
+    loadingContainer: {
+        padding: 40,
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 15,
+        fontSize: 14,
+        color: COLORS.textSecondary,
+        textAlign: 'center',
+    },
+    footerNote: {
+        marginTop: 20,
+        paddingTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+    },
+    footerNoteText: {
+        fontSize: 11,
+        color: '#94A3B8',
+        textAlign: 'center',
+        fontStyle: 'italic',
     },
 });
 

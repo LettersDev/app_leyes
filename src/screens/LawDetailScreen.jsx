@@ -12,6 +12,7 @@ import HybridSearchService from '../services/hybridSearchService';
 import ReviewService from '../services/reviewService';
 import { COLORS } from '../utils/constants';
 import { supabase } from '../config/supabase';
+import AIService from '../services/aiService';
 
 // Components
 import LawArticle from '../components/LawArticle';
@@ -44,6 +45,9 @@ const initialState = {
     isDownloadingContent: false,
     isOfflineAvailable: false,
     infoVisible: false,
+    interpretationModalVisible: false,
+    interpretationLoading: false,
+    interpretationData: null,
 };
 
 function reducer(state, action) {
@@ -68,7 +72,7 @@ const LawDetailScreen = ({ route, navigation }) => {
         searching, searchQuery, isSearching, searchTargetNum, error,
         settingsVisible, favoriteIds, notes,
         noteDialogVisible, editingNote, isDownloadingContent, isOfflineAvailable,
-        infoVisible
+        infoVisible, interpretationModalVisible, interpretationLoading, interpretationData
     } = state;
     const { fontSize, fontFamily } = useSettings();
 
@@ -319,6 +323,22 @@ const LawDetailScreen = ({ route, navigation }) => {
             }
         ]);
     };
+    
+    const handleInterpretArticle = useCallback(async (item) => {
+        dispatch({ type: 'SET_FIELD', field: 'interpretationLoading', value: true });
+        dispatch({ type: 'SET_FIELD', field: 'interpretationModalVisible', value: true });
+        dispatch({ type: 'SET_FIELD', field: 'interpretationData', value: null });
+        
+        try {
+            const data = await AIService.interpretArticle(`Art. ${item.number}`, item.text);
+            dispatch({ type: 'SET_FIELD', field: 'interpretationData', value: { ...data, lawTitle: law?.title } });
+        } catch (error) {
+            dispatch({ type: 'SET_FIELD', field: 'interpretationModalVisible', value: false });
+            Alert.alert('Error', 'No se pudo obtener la interpretación en este momento.');
+        } finally {
+            dispatch({ type: 'SET_FIELD', field: 'interpretationLoading', value: false });
+        }
+    }, []);
 
     const renderItem = useCallback(({ item, index }) => (
         <LawArticle
@@ -328,11 +348,12 @@ const LawDetailScreen = ({ route, navigation }) => {
             onToggleFavorite={toggleFavoriteArticle}
             onShare={handleShareArticle}
             onJumpToContext={handleJumpToContext}
+            onInterpret={handleInterpretArticle}
             hasNote={!!notes[`${lawId}-${item.id || item.index}`]}
             noteText={notes[`${lawId}-${item.id || item.index}`]?.text}
             isFavorite={favoriteIds.has(`${lawId}-${item.id || item.index}`)}
         />
-    ), [fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, handleOpenNote, toggleFavoriteArticle, handleShareArticle, handleJumpToContext, notes, lawId, favoriteIds]);
+    ), [fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, handleOpenNote, toggleFavoriteArticle, handleShareArticle, handleJumpToContext, handleInterpretArticle, notes, lawId, favoriteIds]);
 
     if (loading && !isSearching) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /><Text>Cargando ley...</Text></View>;
     if (error || !law) {
@@ -441,6 +462,15 @@ const LawDetailScreen = ({ route, navigation }) => {
                 noteDialogVisible={noteDialogVisible} setNoteDialogVisible={(v) => dispatch({ type: 'SET_FIELD', field: 'noteDialogVisible', value: v })}
                 editingNote={editingNote} setEditingNote={(val) => dispatch({ type: 'SET_FIELD', field: 'editingNote', value: val })}
                 handleSaveNote={async () => { await NotesManager.saveNote(editingNote?.id, editingNote?.text); dispatch({ type: 'SET_FIELD', field: 'noteDialogVisible', value: false }); loadNotes(); }}
+            />
+
+            {/* AI Interpretation Modal */}
+            <SearchInfoModal
+                visible={interpretationModalVisible}
+                onDismiss={() => dispatch({ type: 'SET_FIELD', field: 'interpretationModalVisible', value: false })}
+                mode="interpretation"
+                data={interpretationData}
+                loading={interpretationLoading}
             />
         </View>
     );

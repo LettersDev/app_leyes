@@ -34,20 +34,16 @@ export default function App() {
   const notificationListener = useRef();
   const responseListener = useRef();
   const [updateInfo, setUpdateInfo] = useState({ visible: false, currentVersion: '', latestVersion: '' });
-
   useEffect(() => {
     if (Platform.OS === 'android') {
-      // Oculta los botones del sistema pero permite que aparezcan con un swipe (sticky-immersive)
       NavigationBar.setVisibilityAsync('hidden');
       NavigationBar.setBehaviorAsync('sticky-immersive');
     }
   }, []);
 
   useEffect(() => {
-    // Verificamos si realmente necesitamos inicializar
     checkIfFirstLaunch();
-
-    // Listener para cuando el usuario TOCA la notificación
+    
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
       console.log('App: Notificación tocada con data:', data);

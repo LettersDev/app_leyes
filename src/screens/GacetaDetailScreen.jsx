@@ -196,8 +196,9 @@ const GacetaDetailScreen = ({ route }) => {
                         onPress={() => setMode('webview')}
                         buttonColor={COLORS.primary}
                         icon="book-open-variant"
+                        labelStyle={{ color: '#fff' }}
                     >
-                        <Text>Ver Gaceta</Text>
+                        Ver Gaceta
                     </Button>
                 </Card.Actions>
             </Card>

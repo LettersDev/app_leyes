@@ -16,7 +16,8 @@ const LawArticle = React.memo(({
     onJumpToContext,
     hasNote,
     noteText,
-    isFavorite
+    isFavorite,
+    onInterpret
 }) => {
     const highlightText = (text, query) => {
         if (!text || !query) return <Text>{text}</Text>;
@@ -175,6 +176,15 @@ const LawArticle = React.memo(({
                     }
                 ]
             )}
+            
+            <View style={styles.articleFooter}>
+                <TouchableOpacity 
+                    style={styles.aiInterpretBtn} 
+                    onPress={() => onInterpret(item)}
+                >
+                    <Text style={styles.aiInterpretText}>INTERPRETAR CON IA</Text>
+                </TouchableOpacity>
+            </View>
 
             {hasNote && (
                 <View style={styles.noteContent}>
@@ -211,7 +221,8 @@ const LawArticle = React.memo(({
         prevProps.isExactMatch === nextProps.isExactMatch &&
         prevProps.hasNote === nextProps.hasNote &&
         prevProps.isFavorite === nextProps.isFavorite &&
-        prevProps.noteText === nextProps.noteText
+        prevProps.noteText === nextProps.noteText &&
+        prevProps.onInterpret === nextProps.onInterpret
     );
 });
 
@@ -335,6 +346,25 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 12,
+    },
+    articleFooter: {
+        marginTop: 15,
+        paddingTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+    },
+    aiInterpretBtn: {
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+    },
+    aiInterpretText: {
+        color: COLORS.accent,
+        fontSize: 11,
+        fontWeight: '900',
+        letterSpacing: 1.2,
     },
 });
 

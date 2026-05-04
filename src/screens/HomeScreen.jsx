@@ -171,6 +171,26 @@ const HomeScreen = ({ navigation }) => {
                     }}
                 />
 
+                <TouchableOpacity 
+                    style={styles.aiBanner} 
+                    onPress={() => navigation.navigate('AIConsult')}
+                    activeOpacity={0.9}
+                >
+                    <LinearGradient
+                        colors={['#0F172A', '#1E293B']}
+                        style={styles.aiBannerGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
+                        <Text style={styles.aiTag}>IA PREMIUM</Text>
+                        <Text style={styles.aiTitle}>Asistente Legal Inteligente</Text>
+                        <Text style={styles.aiSub}>Plantea tu situación y buscaremos los artículos que te protegen.</Text>
+                        <View style={styles.aiAction}>
+                            <Text style={styles.aiActionText}>CONSULTAR CASO</Text>
+                        </View>
+                    </LinearGradient>
+                </TouchableOpacity>
+
                 <HomeCategories
                     categories={categoriesList}
                     updatedCategories={updatedCategories}
@@ -239,6 +259,51 @@ const styles = StyleSheet.create({
     quizBannerRight: { flexDirection: 'row', alignItems: 'center' },
     disclaimerFooter: { padding: 40, alignItems: 'center' },
     disclaimerText: { fontSize: 11, color: '#94A3B8', textAlign: 'center', fontStyle: 'italic' },
+    aiBanner: {
+        marginHorizontal: 20,
+        marginTop: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+    },
+    aiBannerGradient: {
+        padding: 24,
+    },
+    aiTag: {
+        color: COLORS.accent,
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 2,
+        marginBottom: 8,
+    },
+    aiTitle: {
+        color: '#FFFFFF',
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    aiSub: {
+        color: '#94A3B8',
+        fontSize: 14,
+        lineHeight: 20,
+        marginBottom: 20,
+    },
+    aiAction: {
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255,255,255,0.1)',
+        paddingTop: 15,
+        alignItems: 'flex-end',
+    },
+    aiActionText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '800',
+        letterSpacing: 1.5,
+    },
 });
 
 export default HomeScreen;

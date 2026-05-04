@@ -18,6 +18,7 @@ import FavoritesScreen from '../screens/FavoritesScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import DailyQuizScreen from '../screens/DailyQuizScreen';
 import QuizHistoryScreen from '../screens/QuizHistoryScreen';
+import AIConsultScreen from '../screens/AIConsultScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -156,6 +157,11 @@ const AppNavigator = () => {
                     name="QuizHistory"
                     component={QuizHistoryScreen}
                     options={{ title: 'Historial', headerShown: false }}
+                />
+                <Stack.Screen
+                    name="AIConsult"
+                    component={AIConsultScreen}
+                    options={{ title: 'Asistente Legal' }}
                 />
             </Stack.Navigator>
         </NavigationContainer>
