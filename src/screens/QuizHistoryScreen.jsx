@@ -4,7 +4,7 @@ import {
     Text,
     StyleSheet,
     FlatList,
-    TouchableOpacity,
+    Pressable,
     ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,9 +33,11 @@ const QuizHistoryScreen = ({ navigation }) => {
     };
 
     const renderItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
-            activeOpacity={0.7}
+        <Pressable
+            style={({ pressed }) => [
+                styles.card,
+                pressed && { opacity: 0.7 }
+            ]}
             onPress={() => navigation.navigate('DailyQuiz', { quizId: item.id, date: item.date })}
         >
             <View style={styles.cardHeader}>
@@ -51,7 +53,7 @@ const QuizHistoryScreen = ({ navigation }) => {
                 <Text style={styles.lawTitle}>{item.law_title}</Text>
                 <IconButton icon="chevron-right" size={20} iconColor={COLORS.primary} style={styles.footerIcon} />
             </View>
-        </TouchableOpacity>
+        </Pressable>
     );
 
     if (loading) {
@@ -116,11 +118,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         borderWidth: 1,
         borderColor: '#E2E8F0',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
+        boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     },
     cardHeader: {
         flexDirection: 'row',

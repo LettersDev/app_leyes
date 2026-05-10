@@ -1,27 +1,60 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, GRADIENTS } from '../utils/constants';
 import AIService from '../services/aiService';
+import ReviewService from '../services/reviewService';
+import AIHistoryManager from '../utils/aiHistoryManager';
+import { Divider } from 'react-native-paper';
 
 const AIConsultScreen = ({ navigation }) => {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
+    const [history, setHistory] = useState([]);
+    const [showHistory, setShowHistory] = useState(false);
     const scrollViewRef = useRef();
+
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
+    const loadHistory = async () => {
+        const h = await AIHistoryManager.getHistory();
+        setHistory(h);
+    };
 
     const handleConsult = async () => {
         if (!query.trim() || loading) return;
         setLoading(true);
         setResult(null);
+        setShowHistory(false);
         try {
             const data = await AIService.consultCase(query);
             setResult(data);
+            
+            // Guardar en historial
+            const newHistory = await AIHistoryManager.saveConsult(query, data);
+            setHistory(newHistory);
+            
+            // Registrar interacción de valor
+            ReviewService.recordInteraction();
+
+            // Scroll al resultado
+            setTimeout(() => {
+                scrollViewRef.current?.scrollTo({ y: 300, animated: true });
+            }, 500);
         } catch (error) {
             alert('Error en la consulta. Intente de nuevo más tarde.');
         } finally {
             setLoading(false);
         }
+    };
+
+    const resetConsult = () => {
+        setResult(null);
+        setQuery('');
+        setShowHistory(false);
     };
 
     return (
@@ -35,12 +68,42 @@ const AIConsultScreen = ({ navigation }) => {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.header}>
-                    <Text style={styles.tag}>SISTEMA DE ASISTENCIA</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={styles.tag}>SISTEMA DE ASISTENCIA</Text>
+                        {history.length > 0 && (
+                            <Pressable onPress={() => setShowHistory(!showHistory)}>
+                                <Text style={{ color: COLORS.primary, fontSize: 12, fontWeight: 'bold' }}>
+                                    {showHistory ? 'CERRAR HISTORIAL' : 'VER RECIENTES'}
+                                </Text>
+                            </Pressable>
+                        )}
+                    </View>
                     <Text style={styles.title}>Consulta Legal Inteligente</Text>
                     <Text style={styles.subtitle}>
                         Describa su situación con sus propias palabras. Buscaremos la base legal en nuestra base de datos.
                     </Text>
                 </View>
+
+                {showHistory && (
+                    <View style={styles.historyContainer}>
+                        <Text style={styles.historyTitle}>CONSULTAS RECIENTES</Text>
+                        {history.map((h) => (
+                            <Pressable 
+                                key={h.id} 
+                                style={styles.historyItem}
+                                onPress={() => {
+                                    setQuery(h.query);
+                                    setResult(h.result);
+                                    setShowHistory(false);
+                                }}
+                            >
+                                <Text style={styles.historyText} numberOfLines={1}>{h.query}</Text>
+                                <Text style={styles.historyDate}>{new Date(h.date).toLocaleDateString()}</Text>
+                            </Pressable>
+                        ))}
+                        <Divider style={{ marginVertical: 15 }} />
+                    </View>
+                )}
 
                 <View style={styles.inputCard}>
                     <TextInput
@@ -55,17 +118,28 @@ const AIConsultScreen = ({ navigation }) => {
                     />
                     <View style={styles.inputFooter}>
                         <Text style={styles.charCount}>{query.length}/500</Text>
-                        <TouchableOpacity 
-                            style={[styles.button, (!query.trim() || loading) && styles.buttonDisabled]} 
-                            onPress={handleConsult}
-                            disabled={!query.trim() || loading}
-                        >
-                            {loading ? (
-                                <ActivityIndicator color="#fff" size="small" />
-                            ) : (
-                                <Text style={styles.buttonText}>ANALIZAR CASO</Text>
+                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                            {result && (
+                                <Pressable style={styles.secondaryButton} onPress={resetConsult}>
+                                    <Text style={styles.secondaryButtonText}>NUEVA</Text>
+                                </Pressable>
                             )}
-                        </TouchableOpacity>
+                            <Pressable 
+                                style={({ pressed }) => [
+                                    styles.button, 
+                                    (!query.trim() || loading) && styles.buttonDisabled,
+                                    pressed && { opacity: 0.8 }
+                                ]} 
+                                onPress={handleConsult}
+                                disabled={!query.trim() || loading}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" size="small" />
+                                ) : (
+                                    <Text style={styles.buttonText}>{result ? 'RE-ANALIZAR' : 'ANALIZAR CASO'}</Text>
+                                )}
+                            </Pressable>
+                        </View>
                     </View>
                 </View>
 
@@ -85,15 +159,22 @@ const AIConsultScreen = ({ navigation }) => {
                         {!result.error && result.references && result.references.length > 0 && (
                             <View style={styles.refsContainer}>
                                 <Text style={styles.refsTitle}>REFERENCIAS UTILIZADAS</Text>
-                                {result.references.map((ref, idx) => (
-                                    <TouchableOpacity 
-                                        key={idx} 
-                                        style={styles.refItem}
-                                        onPress={() => navigation.navigate('LawDetail', { lawId: ref.law_id, jumpToIndex: ref.index })}
+                                {result.references.map((ref) => (
+                                    <Pressable 
+                                        key={`ref-${ref.law_id}-${ref.index}`} 
+                                        style={({ pressed }) => [
+                                            styles.refItem,
+                                            pressed && { opacity: 0.7 }
+                                        ]}
+                                        onPress={() => navigation.navigate('LawDetail', { 
+                                            lawId: ref.law_id, 
+                                            jumpToIndex: ref.index,
+                                            initialItemNumber: ref.number
+                                        })}
                                     >
                                         <Text style={styles.refNumber}>{ref.law_title} - ARTÍCULO {ref.number}</Text>
                                         <Text style={styles.refText} numberOfLines={2}>{ref.text}</Text>
-                                    </TouchableOpacity>
+                                    </Pressable>
                                 ))}
                             </View>
                         )}
@@ -119,11 +200,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 20,
         padding: 20,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
     },
     input: {
         fontSize: 16,
@@ -158,7 +235,7 @@ const styles = StyleSheet.create({
         padding: 24,
         borderLeftWidth: 4,
         borderLeftColor: COLORS.success,
-        elevation: 2,
+        boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.05)',
     },
     answerText: { fontSize: 16, color: COLORS.text, lineHeight: 26 },
     refsContainer: { marginTop: 30 },
@@ -180,6 +257,50 @@ const styles = StyleSheet.create({
         color: '#94A3B8',
         fontStyle: 'italic',
         lineHeight: 16,
+    },
+    // Nuevos estilos para Historial e IA Premium
+    historyContainer: {
+        backgroundColor: '#F1F5F9',
+        borderRadius: 16,
+        padding: 15,
+        marginBottom: 20,
+    },
+    historyTitle: {
+        fontSize: 10,
+        fontWeight: '900',
+        color: '#64748B',
+        letterSpacing: 1.5,
+        marginBottom: 10,
+    },
+    historyItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2E8F0',
+    },
+    historyText: {
+        fontSize: 13,
+        color: COLORS.text,
+        flex: 1,
+        marginRight: 10,
+    },
+    historyDate: {
+        fontSize: 11,
+        color: '#94A3B8',
+    },
+    secondaryButton: {
+        backgroundColor: '#F1F5F9',
+        paddingVertical: 12,
+        paddingHorizontal: 15,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    secondaryButtonText: {
+        color: COLORS.textSecondary,
+        fontSize: 12,
+        fontWeight: 'bold',
     },
 });
 

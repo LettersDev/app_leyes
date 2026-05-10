@@ -4,18 +4,18 @@ import {
     Text,
     StyleSheet,
     ScrollView,
-    TouchableOpacity,
+    Pressable,
     ActivityIndicator,
     Modal,
-    Animated,
-    Easing,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconButton } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 import QuizService from '../services/quizService';
 import StreakManager from '../utils/streakManager';
+import ReviewService from '../services/reviewService';
 
 const OPTION_COLORS = {
     default:   { bg: '#FFFFFF', border: '#E2E8F0', text: '#1E293B' },
@@ -24,22 +24,68 @@ const OPTION_COLORS = {
     disabled:  { bg: '#F8FAFC', border: '#CBD5E1', text: '#64748B' },
 };
 
+const initialState = {
+    screenState: 'LOADING',
+    quiz: null,
+    streak: null,
+    selectedOption: null,
+    isCorrect: null,
+    showExplanation: false,
+};
+
+function quizReducer(state, action) {
+    switch (action.type) {
+        case 'SET_INITIAL':
+            return { 
+                ...state, 
+                quiz: action.quiz, 
+                streak: action.streak, 
+                screenState: action.screenState,
+                selectedOption: action.selectedOption || null,
+                isCorrect: action.isCorrect !== undefined ? action.isCorrect : null
+            };
+        case 'SET_LOADING':
+            return { ...state, screenState: 'LOADING' };
+        case 'SET_ERROR':
+            return { ...state, screenState: 'NO_QUIZ' };
+        case 'ANSWER_SUBMITTED':
+            return { 
+                ...state, 
+                selectedOption: action.optionId, 
+                isCorrect: action.isCorrect, 
+                screenState: 'ANSWERED' 
+            };
+        case 'TOGGLE_EXPLANATION':
+            return { ...state, showExplanation: action.value };
+        case 'RESET':
+            return initialState;
+        default:
+            return state;
+    }
+}
+
 const DailyQuizScreen = ({ navigation }) => {
-    const [screenState, setScreenState] = useState('LOADING');
-    const [quiz, setQuiz] = useState(null);
-    const [streak, setStreak] = useState(null);
-    const [selectedOption, setSelectedOption] = useState(null);
-    const [isCorrect, setIsCorrect] = useState(null);
-    const [showExplanation, setShowExplanation] = useState(false);
+    const [state, dispatch] = React.useReducer(quizReducer, initialState);
+    const { screenState, quiz, streak, selectedOption, isCorrect, showExplanation } = state;
 
-    const shakeAnim = useRef(new Animated.Value(0)).current;
-
+    const shakeX = useSharedValue(0);
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: shakeX.value }],
+    }));
+    
+    const [todayStr, setTodayStr] = useState('');
+    
     useEffect(() => {
+        setTodayStr(new Date().toLocaleDateString('es-VE', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        }));
         loadData();
     }, []);
 
     const loadData = async () => {
-        setScreenState('LOADING');
+        dispatch({ type: 'SET_LOADING' });
         try {
             const [data, answered, currentStreak] = await Promise.all([
                 QuizService.fetchTodayQuiz(),
@@ -47,23 +93,32 @@ const DailyQuizScreen = ({ navigation }) => {
                 StreakManager.getStreak(),
             ]);
 
-            setStreak(currentStreak);
             if (!data) {
-                setScreenState('NO_QUIZ');
+                dispatch({ type: 'SET_ERROR' });
                 return;
             }
 
-            setQuiz(data);
+            let sState = 'QUESTION';
+            let selOpt = null;
+            let isCorr = null;
+
             if (answered && answered.quizId === data.id) {
-                setSelectedOption(answered.selectedOption);
-                setIsCorrect(answered.isCorrect);
-                setScreenState('ALREADY');
-            } else {
-                setScreenState('QUESTION');
+                selOpt = answered.selectedOption;
+                isCorr = answered.isCorrect;
+                sState = 'ALREADY';
             }
+
+            dispatch({ 
+                type: 'SET_INITIAL', 
+                quiz: data, 
+                streak: currentStreak, 
+                screenState: sState,
+                selectedOption: selOpt,
+                isCorrect: isCorr
+            });
         } catch (e) {
             console.error('[QuizScreen] Error:', e.message);
-            setScreenState('NO_QUIZ');
+            dispatch({ type: 'SET_ERROR' });
         }
     };
 
@@ -71,19 +126,22 @@ const DailyQuizScreen = ({ navigation }) => {
         if (screenState !== 'QUESTION') return;
 
         const correct = optionId === quiz.correct_option;
-        setSelectedOption(optionId);
-        setIsCorrect(correct);
 
         if (!correct) {
-            Animated.sequence([
-                Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
-                Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
-                Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
-            ]).start();
+            shakeX.value = withSequence(
+                withTiming(10, { duration: 50 }),
+                withTiming(-10, { duration: 50 }),
+                withTiming(10, { duration: 50 }),
+                withTiming(0, { duration: 50 })
+            );
         }
 
         await QuizService.submitAnswer(quiz.id, optionId, correct, streak?.currentStreak || 0);
-        setScreenState('ANSWERED');
+        
+        dispatch({ type: 'ANSWER_SUBMITTED', optionId, isCorrect: correct });
+        
+        // Registrar interacción de valor
+        ReviewService.recordInteraction();
     };
 
     const getOptionStyle = (id) => {
@@ -125,7 +183,7 @@ const DailyQuizScreen = ({ navigation }) => {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.dateCard}>
                     <Text style={styles.dateLabel}>Sesión de Consulta</Text>
-                    <Text style={styles.dateValue}>{new Date().toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                    <Text style={styles.dateValue}>{todayStr}</Text>
                 </View>
 
                 {quiz && (
@@ -135,7 +193,7 @@ const DailyQuizScreen = ({ navigation }) => {
                             <Text style={styles.lawValue}>{quiz.law_title}</Text>
                         </View>
 
-                        <Animated.View style={[styles.questionCard, { transform: [{ translateX: shakeAnim }] }]}>
+                        <Animated.View style={[styles.questionCard, animatedStyle]}>
                             <Text style={styles.questionText}>{quiz.question}</Text>
                         </Animated.View>
 
@@ -143,9 +201,13 @@ const DailyQuizScreen = ({ navigation }) => {
                             {quiz.options.map((opt, index) => {
                                 const style = getOptionStyle(opt.id);
                                 return (
-                                    <TouchableOpacity
-                                        key={`opt-${index}`}
-                                        style={[styles.option, { backgroundColor: style.bg, borderColor: style.border }]}
+                                    <Pressable
+                                        key={opt.id || `opt-${index}`}
+                                        style={({ pressed }) => [
+                                            styles.option, 
+                                            { backgroundColor: style.bg, borderColor: style.border },
+                                            pressed && screenState === 'QUESTION' && { opacity: 0.7 }
+                                        ]}
                                         onPress={() => handleAnswer(opt.id || opt)}
                                         disabled={screenState !== 'QUESTION'}
                                     >
@@ -155,7 +217,7 @@ const DailyQuizScreen = ({ navigation }) => {
                                         <Text style={[styles.optionText, { color: style.text }]}>
                                             {opt.text || opt}
                                         </Text>
-                                    </TouchableOpacity>
+                                    </Pressable>
                                 );
                             })}
                         </View>
@@ -164,12 +226,18 @@ const DailyQuizScreen = ({ navigation }) => {
 
                 {(screenState === 'ANSWERED' || screenState === 'ALREADY') && (
                     <>
-                        <TouchableOpacity style={styles.actionButton} onPress={() => setShowExplanation(true)}>
+                        <Pressable 
+                            style={({ pressed }) => [styles.actionButton, pressed && { opacity: 0.8 }]} 
+                            onPress={() => dispatch({ type: 'TOGGLE_EXPLANATION', value: true })}
+                        >
                             <Text style={styles.actionButtonText}>Analizar Fundamentos Jurídicos</Text>
-                        </TouchableOpacity>
+                        </Pressable>
 
-                        <TouchableOpacity 
-                            style={{ marginTop: 20, padding: 10, alignSelf: 'center' }} 
+                        <Pressable 
+                            style={({ pressed }) => [
+                                { marginTop: 20, padding: 10, alignSelf: 'center' },
+                                pressed && { opacity: 0.7 }
+                            ]} 
                             onPress={async () => {
                                 await QuizService.clearTodayAnswer();
                                 loadData();
@@ -178,7 +246,7 @@ const DailyQuizScreen = ({ navigation }) => {
                             <Text style={{ color: '#64748B', fontSize: 13, textDecorationLine: 'underline' }}>
                                 Reiniciar Evaluación (Solo Pruebas)
                             </Text>
-                        </TouchableOpacity>
+                        </Pressable>
                     </>
                 )}
             </ScrollView>
@@ -188,15 +256,18 @@ const DailyQuizScreen = ({ navigation }) => {
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Análisis Técnico</Text>
-                            <IconButton icon="close" onPress={() => setShowExplanation(false)} />
+                            <IconButton icon="close" onPress={() => dispatch({ type: 'TOGGLE_EXPLANATION', value: false })} />
                         </View>
                         <ScrollView style={styles.modalScroll}>
                             <Text style={styles.explanationText}>{quiz?.explanation}</Text>
                             
-                            <TouchableOpacity 
-                                style={styles.linkButton} 
+                            <Pressable 
+                                style={({ pressed }) => [
+                                    styles.linkButton,
+                                    pressed && { opacity: 0.8 }
+                                ]} 
                                 onPress={() => {
-                                    setShowExplanation(false);
+                                    dispatch({ type: 'TOGGLE_EXPLANATION', value: false });
                                     navigation.navigate('LawDetail', { 
                                         lawId: quiz.law_id, 
                                         initialItemId: quiz.law_item_id,
@@ -205,7 +276,7 @@ const DailyQuizScreen = ({ navigation }) => {
                                 }}
                             >
                                 <Text style={styles.linkButtonText}>Consultar Texto Íntegro</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </ScrollView>
                     </View>
                 </View>

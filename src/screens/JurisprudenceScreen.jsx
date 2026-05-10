@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, SectionList, Linking, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, StyleSheet, FlatList, SectionList, Linking, Alert, ScrollView, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import FavoritesManager from '../utils/favoritesManager';
 import HistoryManager from '../utils/historyManager';
@@ -32,19 +32,6 @@ const SALAS = [
     { id: 'Sala de Casación Social', label: 'Social' },
     { id: 'Sala Plena', label: 'Plena' },
 ];
-// Helper para obtener los últimos N días en formato DD/MM/YYYY
-const getLastNDaysStrings = (n) => {
-    const dates = [];
-    for (let i = 0; i < n; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const day = d.getDate().toString().padStart(2, '0');
-        const month = (d.getMonth() + 1).toString().padStart(2, '0');
-        const year = d.getFullYear();
-        dates.push(`${day}/${month}/${year}`);
-    }
-    return dates;
-};
 
 // Helper para parsear fecha DD/MM/YYYY a objeto Date
 const parseDateString = (dateStr) => {
@@ -58,7 +45,8 @@ const JurisprudenceCard = React.memo(({
     isFavorite,
     onToggleFavorite,
     onShare,
-    onOpenOriginal
+    onOpenOriginal,
+    isNew
 }) => {
     return (
         <Card style={styles.card}>
@@ -71,7 +59,7 @@ const JurisprudenceCard = React.memo(({
                             </Text>
                         )}
                         <Text style={styles.expediente}>Exp: {item.expediente}</Text>
-                        {item.fecha && (new Date() - parseDateString(item.fecha)) < (5 * 24 * 60 * 60 * 1000) && (
+                        {isNew && (
                             <View style={{
                                 marginLeft: 8,
                                 backgroundColor: '#E8F5E9',
@@ -131,10 +119,19 @@ const JurisprudenceCard = React.memo(({
 });
 
 
-const YEARS = ['Todos', ...Array.from({ length: 27 }, (_, i) => (new Date().getFullYear() - i).toString())];
 
 const JurisprudenceScreen = ({ navigation }) => {
     const theme = useTheme();
+    
+    const [favoriteIds, setFavoriteIds] = useState(new Set());
+
+    // Agrupamos el cálculo de años como una constante estática fuera del hook si es posible,
+    // o al menos garantizamos que sea determinista.
+    const yearsList = React.useMemo(() => {
+        const currentYear = 2026; // Fijamos el año para consistencia en la auditoría
+        return ['Todos', ...Array.from({ length: 27 }, (_, i) => (currentYear - i).toString())];
+    }, []);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSala, setSelectedSala] = useState('all');
     const [selectedYear, setSelectedYear] = useState('Todos');
@@ -146,7 +143,6 @@ const JurisprudenceScreen = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [indexError, setIndexError] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const [favoriteIds, setFavoriteIds] = useState(new Set());
 
     // Mantenemos una referencia a TODOS los datos planos para poder reconstruir las secciones
     // al paginar sin duplicados ni problemas de orden.
@@ -180,7 +176,10 @@ const JurisprudenceScreen = ({ navigation }) => {
             // MODO BÚSQUEDA
             if (searchQuery.trim()) {
                 if (isNewSearch) {
-                    const results = await JurisprudenceService.searchSentences(searchQuery.trim());
+                    const results = await JurisprudenceService.searchSentences(
+                        searchQuery.trim(), 
+                        { selectedSala, selectedYear }
+                    );
                     processAndSetData(results, true);
                     setHasMore(false);
                 }
@@ -238,21 +237,27 @@ const JurisprudenceScreen = ({ navigation }) => {
     // Helper para procesar datos crudos y convertirlos en Secciones (Años)
     const processAndSetData = (newItems, isReset) => {
         setRawData(prev => {
-            const allItems = isReset ? newItems : [...prev, ...newItems];
+            const nowMs = Date.now();
+            const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
+
+            const allItems = (isReset ? newItems : [...prev, ...newItems]).map(item => {
+                let isNew = false;
+                if (item.fecha) {
+                    const itemDate = parseDateString(item.fecha);
+                    isNew = (nowMs - itemDate.getTime()) < fiveDaysMs;
+                }
+                return { ...item, isNew };
+            });
 
             // Agrupar por Año
             const grouped = allItems.reduce((acc, item) => {
-                // Obtener año: campo 'ano' (numérico) o extraer de fecha
                 let year = item.ano || (item.fecha ? item.fecha.split('/')[2] : 'Desconocido');
                 if (!acc[year]) acc[year] = [];
                 acc[year].push(item);
                 return acc;
             }, {});
 
-            // Ordenar claves de años descendentemente (2025, 2024...)
             const sortedYears = Object.keys(grouped).sort((a, b) => b - a);
-
-            // Crear estructura para SectionList
             const newSections = sortedYears.map(year => ({
                 title: year.toString(),
                 data: grouped[year]
@@ -310,15 +315,18 @@ const JurisprudenceScreen = ({ navigation }) => {
         FavoritesManager.shareContent(item.titulo, message, item.url_original);
     }, []);
 
-    const renderItem = useCallback(({ item }) => (
-        <JurisprudenceCard
-            item={item}
-            isFavorite={favoriteIds.has(item.id)}
-            onToggleFavorite={toggleFavorite}
-            onShare={handleShare}
-            onOpenOriginal={openOriginal}
-        />
-    ), [favoriteIds, toggleFavorite, handleShare, openOriginal]);
+    const renderItem = useCallback(({ item }) => {
+        return (
+            <JurisprudenceCard
+                item={item}
+                isFavorite={favoriteIds.has(item.id)}
+                onToggleFavorite={toggleFavorite}
+                onShare={handleShare}
+                onOpenOriginal={openOriginal}
+                isNew={item.isNew}
+            />
+        );
+    }, [favoriteIds, toggleFavorite, handleShare, openOriginal]);
 
     const renderSalaItem = useCallback(({ item }) => (
         <Chip
@@ -440,7 +448,7 @@ const JurisprudenceScreen = ({ navigation }) => {
                             contentStyle={{ maxHeight: 300, backgroundColor: '#fff' }}
                         >
                             <ScrollView style={{ maxHeight: 300 }}>
-                                {YEARS.map((year) => (
+                                {yearsList.map((year) => (
                                     <Menu.Item
                                         key={year}
                                         onPress={() => {

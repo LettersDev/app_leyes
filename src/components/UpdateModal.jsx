@@ -3,7 +3,7 @@ import {
     Modal,
     View,
     Text,
-    TouchableOpacity,
+    Pressable,
     StyleSheet,
     Linking,
     Platform,
@@ -78,14 +78,20 @@ export default function UpdateModal({ visible, currentVersion, latestVersion, on
                     </View>
 
                     {/* Botón principal */}
-                    <TouchableOpacity style={styles.updateButton} onPress={handleUpdate} activeOpacity={0.85}>
+                    <Pressable 
+                        style={({ pressed }) => [styles.updateButton, pressed && { opacity: 0.85 }]} 
+                        onPress={handleUpdate}
+                    >
                         <Text style={styles.updateButtonText}>Actualizar ahora</Text>
-                    </TouchableOpacity>
+                    </Pressable>
 
                     {/* Botón secundario */}
-                    <TouchableOpacity style={styles.dismissButton} onPress={onDismiss} activeOpacity={0.7}>
+                    <Pressable 
+                        style={({ pressed }) => [styles.dismissButton, pressed && { opacity: 0.7 }]} 
+                        onPress={onDismiss}
+                    >
                         <Text style={styles.dismissButtonText}>Más tarde</Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
             </View>
         </Modal>

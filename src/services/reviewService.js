@@ -2,45 +2,57 @@ import * as StoreReview from 'expo-store-review';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEYS = {
-    LAW_CLOSES: '@review_law_closes',   // Contador de leyes cerradas
-    REVIEW_DONE: '@review_requested',   // Flag: ya se pidió la reseña
+    INTERACTIONS: '@review_interactions',
+    LAST_REQUEST: '@review_last_request_ts',
 };
 
-// Cuántas leyes debe cerrar el usuario antes de pedir la reseña
-const TRIGGER_AFTER_N_CLOSES = 3;
+const THRESHOLD = 5;
+const COOLDOWN_DAYS = 15;
 
 const ReviewService = {
     /**
-     * Llamar cada vez que el usuario CIERRA una ley (desmonta la pantalla).
-     * En el 3er cierre (y solo esa vez) lanza el diálogo nativo de Play Store.
+     * Registra una interacción de valor (abrir ley, buscar, quiz, IA, favorito).
+     * Dispara el diálogo al llegar al umbral si el cooldown lo permite.
      */
-    recordLawClose: async () => {
+    recordInteraction: async () => {
         try {
-            // Si ya pedimos reseña, no hacer nada más
-            const alreadyDone = await AsyncStorage.getItem(KEYS.REVIEW_DONE);
-            if (alreadyDone) return;
+            // 1. Verificar cooldown
+            const lastRequest = await AsyncStorage.getItem(KEYS.LAST_REQUEST);
+            if (lastRequest) {
+                const lastTs = parseInt(lastRequest, 10);
+                const now = Date.now();
+                const daysSince = (now - lastTs) / (1000 * 60 * 60 * 24);
+                
+                if (daysSince < COOLDOWN_DAYS) {
+                    return; // Todavía en periodo de enfriamiento
+                }
+            }
 
-            // Incrementar el contador
-            const current = await AsyncStorage.getItem(KEYS.LAW_CLOSES);
+            // 2. Incrementar contador
+            const current = await AsyncStorage.getItem(KEYS.INTERACTIONS);
             const count = current ? parseInt(current, 10) + 1 : 1;
-            await AsyncStorage.setItem(KEYS.LAW_CLOSES, String(count));
+            await AsyncStorage.setItem(KEYS.INTERACTIONS, String(count));
 
-            console.log(`[ReviewService] Leyes cerradas: ${count}/${TRIGGER_AFTER_N_CLOSES}`);
+            console.log(`[ReviewService] Interacción registrada: ${count}/${THRESHOLD}`);
 
-            // Disparar en el umbral exacto
-            if (count >= TRIGGER_AFTER_N_CLOSES) {
+            // 3. Disparar si llegamos al umbral
+            if (count >= THRESHOLD) {
                 await ReviewService.requestReview();
             }
         } catch (e) {
-            // Silencioso: nunca romper la UX por esto
             console.warn('[ReviewService] Error:', e.message);
         }
     },
 
     /**
+     * Mantiene compatibilidad con llamadas viejas pero usa la nueva lógica.
+     */
+    recordLawClose: async () => {
+        await ReviewService.recordInteraction();
+    },
+
+    /**
      * Solicita la reseña nativa si está disponible.
-     * En Android usa la Google Play In-App Review API.
-     * En simuladores no hace nada.
      */
     requestReview: async () => {
         try {
@@ -50,8 +62,10 @@ const ReviewService = {
                 return;
             }
 
-            // Marcar como solicitada ANTES de mostrar (evita condición de carrera)
-            await AsyncStorage.setItem(KEYS.REVIEW_DONE, 'true');
+            // Guardar timestamp del intento y resetear contador para el próximo ciclo
+            // Nota: Se hace ANTES del diálogo para evitar spam si hay errores
+            await AsyncStorage.setItem(KEYS.LAST_REQUEST, String(Date.now()));
+            await AsyncStorage.setItem(KEYS.INTERACTIONS, '0');
 
             await StoreReview.requestReview();
             console.log('[ReviewService] Diálogo de reseña lanzado ✓');
@@ -64,10 +78,13 @@ const ReviewService = {
      * Solo para desarrollo/testing: resetea el estado del servicio.
      */
     reset: async () => {
-        await AsyncStorage.removeItem(KEYS.LAW_CLOSES);
-        await AsyncStorage.removeItem(KEYS.REVIEW_DONE);
-        console.log('[ReviewService] Estado reseteado.');
+        await AsyncStorage.removeItem(KEYS.INTERACTIONS);
+        await AsyncStorage.removeItem(KEYS.LAST_REQUEST);
+        await AsyncStorage.removeItem('@review_law_closes'); // Limpieza v1
+        await AsyncStorage.removeItem('@review_requested'); // Limpieza v1
+        console.log('[ReviewService] Estado reseteado para pruebas.');
     },
 };
 
 export default ReviewService;
+

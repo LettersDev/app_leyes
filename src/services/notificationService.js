@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 import { supabase } from '../config/supabase';
 
 // ID del canal de Android — debe coincidir con el channelId enviado en las notificaciones
-export const NOTIFICATION_CHANNEL_ID = 'tuley-default';
+const NOTIFICATION_CHANNEL_ID = 'tuley-default';
 
 // Configuración de cómo se muestran las notificaciones cuando la app está abierta
 // NOTA: shouldShowBanner + shouldShowList es la forma moderna (SDK 53+), no shouldShowAlert

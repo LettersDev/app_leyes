@@ -1,12 +1,15 @@
 import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
 import { Surface, Avatar, IconButton } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 
 const HomeHistory = ({ history, onHistoryPress, onRemoveHistory }) => {
     const renderHistoryItem = useCallback(({ item }) => (
         <View style={styles.historyCardContainer}>
-            <TouchableOpacity onPress={() => onHistoryPress(item)} style={{ flex: 1 }}>
+            <Pressable 
+                onPress={() => onHistoryPress(item)} 
+                style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.8 : 1 })}
+            >
                 <Surface elevation={2} style={styles.historyCard}>
                     <View style={styles.historyContent}>
                         <Avatar.Icon
@@ -20,7 +23,7 @@ const HomeHistory = ({ history, onHistoryPress, onRemoveHistory }) => {
                         </View>
                     </View>
                 </Surface>
-            </TouchableOpacity>
+            </Pressable>
             <IconButton
                 icon="close-circle"
                 size={20}

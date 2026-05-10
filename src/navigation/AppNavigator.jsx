@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { COLORS } from '../utils/constants';
 
 // Importar pantallas
@@ -22,7 +22,7 @@ import AIConsultScreen from '../screens/AIConsultScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const linking = {
     prefixes: ['tuley://'],

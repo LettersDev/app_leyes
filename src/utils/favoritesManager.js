@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Share, Alert } from 'react-native';
+import ReviewService from '../services/reviewService';
 
 const FAVORITES_KEY = '@appleyes_favorites';
 
@@ -44,6 +45,11 @@ const FavoritesManager = {
             }
 
             await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(newFavorites));
+            
+            if (isAdded) {
+                ReviewService.recordInteraction();
+            }
+            
             return isAdded;
         } catch (e) {
             console.error('Error toggling favorite', e);

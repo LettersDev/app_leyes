@@ -52,6 +52,8 @@ function reducer(state, action) {
     }
 }
 
+const YEARS = Array.from({ length: 27 }, (_, i) => (2026 - i).toString());
+
 const GacetasScreen = ({ navigation }) => {
     const [state, dispatch] = useReducer(reducer, initialState);
     const {
@@ -74,8 +76,6 @@ const GacetasScreen = ({ navigation }) => {
     useEffect(() => {
         fetchGacetas(true);
     }, [selectedYear, selectedType]);
-
-    const YEARS = Array.from({ length: 27 }, (_, i) => (2026 - i).toString());
 
     const cleanTitle = useCallback((titulo) => {
         if (!titulo) return '';

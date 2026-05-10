@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import {
     View, Text, StyleSheet, FlatList,
-    TouchableOpacity, Modal, useWindowDimensions,
+    Pressable, Modal, useWindowDimensions,
 } from 'react-native';
 import { Button, IconButton, ActivityIndicator } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
@@ -82,6 +82,21 @@ const SearchInfoModal = ({ visible, onDismiss, mode = 'general', data, loading }
             <Text style={styles.description}>{item.description}</Text>
         </View>
     );
+
+    const renderInterpretationItem = ({ item }) => (
+        <View>
+            <Text style={[styles.interpretationText, data.error && { color: COLORS.error, fontWeight: 'bold' }]}>
+                {item}
+            </Text>
+            {!data.error && (
+                <View style={styles.footerNote}>
+                    <Text style={styles.footerNoteText}>
+                        Interpretado por {data.provider === 'groq' ? 'Llama 3' : 'Gemini'}. No es asesoría legal.
+                    </Text>
+                </View>
+            )}
+        </View>
+    );
     
     if (mode === 'interpretation') {
         return (
@@ -93,9 +108,9 @@ const SearchInfoModal = ({ visible, onDismiss, mode = 'general', data, loading }
                                 <Text style={styles.interpretationTag}>ANÁLISIS DE LA LEY</Text>
                                 {data?.lawTitle && <Text style={styles.lawTitleSmall} numberOfLines={1}>{data.lawTitle}</Text>}
                             </View>
-                            <TouchableOpacity onPress={onDismiss}>
+                            <Pressable onPress={onDismiss}>
                                 <Text style={styles.closeText}>CERRAR</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
                         
                         {loading ? (
@@ -106,20 +121,7 @@ const SearchInfoModal = ({ visible, onDismiss, mode = 'general', data, loading }
                         ) : data ? (
                             <FlatList
                                 data={[data.error || data.interpretation]}
-                                renderItem={({ item }) => (
-                                    <View>
-                                        <Text style={[styles.interpretationText, data.error && { color: COLORS.error, fontWeight: 'bold' }]}>
-                                            {item}
-                                        </Text>
-                                        {!data.error && (
-                                            <View style={styles.footerNote}>
-                                                <Text style={styles.footerNoteText}>
-                                                    Interpretado por {data.provider === 'groq' ? 'Llama 3' : 'Gemini'}. No es asesoría legal.
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </View>
-                                )}
+                                renderItem={renderInterpretationItem}
                                 keyExtractor={(_, index) => index.toString()}
                                 showsVerticalScrollIndicator={false}
                             />
@@ -177,9 +179,9 @@ const SearchInfoModal = ({ visible, onDismiss, mode = 'general', data, loading }
                     </Button>
 
                     {currentIndex < SLIDES.length - 1 && (
-                        <TouchableOpacity onPress={() => { setCurrentIndex(0); onDismiss(); }}>
+                        <Pressable onPress={() => { setCurrentIndex(0); onDismiss(); }}>
                             <Text style={styles.skipText}>Omitir</Text>
-                        </TouchableOpacity>
+                        </Pressable>
                     )}
                 </View>
             </View>

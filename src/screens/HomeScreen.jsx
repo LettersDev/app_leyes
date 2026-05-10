@@ -1,5 +1,5 @@
 import React, { useReducer, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconButton } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,12 +18,10 @@ import HomeDialogs from '../components/HomeDialogs';
 
 const initialState = {
     history: [],
-    hasNewLaws: false,
     showDisclaimer: false,
     updateAvailable: null,
     updatedCategories: [],
     quizPending: false,
-    quizStreak: 0,
 };
 
 function reducer(state, action) {
@@ -39,7 +37,7 @@ function reducer(state, action) {
 
 const HomeScreen = ({ navigation }) => {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { history, hasNewLaws, showDisclaimer, updateAvailable, updatedCategories } = state;
+    const { history, showDisclaimer, updateAvailable, updatedCategories } = state;
 
     useFocusEffect(
         useCallback(() => {
@@ -95,17 +93,13 @@ const HomeScreen = ({ navigation }) => {
             // Independientemente de si ya fue respondido en esta sesión de depuración
             const pending = !!todayQuiz; 
             dispatch({ type: 'SET_FIELD', field: 'quizPending', value: pending });
-            dispatch({ type: 'SET_FIELD', field: 'quizStreak', value: streak.currentStreak });
         } catch (e) {
             console.warn('[Home] Error al verificar quiz:', e.message);
         }
     };
 
     const checkUpdates = async () => {
-        const updateResult = await LawsIndexService.checkAndUpdateIndex();
-        if (updateResult.hasNewLaws) {
-            dispatch({ type: 'SET_FIELD', field: 'hasNewLaws', value: true });
-        }
+        await LawsIndexService.checkAndUpdateIndex();
     };
 
     const handleCategoryPress = async (category) => {
@@ -127,14 +121,14 @@ const HomeScreen = ({ navigation }) => {
         }
     };
 
-    const categoriesList = [
+    const categoriesList = React.useMemo(() => [
         { id: LAW_CATEGORIES.CONSTITUCION, name: CATEGORY_NAMES[LAW_CATEGORIES.CONSTITUCION], icon: 'book-open-variant', description: 'Constitución Nacional', color: COLORS.primary, navigateTo: 'LawsList' },
         { id: LAW_CATEGORIES.CODIGOS, name: CATEGORY_NAMES[LAW_CATEGORIES.CODIGOS], icon: 'book-multiple', description: 'Códigos vigentes', color: '#059669', navigateTo: 'CodesList' },
         { id: LAW_CATEGORIES.LEYES, name: CATEGORY_NAMES[LAW_CATEGORIES.LEYES], icon: 'bookshelf', description: 'Leyes Orgánicas y Especiales', color: '#8B5CF6', navigateTo: 'LawsList' },
         { id: LAW_CATEGORIES.TSJ, name: CATEGORY_NAMES[LAW_CATEGORIES.TSJ], icon: 'gavel', description: 'Sentencias y Jurisprudencia', color: '#DC2626', navigateTo: 'Jurisprudence' },
         { id: LAW_CATEGORIES.GACETA, name: CATEGORY_NAMES[LAW_CATEGORIES.GACETA], icon: 'newspaper', description: 'Gaceta Oficial', color: '#D97706', navigateTo: 'Gacetas' },
         { id: 'daily-quiz', name: 'Evaluación Legal Diaria', icon: 'book-search', description: state.quizPending ? 'Analice un caso práctico basado en la legislación.' : 'Evaluación completada. Pulse para ver detalles.', color: '#6366f1', navigateTo: 'DailyQuiz' },
-    ];
+    ], [state.quizPending]);
 
     return (
         <View style={{ flex: 1 }}>
@@ -146,16 +140,22 @@ const HomeScreen = ({ navigation }) => {
                             <Text style={styles.title}>TuLey</Text>
                             <View style={styles.titleUnderline} />
                         </View>
-                        <TouchableOpacity onPress={() => navigation.navigate('Favorites')} style={styles.favoritesButton}>
+                        <Pressable 
+                            onPress={() => navigation.navigate('Favorites')} 
+                            style={({ pressed }) => [styles.favoritesButton, pressed && { opacity: 0.7 }]}
+                        >
                             <IconButton icon="star" iconColor="#FFD700" size={28} style={{ margin: 0 }} />
-                        </TouchableOpacity>
+                        </Pressable>
                     </View>
                 </LinearGradient>
 
-                <TouchableOpacity style={styles.searchButton} onPress={() => navigation.navigate('Search')}>
+                <Pressable 
+                    style={({ pressed }) => [styles.searchButton, pressed && { opacity: 0.9 }]} 
+                    onPress={() => navigation.navigate('Search')}
+                >
                     <IconButton icon="magnify" size={24} iconColor={COLORS.textSecondary} />
                     <Text style={styles.searchText}>Buscar en la legislación...</Text>
-                </TouchableOpacity>
+                </Pressable>
 
 
                 <HomeHistory
@@ -171,10 +171,9 @@ const HomeScreen = ({ navigation }) => {
                     }}
                 />
 
-                <TouchableOpacity 
-                    style={styles.aiBanner} 
+                <Pressable 
+                    style={({ pressed }) => [styles.aiBanner, pressed && { opacity: 0.9 }]} 
                     onPress={() => navigation.navigate('AIConsult')}
-                    activeOpacity={0.9}
                 >
                     <LinearGradient
                         colors={['#0F172A', '#1E293B']}
@@ -189,7 +188,7 @@ const HomeScreen = ({ navigation }) => {
                             <Text style={styles.aiActionText}>CONSULTAR CASO</Text>
                         </View>
                     </LinearGradient>
-                </TouchableOpacity>
+                </Pressable>
 
                 <HomeCategories
                     categories={categoriesList}
@@ -233,11 +232,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         padding: 8,
         borderRadius: 15,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     },
     searchText: { flex: 1, fontSize: 16, color: COLORS.textSecondary },
     quizBanner: {
@@ -251,7 +246,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         borderWidth: 1,
         borderColor: '#E2E8F0',
-        elevation: 2,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
     },
     quizBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
     quizBannerTitle: { fontSize: 15, fontWeight: '800', color: COLORS.text },
@@ -264,11 +259,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         borderRadius: 20,
         overflow: 'hidden',
-        elevation: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
+        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)',
     },
     aiBannerGradient: {
         padding: 24,

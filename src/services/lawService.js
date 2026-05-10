@@ -9,32 +9,6 @@ const normalizeText = (text) => {
         .replace(/[\u0300-\u036f]/g, "");
 };
 
-/**
- * Obtener todas las leyes - LOCAL FIRST
- * Primero intenta obtener del índice local, solo usa Supabase si no hay índice
- */
-export const getAllLaws = async () => {
-    try {
-        const localLaws = await LawsIndexService.getAllLawsLocal();
-        if (localLaws && localLaws.length > 0) {
-            return localLaws;
-        }
-
-        console.log('No local index, fetching from Supabase...');
-        const { data, error } = await supabase
-            .from('laws')
-            .select('*');
-
-        if (error) throw error;
-        return data || [];
-    } catch (error) {
-        if (error.message && error.message.toLowerCase().includes('network')) {
-            throw new Error('OFFLINE_ERROR');
-        }
-        console.error('Error al obtener leyes:', error);
-        throw error;
-    }
-};
 
 /**
  * Obtener leyes por categoría - LOCAL FIRST
@@ -162,29 +136,6 @@ export const getLawItems = async (lawId, lastIndex = -1, pageSize = 50) => {
     }
 };
 
-/**
- * Buscar un artículo específico por su número
- */
-export const getLawItemByNumber = async (lawId, articleNumber) => {
-    try {
-        const { data, error } = await supabase
-            .from('law_items')
-            .select('*')
-            .eq('law_id', lawId)
-            .eq('number', parseInt(articleNumber))
-            .limit(1)
-            .maybeSingle();
-
-        if (error) throw error;
-        return data || null;
-    } catch (error) {
-        if (error.message && error.message.toLowerCase().includes('network')) {
-            throw new Error('OFFLINE_ERROR');
-        }
-        console.error('Error al buscar artículo por número:', error);
-        throw error;
-    }
-};
 
 /**
  * Buscar artículos por texto dentro de una ley específica
@@ -316,27 +267,6 @@ export const searchLaws = async (searchText) => {
     }
 };
 
-/**
- * Obtener actualizaciones recientes
- */
-export const getRecentUpdates = async (limitCount = 10) => {
-    try {
-        const { data, error } = await supabase
-            .from('laws')
-            .select('*')
-            .order('last_updated', { ascending: false })
-            .limit(limitCount);
-
-        if (error) throw error;
-        return data || [];
-    } catch (error) {
-        if (error.message === 'Network request failed') {
-            throw new Error('OFFLINE_ERROR');
-        }
-        console.error('Error al obtener actualizaciones recientes:', error);
-        throw error;
-    }
-};
 
 /**
  * Descargar todos los artículos de una ley para uso offline

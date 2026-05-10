@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTheme, IconButton, Text } from 'react-native-paper';
@@ -6,9 +6,15 @@ import { COLORS } from '../utils/constants';
 
 const JurisprudenceDetailScreen = ({ route, navigation }) => {
     const { url, title } = route.params;
-    const [loading, setLoading] = useState(true);
     const [lastError, setLastError] = useState(null);
     const theme = useTheme();
+    const isMounted = useRef(true);
+
+    useEffect(() => {
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
 
     // Script para limpiar la interfaz del TSJ (ocultar cabeceras, pies de página y menús)
     const injectedData = `
@@ -30,15 +36,20 @@ const JurisprudenceDetailScreen = ({ route, navigation }) => {
             <WebView
                 source={{ uri: url }}
                 injectedJavaScript={injectedData}
-                onLoadStart={() => setLoading(true)}
-                onLoadEnd={() => setLoading(false)}
+                onLoadStart={() => {
+                    // console.log('WebView start');
+                }}
+                onLoadEnd={() => {
+                    // console.log('WebView end');
+                }}
                 onError={(syntheticEvent) => {
+                    if (!isMounted.current) return;
                     const { nativeEvent } = syntheticEvent;
                     console.warn('WebView error: ', nativeEvent);
                     setLastError(`${nativeEvent.description} (Code: ${nativeEvent.code})`);
-                    setLoading(false);
                 }}
                 onHttpError={(syntheticEvent) => {
+                    if (!isMounted.current) return;
                     const { nativeEvent } = syntheticEvent;
                     console.warn('WebView HTTP error: ', nativeEvent);
                     setLastError(`HTTP Error: ${nativeEvent.statusCode}`);

@@ -59,6 +59,58 @@ const GacetaDetailScreen = ({ route }) => {
     const [webviewSource, setWebviewSource] = useState({ uri: baseUrl });
     const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
     const [pdfLoading, setPdfLoading] = useState(false);
+    const isMounted = useRef(true);
+
+    // ─── Vista Detalle con Sumario (Memoizado y optimizado) ───────────────────
+    const finalLines = React.useMemo(() => {
+        const rawSumario = gaceta?.sumario || '';
+        if (!rawSumario) return [];
+
+        // Estrategia 1: Split por salto de línea
+        let lines = rawSumario.split('\n').reduce((acc, l) => {
+            const trimmed = l.trim();
+            if (trimmed.length > 5) acc.push(trimmed);
+            return acc;
+        }, []);
+
+        // Estrategia 2: Split por doble guión (si la anterior falló)
+        if (lines.length <= 1) {
+            lines = rawSumario.split(/\s*--\s+/).reduce((acc, l) => {
+                const trimmed = l.trim();
+                if (trimmed.length > 8) acc.push(trimmed);
+                return acc;
+            }, []);
+        }
+
+        // Estrategia 3: Split por inicio de nombre institucional
+        if (lines.length <= 1) {
+            lines = rawSumario
+                .split(/(?=\b(?:Ministerio|Resolución|Decreto|Providencia|Presidencia|Consejo|Asamblea|Fiscalía|Tribunal|Banco Central|Instituto)\b)/)
+                .reduce((acc, l) => {
+                    const trimmed = l.trim();
+                    if (trimmed.length > 15) acc.push(trimmed);
+                    return acc;
+                }, []);
+        }
+
+        // Post-procesamiento: fusionar líneas que son continuación de la anterior.
+        const merged = [];
+        for (const line of lines) {
+            if (merged.length > 0 && !/[.!?]$/.test(merged[merged.length - 1])) {
+                merged[merged.length - 1] += ' ' + line;
+            } else {
+                merged.push(line);
+            }
+        }
+        return merged;
+    }, [gaceta?.sumario]);
+
+    React.useEffect(() => {
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
+
     // Ref para leer currentPdfUrl dentro de handleNavigation sin closures stale
     const pdfModeRef = React.useRef(false);
 
@@ -78,11 +130,15 @@ const GacetaDetailScreen = ({ route }) => {
 
         if (/\.pdf($|\?|#)/i.test(url)) {
             const cleanPdf = url.split('#')[0];
-            const abs = cleanPdf.startsWith('http') ? cleanPdf : `${TSJ_BASE}/${cleanPdf.replace(/^\//, '')}`;
-            pdfModeRef.current = true;
-            setCurrentPdfUrl(abs);
-            setPdfLoading(true);
-            setWebviewSource({ uri: toGoogleViewer(url) });
+            if (cleanPdf.startsWith('http') ? cleanPdf : `${TSJ_BASE}/${cleanPdf.replace(/^\//, '')}`) {
+                const abs = cleanPdf.startsWith('http') ? cleanPdf : `${TSJ_BASE}/${cleanPdf.replace(/^\//, '')}`;
+                pdfModeRef.current = true;
+                if (isMounted.current) {
+                    setCurrentPdfUrl(abs);
+                    setPdfLoading(true);
+                    setWebviewSource({ uri: toGoogleViewer(url) });
+                }
+            }
             return false;
         }
 
@@ -102,11 +158,13 @@ const GacetaDetailScreen = ({ route }) => {
                     <IconButton icon="arrow-left" iconColor={COLORS.primary} size={22} onPress={() => {
                         if (currentPdfUrl) {
                             pdfModeRef.current = false;
-                            setCurrentPdfUrl(null);
-                            setPdfLoading(false);
-                            setWebviewSource({ uri: baseUrl });
+                            if (isMounted.current) {
+                                setCurrentPdfUrl(null);
+                                setPdfLoading(false);
+                                setWebviewSource({ uri: baseUrl });
+                            }
                         } else {
-                            setMode('detail');
+                            if (isMounted.current) setMode('detail');
                         }
                     }} />
                     <Text style={styles.barTitle} numberOfLines={1}>
@@ -126,7 +184,9 @@ const GacetaDetailScreen = ({ route }) => {
                     startInLoadingState={false}
                     mixedContentMode="always"
                     onShouldStartLoadWithRequest={handleNavigation}
-                    onLoadEnd={() => setPdfLoading(false)}
+                    onLoadEnd={() => {
+                        if (isMounted.current) setPdfLoading(false);
+                    }}
                     originWhitelist={['*']}
                     style={{ flex: 1 }}
                 />
@@ -141,37 +201,6 @@ const GacetaDetailScreen = ({ route }) => {
             </View>
         );
     }
-
-    // ─── Vista Detalle con Sumario ────────────────────────────────────────────
-    const rawSumario = gaceta.sumario || '';
-
-    // Nivel 1: split por salto de línea (datos del scraper nuevo)
-    let sumarioLines = rawSumario.split('\n').map(l => l.trim()).filter(l => l.length > 5);
-
-    // Nivel 2: split por doble guión (datos viejos con '-- ')
-    if (sumarioLines.length <= 1) {
-        sumarioLines = rawSumario.split(/\s*--\s+/).map(l => l.trim()).filter(l => l.length > 8);
-    }
-
-    // Nivel 3: split por inicio de nombre institucional (datos sin separador)
-    if (sumarioLines.length <= 1) {
-        sumarioLines = rawSumario
-            .split(/(?=\b(?:Ministerio|Resolución|Decreto|Providencia|Presidencia|Consejo|Asamblea|Fiscalía|Tribunal|Banco Central|Instituto)\b)/)
-            .map(l => l.trim())
-            .filter(l => l.length > 15);
-    }
-
-    // Post-procesamiento: fusionar líneas que son continuación de la anterior.
-    // Si el ítem previo NO termina con punto, la siguiente línea es su continuación.
-    const merged = [];
-    for (const line of sumarioLines) {
-        if (merged.length > 0 && !/[.!?]$/.test(merged[merged.length - 1])) {
-            merged[merged.length - 1] += ' ' + line;
-        } else {
-            merged.push(line);
-        }
-    }
-    const finalLines = merged;
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
