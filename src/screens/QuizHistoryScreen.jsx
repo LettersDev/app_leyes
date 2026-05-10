@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -60,7 +60,7 @@ const QuizHistoryScreen = ({ navigation }) => {
         return (
             <View style={styles.centerContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Recuperando registros históricos...</Text>
+                <Text style={styles.loadingText}>Recuperando registros históricos…</Text>
             </View>
         );
     }
@@ -174,3 +174,4 @@ const styles = StyleSheet.create({
 });
 
 export default QuizHistoryScreen;
+

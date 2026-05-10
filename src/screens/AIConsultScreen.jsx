@@ -98,7 +98,7 @@ const AIConsultScreen = ({ navigation }) => {
                                 }}
                             >
                                 <Text style={styles.historyText} numberOfLines={1}>{h.query}</Text>
-                                <Text style={styles.historyDate}>{new Date(h.date).toLocaleDateString()}</Text>
+                                <Text style={styles.historyDate}>{h.date ? new Date(h.date).toLocaleDateString('es-VE') : ''}</Text>
                             </Pressable>
                         ))}
                         <Divider style={{ marginVertical: 15 }} />
@@ -161,7 +161,7 @@ const AIConsultScreen = ({ navigation }) => {
                                 <Text style={styles.refsTitle}>REFERENCIAS UTILIZADAS</Text>
                                 {result.references.map((ref) => (
                                     <Pressable 
-                                        key={`ref-${ref.law_id}-${ref.index || ref.id || Math.random()}`} 
+                                    key={`ref-${ref.law_id}-${ref.index ?? ref.id ?? String(ref.number)}`}
                                         style={({ pressed }) => [
                                             styles.refItem,
                                             pressed && { opacity: 0.7 }

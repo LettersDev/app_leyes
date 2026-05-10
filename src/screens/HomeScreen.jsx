@@ -1,4 +1,4 @@
-import React, { useReducer, useCallback, useEffect } from 'react';
+﻿import React, { useReducer, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconButton } from 'react-native-paper';
@@ -155,7 +155,7 @@ const HomeScreen = ({ navigation }) => {
                     onPress={() => navigation.navigate('Search')}
                 >
                     <IconButton icon="magnify" size={24} iconColor={COLORS.textSecondary} />
-                    <Text style={styles.searchText}>Buscar en la legislación...</Text>
+                    <Text style={styles.searchText}>Buscar en la legislación…</Text>
                 </Pressable>
 
 
@@ -299,3 +299,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+

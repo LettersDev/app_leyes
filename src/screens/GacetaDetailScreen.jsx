@@ -194,7 +194,7 @@ const GacetaDetailScreen = ({ route }) => {
                 {pdfLoading && (
                     <View style={styles.loadingOverlay}>
                         <ActivityIndicator color={COLORS.primary} size="large" />
-                        <Text style={{ marginTop: 10, color: '#666', fontWeight: '500' }}>Abriendo documento PDF...</Text>
+                        <Text style={{ marginTop: 10, color: '#666', fontWeight: '500' }}>Abriendo documento PDF…</Text>
                         <Text style={{ marginTop: 6, color: '#aaa', fontSize: 12 }}>Esto puede tardar unos segundos</Text>
                     </View>
                 )}
@@ -227,7 +227,7 @@ const GacetaDetailScreen = ({ route }) => {
                         icon="book-open-variant"
                         labelStyle={{ color: '#fff' }}
                     >
-                        Ver Gaceta
+                        <Text>Ver Gaceta</Text>
                     </Button>
                 </Card.Actions>
             </Card>

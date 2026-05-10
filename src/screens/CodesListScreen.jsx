@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Card, Title, Paragraph, IconButton } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
@@ -91,7 +91,7 @@ const CodesListScreen = ({ navigation }) => {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Cargando códigos...</Text>
+                <Text style={styles.loadingText}>Cargando códigos…</Text>
             </View>
         );
     }
@@ -231,3 +231,4 @@ const styles = StyleSheet.create({
 });
 
 export default CodesListScreen;
+

@@ -246,7 +246,7 @@ const SearchScreen = ({ navigation, route }) => {
                         {snippet ? (
                             <Text style={styles.resultSnippet} numberOfLines={3}>
                                 {isSemantic ? snippet : highlightText(snippet, searchQuery)}
-                                <Text style={{ color: COLORS.textSecondary }}>...</Text>
+                                <Text style={{ color: COLORS.textSecondary }}>…</Text>
                             </Text>
                         ) : null}
 
@@ -267,7 +267,7 @@ const SearchScreen = ({ navigation, route }) => {
 
             {/* ── Barra de búsqueda ── */}
             <Searchbar
-                placeholder={'Buscar en leyes venezolanas...'}
+                placeholder={'Buscar en leyes venezolanas…'}
                 onChangeText={handleChangeText}
                 value={searchQuery}
                 style={styles.searchBar}
@@ -293,7 +293,7 @@ const SearchScreen = ({ navigation, route }) => {
                         <Animated.View style={spinStyle}>
                             <ActivityIndicator size="large" color={COLORS.primary} />
                         </Animated.View>
-                        <Text style={styles.loadingText}>Buscando...</Text>
+                        <Text style={styles.loadingText}>Buscando…</Text>
                     </View>
                 </View>
             )}
@@ -545,3 +545,4 @@ const styles = StyleSheet.create({
 });
 
 export default SearchScreen;
+

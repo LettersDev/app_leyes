@@ -282,7 +282,8 @@ const LawDetailScreen = ({ route, navigation }) => {
     const toggleFavoriteArticle = useCallback(async (item) => {
         if (!law) return;
         const id = `${lawId}-${item.id || item.index}`;
-        await FavoritesManager.toggleFavorite({ id, type: 'law_article', title: `Art. ${item.number} - ${law.title}`, subtitle: item.text.substring(0, 100) + '...', data: { lawId, itemIndex: item.index, articleNumber: item.number } });
+        await FavoritesManager.toggleFavorite({ id, type: 'law_article', title: `Art. ${item.number} - ${law.title}`, subtitle: item.text.substring(0, 100) + '…', data: { lawId, itemIndex: item.index, articleNumber: item.number } });
+
         loadFavoriteStatus();
     }, [law, lawId, loadFavoriteStatus]);
 
@@ -375,7 +376,7 @@ const LawDetailScreen = ({ route, navigation }) => {
         />
     ), [fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, handleOpenNote, toggleFavoriteArticle, handleShareArticle, handleJumpToContext, handleInterpretArticle, notes, lawId, favoriteIds]);
 
-    if (loading && !isSearching) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /><Text>Cargando ley...</Text></View>;
+    if (loading && !isSearching) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /><Text>Cargando ley…</Text></View>;
     if (error || !law) {
         if (error === 'OFFLINE_ERROR') {
             return (
@@ -451,7 +452,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                             </Pressable>
                         </View>
                     ) : (
-                        <Text style={styles.resultsText}>{searching ? 'Buscando...' : `${searchResults.length} resultados`}</Text>
+                        <Text style={styles.resultsText}>{searching ? 'Buscando…' : `${searchResults.length} resultados`}</Text>
                     )}
                     <Pressable 
                         onPress={() => dispatch({ type: 'RESET_SEARCH' })}
@@ -537,3 +538,4 @@ const styles = StyleSheet.create({
 });
 
 export default LawDetailScreen;
+

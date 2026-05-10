@@ -116,7 +116,7 @@ const SearchInfoModal = ({ visible, onDismiss, mode = 'general', data, loading }
                         {loading ? (
                             <View style={styles.loadingContainer}>
                                 <ActivityIndicator color={COLORS.accent} />
-                                <Text style={styles.loadingText}>La IA está analizando este artículo...</Text>
+                                <Text style={styles.loadingText}>La IA está analizando este artículo…</Text>
                             </View>
                         ) : data ? (
                             <FlatList

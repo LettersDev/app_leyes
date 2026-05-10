@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -224,7 +224,7 @@ const DailyQuizScreen = ({ navigation, route }) => {
         return (
             <LinearGradient colors={['#0F172A', '#1E293B']} style={styles.loadingScreen}>
                 <ActivityIndicator size="large" color={COLORS.accent} />
-                <Text style={styles.loadingText}>Cargando evaluación...</Text>
+                <Text style={styles.loadingText}>Cargando evaluación…</Text>
             </LinearGradient>
         );
     }
@@ -508,3 +508,4 @@ const styles = StyleSheet.create({
 });
 
 export default DailyQuizScreen;
+

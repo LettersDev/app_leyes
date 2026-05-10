@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, use } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SettingsContext = createContext();
@@ -68,4 +68,4 @@ export const SettingsProvider = ({ children }) => {
     );
 };
 
-export const useSettings = () => useContext(SettingsContext);
+export const useSettings = () => use(SettingsContext);

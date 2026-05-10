@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
-import { Card, Title, Paragraph, Chip, IconButton, Button } from 'react-native-paper';
+import { Card, Title, Paragraph, IconButton, Button } from 'react-native-paper';
 import { getLawsByCategory, getLawsByParentCategory } from '../services/lawService';
 import { COLORS, LAW_CATEGORIES } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
@@ -75,22 +75,14 @@ const LawsListScreen = ({ route, navigation }) => {
                     </Title>
                     <View style={styles.chipsRow}>
                         {item.type && (
-                            <Chip
-                                mode="outlined"
-                                style={styles.chip}
-                                textStyle={styles.chipText}
-                            >
-                                <Text>{item.type}</Text>
-                            </Chip>
+                            <View style={styles.chip}>
+                                <Text style={styles.chipText}>{item.type}</Text>
+                            </View>
                         )}
                         {item.isNew && (
-                            <Chip
-                                mode="flat"
-                                style={styles.newChip}
-                                textStyle={styles.newChipText}
-                            >
-                                <Text>NUEVA</Text>
-                            </Chip>
+                            <View style={styles.newChip}>
+                                <Text style={styles.newChipText}>NUEVA</Text>
+                            </View>
                         )}
                     </View>
                     <View style={styles.footerRow}>
@@ -115,7 +107,7 @@ const LawsListScreen = ({ route, navigation }) => {
         return (
             <View style={styles.centerContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Cargando leyes...</Text>
+                <Text style={styles.loadingText}>Cargando leyes…</Text>
             </View>
         );
     }
@@ -222,20 +214,26 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     chip: {
-        backgroundColor: COLORS.secondary + '15',
-        borderColor: COLORS.secondary,
+        backgroundColor: '#EEF2FF',
+        borderColor: '#6366F1',
         borderWidth: 1,
-        borderRadius: 8,
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        alignSelf: 'flex-start',
     },
     chipText: {
         fontSize: 11,
         fontWeight: '700',
-        color: COLORS.secondary,
+        color: '#4F46E5',
         textTransform: 'uppercase',
     },
     newChip: {
         backgroundColor: '#EF4444',
-        borderRadius: 8,
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        alignSelf: 'flex-start',
     },
     newChipText: {
         fontSize: 11,
@@ -296,3 +294,4 @@ const styles = StyleSheet.create({
 });
 
 export default LawsListScreen;
+

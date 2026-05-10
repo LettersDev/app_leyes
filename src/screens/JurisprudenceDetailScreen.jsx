@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTheme, IconButton, Text } from 'react-native-paper';
@@ -62,7 +62,7 @@ const JurisprudenceDetailScreen = ({ route, navigation }) => {
                 renderLoading={() => (
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator color={COLORS.primary} size="large" />
-                        <Text style={styles.loadingText}>Cargando sentencia...</Text>
+                        <Text style={styles.loadingText}>Cargando sentencia…</Text>
                     </View>
                 )}
                 renderError={() => (
@@ -110,3 +110,4 @@ const styles = StyleSheet.create({
 });
 
 export default JurisprudenceDetailScreen;
+

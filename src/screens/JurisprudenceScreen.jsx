@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, SectionList, Linking, Alert, ScrollView, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import FavoritesManager from '../utils/favoritesManager';
@@ -345,7 +345,7 @@ const JurisprudenceScreen = ({ navigation }) => {
         MainView = (
             <View style={styles.center}>
                 <ActivityIndicator animating={true} color={COLORS.primary} size="large" />
-                <Text style={styles.loadingText}>Buscando jurisprudencia...</Text>
+                <Text style={styles.loadingText}>Buscando jurisprudencia…</Text>
             </View>
         );
     } else if (indexError) {
@@ -602,3 +602,4 @@ const styles = StyleSheet.create({
 });
 
 export default JurisprudenceScreen;
+

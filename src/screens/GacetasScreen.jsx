@@ -288,7 +288,7 @@ const GacetasScreen = ({ navigation }) => {
             {loading && !refreshing && rawData.length === 0 ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={COLORS.primary} />
-                    <Text style={{ marginTop: 10, color: COLORS.textSecondary }}>Cargando Gacetas...</Text>
+                    <Text style={{ marginTop: 10, color: COLORS.textSecondary }}>Cargando Gacetas…</Text>
                 </View>
             ) : indexError ? (
                 <View style={styles.errorContainer}>
@@ -311,7 +311,7 @@ const GacetasScreen = ({ navigation }) => {
                         style={styles.retryButton}
                         labelStyle={styles.retryButtonLabel}
                     >
-                        Reintentar
+                        <Text>Reintentar</Text>
                     </Button>
                 </View>
             ) : (
@@ -432,3 +432,4 @@ const styles = StyleSheet.create({
 });
 
 export default GacetasScreen;
+

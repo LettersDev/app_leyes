@@ -1,0 +1,10 @@
+{
+  "entry": [
+    "App.js",
+    "scripts/**/*.js",
+    "supabase/functions/**/*.ts"
+  ],
+  "ignore": [
+    "supabase/functions/generate-daily-quiz/index.ts_*"
+  ]
+}
