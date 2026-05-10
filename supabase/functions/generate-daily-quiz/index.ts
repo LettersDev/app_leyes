@@ -245,15 +245,17 @@ Deno.serve(async (req: Request) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
         );
 
-        // Leer el body para ver si es una prueba
+        // Leer el body UNA SOLA VEZ (body ya consumido = no se puede leer dos veces)
         let isTest = false;
+        let targetToken: string | null = null;
         try {
             if (req.method === 'POST') {
                 const body = await req.json();
                 isTest = body?.test === true;
+                targetToken = body?.targetToken || null;
             }
         } catch (e) {
-            // Si no hay body o no es JSON, no es test
+            // Sin body válido: modo producción normal
         }
 
         const today = getTodayVenezuela();
@@ -339,16 +341,25 @@ Deno.serve(async (req: Request) => {
         }
 
         // ── Paso 7: Obtener tokens y enviar notificaciones ─────
-        if (!isTest) {
+        let tokens: string[] = [];
+
+        if (targetToken) {
+            // Prueba segura: solo al token especificado
+            tokens = [targetToken];
+            console.log(`[Quiz] PRUEBA: enviando solo al token indicado.`);
+        } else if (!isTest) {
+            // Producción: enviar a todos
             const { data: tokenRows } = await supabase
                 .from('push_tokens')
                 .select('token');
-
-            const tokens: string[] = (tokenRows ?? []).map((r: any) => r.token);
+            tokens = (tokenRows ?? []).map((r: any) => r.token);
             console.log(`[Quiz] Enviando push a ${tokens.length} tokens`);
-            await sendPushNotifications(tokens, quizContent.question);
         } else {
-            console.log('[Quiz] MODO TEST: Notificaciones saltadas.');
+            console.log('[Quiz] MODO TEST sin targetToken: notificaciones saltadas.');
+        }
+
+        if (tokens.length > 0) {
+            await sendPushNotifications(tokens, quizContent.question);
         }
 
         return new Response(

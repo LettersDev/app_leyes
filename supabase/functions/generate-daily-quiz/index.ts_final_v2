@@ -1,0 +1,106 @@
+// supabase/functions/generate-daily-quiz/index.ts
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const GEMINI_API_KEY    = Deno.env.get('GEMINI_API_KEY') ?? '';
+const EXPO_ACCESS_TOKEN = Deno.env.get('EXPO_ACCESS_TOKEN') ?? ''; 
+
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+// Temas rotativos
+const TOPICS = [
+    'contrato de trabajo y relación laboral', 'propiedad privada y bienes inmuebles',
+    'matrimonio y divorcio', 'herencia y sucesión', 'responsabilidad civil por daños',
+    'derechos fundamentales constitucionales', 'proceso penal y garantías del imputado',
+    'procedimiento civil y demandas', 'obligaciones contractuales', 'arrendamiento de inmuebles'
+];
+
+function getTodayVenezuela(): string {
+    const now = new Date();
+    const offset = -4 * 60;
+    const local = new Date(now.getTime() + offset * 60 * 1000);
+    return local.toISOString().split('T')[0];
+}
+
+Deno.serve(async (req: Request) => {
+    try {
+        const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+        // 1. DETERMINAR MODO (Vía URL para evitar errores de body)
+        const url = new URL(req.url);
+        const isTest = url.searchParams.get('test') === 'true';
+        const targetToken = url.searchParams.get('targetToken');
+
+        console.log(`[Quiz] Ejecutando: ${isTest ? 'TEST' : 'PRODUCCIÓN'}. Target: ${targetToken || 'Todos'}`);
+
+        // 2. GENERACIÓN DEL QUIZ
+        const topic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+        
+        // Buscar artículo (Simulando lógica match_law_items)
+        const { data: articles } = await supabase.rpc('match_law_items', {
+            query_embedding: new Array(768).fill(0), // Placeholder simple
+            match_threshold: 0.1,
+            match_count: 1
+        });
+
+        if (!articles || articles.length === 0) throw new Error('No se encontraron artículos');
+        const article = articles[0];
+
+        // Gemini Generación
+        const prompt = `Eres un experto legal. Genera una pregunta de opción múltiple basada en este artículo: "${article.text.substring(0, 800)}". Responde SOLO JSON: {"question": "...", "options": [{"id":"A","text":"..."},{"id":"B","text":"..."},{"id":"C","text":"..."},{"id":"D","text":"..."}], "correct": "A", "explanation": "..."}`;
+        
+        const geminiRes = await fetch(GEMINI_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const gData = await geminiRes.json();
+        const quiz = JSON.parse(gData.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim());
+
+        // 3. GUARDAR SI NO ES TEST
+        if (!isTest) {
+            await supabase.from('daily_quizzes').upsert({
+                date: getTodayVenezuela(),
+                question: quiz.question,
+                options: quiz.options,
+                correct_option: quiz.correct,
+                explanation: quiz.explanation,
+                law_title: article.law_title || 'Ley venezolana',
+                law_id: article.law_id,
+                law_item_id: article.id,
+                article_number: article.number
+            }, { onConflict: 'date' });
+        }
+
+        // 4. ENVIAR NOTIFICACIONES
+        let tokens: string[] = [];
+        if (targetToken) {
+            tokens = [targetToken];
+        } else if (!isTest) {
+            const { data: rows } = await supabase.from('push_tokens').select('token');
+            tokens = (rows ?? []).map(r => r.token);
+        }
+
+        if (tokens.length > 0) {
+            const messages = tokens.map(token => ({
+                to: token,
+                title: '🤖 Pregunta Legal del Día',
+                body: quiz.question,
+                data: { screen: 'DailyQuiz' },
+                sound: 'default',
+            }));
+
+            await fetch('https://exp.host/--/api/v2/push/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(messages),
+            });
+            console.log(`[Quiz] Notificación enviada a ${tokens.length} dispositivos.`);
+        }
+
+        return new Response(JSON.stringify({ ok: true, quiz }), { headers: { 'Content-Type': 'application/json' } });
+
+    } catch (err) {
+        console.error('[Quiz] Error:', err.message);
+        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    }
+});

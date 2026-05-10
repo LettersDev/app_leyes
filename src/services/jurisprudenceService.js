@@ -159,7 +159,7 @@ const JurisprudenceService = {
                 q = q.eq('ano', parseInt(selectedYear));
             }
 
-            // Keyset pagination: Si hay cursor, pedir elementos anteriores
+            // Keyset pagination: cursor por fecha e id (requiere índice idx_jur_fecha_corte_id)
             if (lastFechaCorte && lastId) {
                 q = q.or(`fecha_corte.lt.${lastFechaCorte},and(fecha_corte.eq.${lastFechaCorte},id.lt.${lastId})`);
             }

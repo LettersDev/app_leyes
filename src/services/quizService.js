@@ -116,16 +116,19 @@ const QuizService = {
                 JSON.stringify(answerData)
             );
 
-            // 2. Enviar a Supabase (analytics — no bloquea si falla)
+            // 2. Enviar a Supabase (upsert para evitar errores si ya existe)
             const { error } = await supabase
                 .from('quiz_responses')
-                .insert({
-                    quiz_id: quizId,
-                    device_token: deviceToken,
-                    selected_option: selectedOption,
-                    is_correct: isCorrect,
-                    streak_at_time: streakAtTime,
-                });
+                .upsert(
+                    {
+                        quiz_id: quizId,
+                        device_token: deviceToken,
+                        selected_option: selectedOption,
+                        is_correct: isCorrect,
+                        streak_at_time: streakAtTime,
+                    },
+                    { onConflict: 'quiz_id,device_token', ignoreDuplicates: true }
+                );
 
             if (error) {
                 // No crítico — la respuesta ya está guardada localmente
@@ -184,9 +187,8 @@ const QuizService = {
     },
 
     clearTodayAnswer: async () => {
-        const today = new Date().toISOString().split('T')[0];
-        // Nota: El prefijo suele ser '@daily_quiz_answered_'
-        await AsyncStorage.removeItem('@daily_quiz_answered_' + today);
+        const today = QuizService.getTodayDateString();
+        await AsyncStorage.removeItem(`${ANSWERED_KEY_PREFIX}${today}`);
     }
 };
 

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconButton } from 'react-native-paper';
-import { COLORS } from '../utils/constants';
+import { COLORS, CATEGORY_NAMES } from '../utils/constants';
 import QuizService from '../services/quizService';
 
 const QuizHistoryScreen = ({ navigation }) => {
@@ -66,7 +66,7 @@ const QuizHistoryScreen = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={['bottom']}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <View style={styles.header}>
                 <IconButton 
                     icon="arrow-left" 
@@ -131,12 +131,16 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: COLORS.textSecondary,
         textTransform: 'uppercase',
+        flex: 1,
+        marginRight: 8,
     },
     categoryBadge: {
         backgroundColor: '#F1F5F9',
         paddingHorizontal: 8,
-        paddingVertical: 2,
+        paddingVertical: 3,
         borderRadius: 4,
+        maxWidth: 120,
+        flexShrink: 1,
     },
     categoryText: {
         fontSize: 10,

@@ -161,7 +161,7 @@ const AIConsultScreen = ({ navigation }) => {
                                 <Text style={styles.refsTitle}>REFERENCIAS UTILIZADAS</Text>
                                 {result.references.map((ref) => (
                                     <Pressable 
-                                        key={`ref-${ref.law_id}-${ref.index}`} 
+                                        key={`ref-${ref.law_id}-${ref.index || ref.id || Math.random()}`} 
                                         style={({ pressed }) => [
                                             styles.refItem,
                                             pressed && { opacity: 0.7 }

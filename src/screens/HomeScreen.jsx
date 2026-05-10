@@ -88,10 +88,10 @@ const HomeScreen = ({ navigation }) => {
                 QuizService.fetchTodayQuiz(),
                 StreakManager.getStreak(),
             ]);
-            
+
             // Para fines de prueba, permitimos que el banner se muestre si el quiz existe
             // Independientemente de si ya fue respondido en esta sesión de depuración
-            const pending = !!todayQuiz; 
+            const pending = !!todayQuiz;
             dispatch({ type: 'SET_FIELD', field: 'quizPending', value: pending });
         } catch (e) {
             console.warn('[Home] Error al verificar quiz:', e.message);
@@ -127,6 +127,7 @@ const HomeScreen = ({ navigation }) => {
         { id: LAW_CATEGORIES.LEYES, name: CATEGORY_NAMES[LAW_CATEGORIES.LEYES], icon: 'bookshelf', description: 'Leyes Orgánicas y Especiales', color: '#8B5CF6', navigateTo: 'LawsList' },
         { id: LAW_CATEGORIES.TSJ, name: CATEGORY_NAMES[LAW_CATEGORIES.TSJ], icon: 'gavel', description: 'Sentencias y Jurisprudencia', color: '#DC2626', navigateTo: 'Jurisprudence' },
         { id: LAW_CATEGORIES.GACETA, name: CATEGORY_NAMES[LAW_CATEGORIES.GACETA], icon: 'newspaper', description: 'Gaceta Oficial', color: '#D97706', navigateTo: 'Gacetas' },
+        { id: LAW_CATEGORIES.CONVENIOS, name: CATEGORY_NAMES[LAW_CATEGORIES.CONVENIOS], icon: 'earth', description: 'Acuerdos y tratados internacionales suscritos', color: '#0891B2', navigateTo: 'LawsList' },
         { id: 'daily-quiz', name: 'Evaluación Legal Diaria', icon: 'book-search', description: state.quizPending ? 'Analice un caso práctico basado en la legislación.' : 'Evaluación completada. Pulse para ver detalles.', color: '#6366f1', navigateTo: 'DailyQuiz' },
     ], [state.quizPending]);
 
@@ -140,8 +141,8 @@ const HomeScreen = ({ navigation }) => {
                             <Text style={styles.title}>TuLey</Text>
                             <View style={styles.titleUnderline} />
                         </View>
-                        <Pressable 
-                            onPress={() => navigation.navigate('Favorites')} 
+                        <Pressable
+                            onPress={() => navigation.navigate('Favorites')}
                             style={({ pressed }) => [styles.favoritesButton, pressed && { opacity: 0.7 }]}
                         >
                             <IconButton icon="star" iconColor="#FFD700" size={28} style={{ margin: 0 }} />
@@ -149,8 +150,8 @@ const HomeScreen = ({ navigation }) => {
                     </View>
                 </LinearGradient>
 
-                <Pressable 
-                    style={({ pressed }) => [styles.searchButton, pressed && { opacity: 0.9 }]} 
+                <Pressable
+                    style={({ pressed }) => [styles.searchButton, pressed && { opacity: 0.9 }]}
                     onPress={() => navigation.navigate('Search')}
                 >
                     <IconButton icon="magnify" size={24} iconColor={COLORS.textSecondary} />
@@ -171,8 +172,8 @@ const HomeScreen = ({ navigation }) => {
                     }}
                 />
 
-                <Pressable 
-                    style={({ pressed }) => [styles.aiBanner, pressed && { opacity: 0.9 }]} 
+                <Pressable
+                    style={({ pressed }) => [styles.aiBanner, pressed && { opacity: 0.9 }]}
                     onPress={() => navigation.navigate('AIConsult')}
                 >
                     <LinearGradient
@@ -181,7 +182,7 @@ const HomeScreen = ({ navigation }) => {
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                     >
-                        <Text style={styles.aiTag}>IA PREMIUM</Text>
+
                         <Text style={styles.aiTitle}>Asistente Legal Inteligente</Text>
                         <Text style={styles.aiSub}>Plantea tu situación y buscaremos los artículos que te protegen.</Text>
                         <View style={styles.aiAction}>

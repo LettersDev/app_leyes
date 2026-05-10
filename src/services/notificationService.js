@@ -204,6 +204,12 @@ const NotificationService = {
                 const token = await _getTokenWithRetry(projectId, 3);
                 if (!token) return null;
 
+                // Guardar en AsyncStorage para que la app pueda leerlo
+                try {
+                    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+                    await AsyncStorage.setItem('@push_token', token);
+                } catch (_) {}
+
                 // Paso 5: Guardar en Supabase (con last_seen)
                 await _saveTokenToSupabase(token);
 

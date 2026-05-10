@@ -60,6 +60,7 @@ serve(async (req) => {
           id: a.id,
           number: a.number,
           law_id: a.law_id,
+          law_title: a.law_title || 'Artículo de Ley',
           text: a.text.substring(0, 100) + '...'
         }))
       }

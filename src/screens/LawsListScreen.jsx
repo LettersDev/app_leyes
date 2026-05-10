@@ -226,25 +226,21 @@ const styles = StyleSheet.create({
         borderColor: COLORS.secondary,
         borderWidth: 1,
         borderRadius: 8,
-        height: 28,
     },
     chipText: {
         fontSize: 11,
         fontWeight: '700',
         color: COLORS.secondary,
         textTransform: 'uppercase',
-        paddingHorizontal: 8,
     },
     newChip: {
         backgroundColor: '#EF4444',
-        height: 28,
         borderRadius: 8,
     },
     newChipText: {
         fontSize: 11,
         fontWeight: '800',
         color: '#fff',
-        paddingHorizontal: 10,
     },
     footerRow: {
         flexDirection: 'row',

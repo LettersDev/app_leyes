@@ -1,0 +1,91 @@
+// supabase/functions/generate-daily-quiz/index.ts
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const GEMINI_API_KEY    = Deno.env.get('GEMINI_API_KEY') ?? '';
+const EXPO_ACCESS_TOKEN = Deno.env.get('EXPO_ACCESS_TOKEN') ?? ''; 
+
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+// Temas rotativos
+const TOPICS = ['contrato de trabajo', 'propiedad privada', 'matrimonio y divorcio', 'herencia', 'responsabilidad civil', 'derechos constitucionales', 'proceso penal'];
+
+Deno.serve(async (req) => {
+    try {
+        const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+        // LEER PARÁMETROS DE LA URL (Evita errores de lectura de body)
+        const url = new URL(req.url);
+        const isTest = url.searchParams.get('test') === 'true';
+        const targetToken = url.searchParams.get('targetToken');
+
+        console.log(`[Quiz] Iniciando. Test: ${isTest}, Target: ${targetToken || 'Todos'}`);
+
+        // 1. Seleccionar tema y buscar artículo (Simplificado para el ejemplo)
+        const topic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+        
+        // Simulación de búsqueda de artículo (En tu código real usas match_law_items)
+        // Para la prueba, usaremos datos genéricos o el último generado
+        const { data: article } = await supabase.from('law_items').select('*, laws(title)').limit(1).single();
+
+        if (!article) throw new Error('No hay artículos en la base de datos');
+
+        // 2. Generar pregunta con Gemini
+        const prompt = `Genera una pregunta de opción múltiple sobre este texto legal: "${article.text.substring(0, 500)}". Responde solo JSON: {"question": "...", "options": [{"id":"A","text":"..."},...], "correct": "A", "explanation": "..."}`;
+        
+        const geminiRes = await fetch(GEMINI_URL, {
+            method: 'POST',
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const geminiData = await geminiRes.json();
+        const quizContent = JSON.parse(geminiData.candidates[0].content.parts[0].text.replace(/```json|```/g, ''));
+
+        // 3. Guardar si NO es test
+        if (!isTest) {
+            await supabase.from('daily_quizzes').upsert({
+                date: new Date().toISOString().split('T')[0],
+                question: quizContent.question,
+                options: quizContent.options,
+                correct_option: quizContent.correct,
+                explanation: quizContent.explanation,
+                law_title: article.laws?.title || 'Ley',
+                law_id: article.law_id,
+                law_item_id: article.id
+            }, { onConflict: 'date' });
+        }
+
+        // 4. ENVIAR NOTIFICACIONES
+        let tokens: string[] = [];
+        if (targetToken) {
+            tokens = [targetToken];
+        } else if (!isTest) {
+            const { data: rows } = await supabase.from('push_tokens').select('token');
+            tokens = (rows ?? []).map(r => r.token);
+        }
+
+        if (tokens.length > 0) {
+            const messages = tokens.map(token => ({
+                to: token,
+                title: '🤖 Pregunta Legal del Día',
+                body: quizContent.question,
+                data: { screen: 'DailyQuiz' },
+                sound: 'default',
+            }));
+
+            await fetch('https://exp.host/--/api/v2/push/send', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(EXPO_ACCESS_TOKEN ? { 'Authorization': `Bearer ${EXPO_ACCESS_TOKEN}` } : {})
+                },
+                body: JSON.stringify(messages),
+            });
+            console.log(`[Quiz] Notificaciones enviadas a ${tokens.length} dispositivos.`);
+        }
+
+        return new Response(JSON.stringify({ ok: true, quiz: quizContent }), { headers: { 'Content-Type': 'application/json' } });
+
+    } catch (err) {
+        console.error('[Quiz] Error:', err.message);
+        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    }
+});

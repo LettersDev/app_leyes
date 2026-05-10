@@ -55,17 +55,21 @@ const CodesListScreen = ({ navigation }) => {
                 // Contar artículos si hay contenido
                 const articleCount = code.content?.articles?.filter(a => a.type === 'article').length || 0;
 
+                const rawDesc = code.description || '';
+                const isAutoDesc = rawDesc.toLowerCase().includes('extraído') || rawDesc.toLowerCase().includes('.pdf');
+
                 return {
                     id: code.id,
                     category: code.category,
                     name: code.title,
-                    description: code.description || 'Código legal de Venezuela',
+                    description: isAutoDesc ? 'Código legal de Venezuela' : (rawDesc || 'Código legal de Venezuela'),
                     icon: iconConfig.icon,
                     color: iconConfig.color,
                     articles: articleCount > 0 ? `${articleCount} artículos` : '',
                     last_updated: code.last_updated,
                     isNew: lastSync && code.last_updated && new Date(code.last_updated) > lastSync
                 };
+
             });
 
             setCodes(formattedCodes);
