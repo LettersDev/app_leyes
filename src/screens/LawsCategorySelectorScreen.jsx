@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Card, Title, Paragraph, IconButton, Badge } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
@@ -59,10 +59,10 @@ const LawsCategorySelectorScreen = ({ navigation }) => {
 
             <View style={styles.cardsContainer}>
                 {selectorCategories.map((cat) => (
-                    <TouchableOpacity
+                    <Pressable
                         key={cat.id}
                         onPress={() => handlePress(cat)}
-                        activeOpacity={0.9}
+                        style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}
                     >
                         <Card style={styles.card}>
                             <Card.Content style={styles.cardContent}>
@@ -86,7 +86,7 @@ const LawsCategorySelectorScreen = ({ navigation }) => {
                                 <IconButton icon="chevron-right" size={24} iconColor={COLORS.textSecondary} />
                             </Card.Content>
                         </Card>
-                    </TouchableOpacity>
+                    </Pressable>
                 ))}
             </View>
 

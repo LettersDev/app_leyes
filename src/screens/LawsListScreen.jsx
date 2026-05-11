@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Card, Title, Paragraph, Chip, IconButton, Button } from 'react-native-paper';
+﻿import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { Card, Title, Paragraph, IconButton, Button } from 'react-native-paper';
 import { getLawsByCategory, getLawsByParentCategory } from '../services/lawService';
 import { COLORS, LAW_CATEGORIES } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
@@ -10,7 +10,6 @@ const LawsListScreen = ({ route, navigation }) => {
     const [laws, setLaws] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [lastSyncDate, setLastSyncDate] = useState(null);
 
     useEffect(() => {
         loadLaws();
@@ -31,11 +30,24 @@ const LawsListScreen = ({ route, navigation }) => {
                 data = await getLawsByCategory(category, forceRefresh);
             }
 
-            setLaws(data);
-
             // Cargar fecha de última sincronización para comparar
             const lsd = await LawsIndexService.getLastSyncTime();
-            setLastSyncDate(lsd);
+
+            // Pre-procesar leyes para incluir isNew y fechas formateadas
+            const processed = (data || []).map(item => {
+                const itemDate = item.date?.toDate ? item.date.toDate() : (item.date ? new Date(item.date) : null);
+                return {
+                    ...item,
+                    isNew: lsd && item.last_updated && new Date(item.last_updated) > lsd,
+                    displayDate: itemDate ? itemDate.toLocaleDateString('es-VE', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                    }) : null
+                };
+            });
+
+            setLaws(processed);
         } catch (err) {
             if (err.message === 'OFFLINE_ERROR') {
                 setError('OFFLINE_ERROR');
@@ -48,51 +60,35 @@ const LawsListScreen = ({ route, navigation }) => {
         }
     };
 
-    const formatDate = (timestamp) => {
-        if (!timestamp) return '';
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleDateString('es-VE', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-    };
-
     const renderLawItem = ({ item }) => (
-        <TouchableOpacity
+        <Pressable
+            style={({ pressed }) => [
+                styles.lawCard,
+                { opacity: pressed ? 0.8 : 1 }
+            ]}
             onPress={() => navigation.navigate('LawDetail', { lawId: item.id })}
         >
-            <Card style={styles.lawCard}>
+            <Card style={[styles.lawCard, { marginBottom: 0 }]}>
                 <Card.Content>
                     <Title style={styles.lawTitle} numberOfLines={3}>
                         {item.title}
                     </Title>
-
                     <View style={styles.chipsRow}>
                         {item.type && (
-                            <Chip
-                                mode="outlined"
-                                style={styles.chip}
-                                textStyle={styles.chipText}
-                            >
-                                <Text>{item.type}</Text>
-                            </Chip>
+                            <View style={styles.chip}>
+                                <Text style={styles.chipText}>{item.type}</Text>
+                            </View>
                         )}
-                        {lastSyncDate && item.last_updated && new Date(item.last_updated) > lastSyncDate && (
-                            <Chip
-                                mode="flat"
-                                style={styles.newChip}
-                                textStyle={styles.newChipText}
-                            >
-                                <Text>NUEVA</Text>
-                            </Chip>
+                        {item.isNew && (
+                            <View style={styles.newChip}>
+                                <Text style={styles.newChipText}>NUEVA</Text>
+                            </View>
                         )}
                     </View>
-
                     <View style={styles.footerRow}>
-                        {item.date && (
+                        {item.displayDate && (
                             <Paragraph style={styles.date}>
-                                {formatDate(item.date)}
+                                {item.displayDate}
                             </Paragraph>
                         )}
 
@@ -104,14 +100,14 @@ const LawsListScreen = ({ route, navigation }) => {
                     </View>
                 </Card.Content>
             </Card>
-        </TouchableOpacity>
+        </Pressable>
     );
 
     if (loading) {
         return (
             <View style={styles.centerContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Cargando leyes...</Text>
+                <Text style={styles.loadingText}>Cargando leyes…</Text>
             </View>
         );
     }
@@ -141,9 +137,15 @@ const LawsListScreen = ({ route, navigation }) => {
         return (
             <View style={styles.centerContainer}>
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={loadLaws}>
+                <Pressable 
+                    style={({ pressed }) => [
+                        styles.retryButton,
+                        pressed && { opacity: 0.8 }
+                    ]} 
+                    onPress={loadLaws}
+                >
                     <Text style={styles.retryButtonText}>Reintentar</Text>
-                </TouchableOpacity>
+                </Pressable>
             </View>
         );
     }
@@ -212,29 +214,31 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     chip: {
-        backgroundColor: COLORS.secondary + '15',
-        borderColor: COLORS.secondary,
+        backgroundColor: '#EEF2FF',
+        borderColor: '#6366F1',
         borderWidth: 1,
-        borderRadius: 8,
-        height: 28,
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        alignSelf: 'flex-start',
     },
     chipText: {
         fontSize: 11,
         fontWeight: '700',
-        color: COLORS.secondary,
+        color: '#4F46E5',
         textTransform: 'uppercase',
-        paddingHorizontal: 8,
     },
     newChip: {
         backgroundColor: '#EF4444',
-        height: 28,
-        borderRadius: 8,
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        alignSelf: 'flex-start',
     },
     newChipText: {
         fontSize: 11,
         fontWeight: '800',
         color: '#fff',
-        paddingHorizontal: 10,
     },
     footerRow: {
         flexDirection: 'row',
@@ -290,3 +294,4 @@ const styles = StyleSheet.create({
 });
 
 export default LawsListScreen;
+

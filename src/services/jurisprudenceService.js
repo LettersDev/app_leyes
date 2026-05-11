@@ -28,16 +28,19 @@ function setCachedResult(key, data) {
     searchCache.set(key, { data, timestamp: Date.now() });
 }
 
-export const JurisprudenceService = {
+const JurisprudenceService = {
     /**
      * Búsqueda multi-estrategia:
      * 1. Número exacto de sentencia
      * 2. Expediente exacto
      * 3. FTS en español (stemming: plurales, conjugaciones, sin acentos)
      */
-    searchSentences: async (searchText) => {
+    searchSentences: async (searchText, filters = {}) => {
+        const { selectedSala, selectedYear } = filters;
+        const cacheKey = `${searchText}-${selectedSala || 'all'}-${selectedYear || 'all'}`;
+        
         try {
-            const cached = getCachedResult(searchText);
+            const cached = getCachedResult(cacheKey);
             if (cached) return cached;
 
             const results = [];
@@ -50,35 +53,48 @@ export const JurisprudenceService = {
                 }
             };
 
+            const applyFilters = (query) => {
+                let q = query;
+                if (selectedSala === 'recent') {
+                    const today = new Date();
+                    const lastWeek = new Date();
+                    lastWeek.setDate(today.getDate() - 7);
+                    q = q.gte('fecha_corte', lastWeek.toISOString().split('T')[0]);
+                } else if (selectedSala && selectedSala !== 'all') {
+                    q = q.eq('sala', selectedSala);
+                }
+                if (selectedYear && selectedYear !== 'Todos') {
+                    q = q.eq('ano', parseInt(selectedYear));
+                }
+                return q;
+            };
+
             // 1. Búsqueda por número exacto
             if (!isNaN(searchText) && searchText.trim() !== '') {
                 const [{ data: byInt }, { data: byStr }] = await Promise.all([
-                    supabase.from(COLLECTION_NAME).select('*')
-                        .eq('numero', parseInt(searchText)).limit(5),
-                    supabase.from(COLLECTION_NAME).select('*')
-                        .eq('numero', searchText.toString()).limit(5)
+                    applyFilters(supabase.from(COLLECTION_NAME).select('*').eq('numero', parseInt(searchText))).limit(5),
+                    applyFilters(supabase.from(COLLECTION_NAME).select('*').eq('numero', searchText.toString())).limit(5)
                 ]);
                 (byInt || []).forEach(r => addResult(r, 'N° Sentencia'));
                 (byStr || []).forEach(r => addResult(r, 'N° Sentencia'));
             }
 
             // 2. Búsqueda por expediente exacto
-            const { data: byExp } = await supabase
+            const { data: byExp } = await applyFilters(supabase
                 .from(COLLECTION_NAME).select('*')
-                .eq('expediente', searchText.toString()).limit(5);
+                .eq('expediente', searchText.toString())).limit(5);
             (byExp || []).forEach(r => addResult(r, 'Expediente'));
 
-            // 3. FTS en español — PRINCIPAL: reemplaza el sistema de keywords
-            // Usa websearch_to_tsquery: soporta "frases", -exclusiones, OR, etc.
+            // 3. FTS en español
             if (results.length < 10) {
-                console.log(`[FTS] Buscando: "${searchText}"`);
-                const { data: byFts, error: ftsErr } = await supabase
+                console.log(`[FTS] Buscando con filtros: "${searchText}"`);
+                const { data: byFts, error: ftsErr } = await applyFilters(supabase
                     .from(COLLECTION_NAME)
                     .select('*')
                     .textSearch('fts', searchText, {
-                        type: 'websearch',   // interpreta comillas, AND, OR, -
-                        config: 'spanish'    // aplica stemming en español
-                    })
+                        type: 'websearch',
+                        config: 'spanish'
+                    }))
                     .order('fecha_corte', { ascending: false })
                     .order('id', { ascending: false })
                     .limit(20);
@@ -90,7 +106,7 @@ export const JurisprudenceService = {
                 }
             }
 
-            setCachedResult(searchText, results);
+            setCachedResult(cacheKey, results);
             return results;
         } catch (error) {
             if (error.message && error.message.toLowerCase().includes('network')) {
@@ -143,12 +159,12 @@ export const JurisprudenceService = {
                 q = q.eq('ano', parseInt(selectedYear));
             }
 
-            // Keyset pagination: Si hay cursor, pedir elementos anteriores
+            // Keyset pagination: cursor por fecha e id (requiere índice idx_jur_fecha_corte_id)
             if (lastFechaCorte && lastId) {
                 q = q.or(`fecha_corte.lt.${lastFechaCorte},and(fecha_corte.eq.${lastFechaCorte},id.lt.${lastId})`);
             }
 
-            q = q.order('fecha_corte', { ascending: false, nullsFirst: false })
+            q = q.order('fecha_corte', { ascending: false })
                 .order('id', { ascending: false })
                 .limit(pageSize);
 

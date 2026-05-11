@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { COLORS } from '../utils/constants';
 
 // Importar pantallas
@@ -16,10 +16,13 @@ import JurisprudenceDetailScreen from '../screens/JurisprudenceDetailScreen';
 import GacetaDetailScreen from '../screens/GacetaDetailScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
+import DailyQuizScreen from '../screens/DailyQuizScreen';
+import QuizHistoryScreen from '../screens/QuizHistoryScreen';
+import AIConsultScreen from '../screens/AIConsultScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const linking = {
     prefixes: ['tuley://'],
@@ -30,6 +33,8 @@ const linking = {
             Gacetas: 'gacetas',
             LawDetail: 'law/:id',
             JurisprudenceDetail: 'sentencia/:id',
+            DailyQuiz: 'quiz',
+            QuizHistory: 'quiz-history',
         },
     },
 };
@@ -142,6 +147,21 @@ const AppNavigator = () => {
                     name="Onboarding"
                     component={OnboardingScreen}
                     options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="DailyQuiz"
+                    component={DailyQuizScreen}
+                    options={{ title: 'Pregunta del Día', headerShown: false }}
+                />
+                <Stack.Screen
+                    name="QuizHistory"
+                    component={QuizHistoryScreen}
+                    options={{ title: 'Historial', headerShown: false }}
+                />
+                <Stack.Screen
+                    name="AIConsult"
+                    component={AIConsultScreen}
+                    options={{ title: 'Asistente Legal' }}
                 />
             </Stack.Navigator>
         </NavigationContainer>

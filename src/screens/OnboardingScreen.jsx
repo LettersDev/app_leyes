@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, useWindowDimensions } from 'react-native';
 import { Button, IconButton, useTheme } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../utils/constants';
@@ -106,12 +106,15 @@ const OnboardingScreen = ({ navigation }) => {
                 </Button>
 
                 {currentIndex < SLIDES.length - 1 && (
-                    <TouchableOpacity onPress={async () => {
-                        await AsyncStorage.setItem('@onboarding_complete', 'true');
-                        navigation.replace('Home');
-                    }}>
+                    <Pressable 
+                        onPress={async () => {
+                            await AsyncStorage.setItem('@onboarding_complete', 'true');
+                            navigation.replace('Home');
+                        }}
+                        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                    >
                         <Text style={styles.skipText}>Omitir</Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 )}
             </View>
         </View>

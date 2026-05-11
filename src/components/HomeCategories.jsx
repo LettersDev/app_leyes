@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Surface, IconButton, Badge } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../utils/constants';
@@ -10,12 +10,14 @@ const HomeCategories = ({ categories, updatedCategories, onCategoryPress }) => {
             <Text style={styles.sectionTitle}>Categorías</Text>
 
             {categories.map((category) => (
-                <TouchableOpacity
+                <Pressable
                     key={category.id}
                     onPress={() => onCategoryPress(category)}
-                    activeOpacity={0.8}
+                    style={({ pressed }) => [
+                        { opacity: pressed ? 0.8 : 1 }
+                    ]}
                 >
-                    <Surface elevation={1} style={styles.categoryCard}>
+                    <Surface style={styles.categoryCard}>
                         <View style={styles.cardContent}>
                             <LinearGradient
                                 colors={[category.color, category.color + 'CC']}
@@ -44,7 +46,7 @@ const HomeCategories = ({ categories, updatedCategories, onCategoryPress }) => {
                             <IconButton icon="chevron-right" size={20} iconColor={COLORS.textSecondary} />
                         </View>
                     </Surface>
-                </TouchableOpacity>
+                </Pressable>
             ))}
         </View>
     );
@@ -67,6 +69,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 16,
         overflow: 'hidden',
+        boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.08)',
     },
     cardContent: {
         flexDirection: 'row',

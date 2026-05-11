@@ -1,9 +1,13 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { View, Text, StyleSheet, Animated, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import { MD3LightTheme, Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as NavigationBar from 'expo-navigation-bar';
+import { Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import { COLORS } from './src/utils/constants';
 import { SettingsProvider } from './src/context/SettingsContext';
@@ -28,16 +32,26 @@ export default function App() {
   // Empezamos asumiendo que está inicializando para mostrar el splash animado
   const [isInitializing, setIsInitializing] = useState(true);
   const [initStatus, setInitStatus] = useState('');
-  const pulseValue = useRef(new Animated.Value(1)).current;
+  const pulseValue = useSharedValue(1);
   const notificationListener = useRef();
   const responseListener = useRef();
   const [updateInfo, setUpdateInfo] = useState({ visible: false, currentVersion: '', latestVersion: '' });
 
-  useEffect(() => {
-    // Verificamos si realmente necesitamos inicializar
-    checkIfFirstLaunch();
+  const animatedLogoStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseValue.value }],
+    opacity: 0.8 + (pulseValue.value - 1) * 2, // Mapeo simple: 1.0->0.8, 1.1->1.0
+  }));
 
-    // Listener para cuando el usuario TOCA la notificación
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setVisibilityAsync('hidden');
+      NavigationBar.setBehaviorAsync('sticky-immersive');
+    }
+  }, []);
+
+  useEffect(() => {
+    checkIfFirstLaunch();
+    
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
       console.log('App: Notificación tocada con data:', data);
@@ -52,20 +66,16 @@ export default function App() {
 
   useEffect(() => {
     if (isInitializing) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseValue, {
-            toValue: 1.1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseValue, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
+      pulseValue.value = withRepeat(
+        withSequence(
+          withTiming(1.1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1, // infinito
+        false
+      );
+    } else {
+      pulseValue.value = withTiming(1);
     }
   }, [isInitializing]);
 
@@ -103,7 +113,12 @@ export default function App() {
 
     // Actualizar token en silencio (con reintento)
     NotificationService.registerForPushNotificationsAsync()
-      .then(token => console.log('BG Push Success:', token ? 'Registered' : 'No Token'))
+      .then(token => {
+        console.log('BG Push Success:', token ? 'Registered' : 'No Token');
+        // Programar notificación local diaria del quiz como respaldo (8:00 AM)
+        NotificationService.scheduleLocalDailyQuizReminder(8, 0)
+          .catch(e => console.log('BG Quiz Reminder Error:', e.message));
+      })
       .catch(e => console.log('BG Push Error:', e.message));
 
     // Buscar updates de la app
@@ -114,47 +129,45 @@ export default function App() {
 
   if (isInitializing) {
     return (
-      <SafeAreaProvider>
-        <PaperProvider theme={theme}>
-          <View style={styles.loadingContainer}>
-            <Animated.Image
-              source={require('./assets/splash-icon.png')}
-              style={[
-                styles.splashLogo,
-                {
-                  transform: [{ scale: pulseValue }],
-                  opacity: pulseValue.interpolate({
-                    inputRange: [1, 1.1],
-                    outputRange: [0.8, 1],
-                  }),
-                },
-              ]}
-              resizeMode="contain"
-            />
-            <Text style={styles.loadingText}>{initStatus}</Text>
-            <Text style={styles.loadingSubtext}>
-              Esto solo ocurre la primera vez
-            </Text>
-          </View>
-        </PaperProvider>
-      </SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <PaperProvider theme={theme}>
+            <View style={styles.loadingContainer}>
+              <Animated.Image
+                source={require('./assets/splash-icon.png')}
+                style={[
+                  styles.splashLogo,
+                  animatedLogoStyle
+                ]}
+                resizeMode="contain"
+              />
+              <Text style={styles.loadingText}>{initStatus}</Text>
+              <Text style={styles.loadingSubtext}>
+                Esto solo ocurre la primera vez
+              </Text>
+            </View>
+          </PaperProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <SafeAreaProvider>
-      <SettingsProvider>
-        <PaperProvider theme={theme}>
-          <AppNavigator />
-          <UpdateModal
-            visible={updateInfo.visible}
-            currentVersion={updateInfo.currentVersion}
-            latestVersion={updateInfo.latestVersion}
-            onDismiss={() => setUpdateInfo(prev => ({ ...prev, visible: false }))}
-          />
-        </PaperProvider>
-      </SettingsProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <SettingsProvider>
+          <PaperProvider theme={theme}>
+            <AppNavigator />
+            <UpdateModal
+              visible={updateInfo.visible}
+              currentVersion={updateInfo.currentVersion}
+              latestVersion={updateInfo.latestVersion}
+              onDismiss={() => setUpdateInfo(prev => ({ ...prev, visible: false }))}
+            />
+          </PaperProvider>
+        </SettingsProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

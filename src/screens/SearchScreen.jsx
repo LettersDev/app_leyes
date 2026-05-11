@@ -1,14 +1,16 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import {
     View, Text, StyleSheet, FlatList,
-    TouchableOpacity, Animated, Easing,
+    Pressable,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import { Searchbar, Card, ActivityIndicator } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { searchLaws } from '../services/lawService';
 import JurisprudenceService from '../services/jurisprudenceService';
 import HybridSearchService from '../services/hybridSearchService';
+import ReviewService from '../services/reviewService';
 import { COLORS } from '../utils/constants';
 import SearchInfoModal from '../components/SearchInfoModal';
 
@@ -49,63 +51,99 @@ const ResultBadge = ({ type, similarity }) => {
     );
 };
 
+const initialState = {
+    searchQuery: '',
+    results: [],
+    loading: false,
+    searched: false,
+    mode: 'hybrid',
+    semanticAvailable: true,
+    infoVisible: false,
+};
+
+function searchReducer(state, action) {
+    switch (action.type) {
+        case 'SET_QUERY':
+            return { ...state, searchQuery: action.payload };
+        case 'START_SEARCH':
+            return { ...state, loading: true, searched: true };
+        case 'SEARCH_SUCCESS':
+            return { ...state, loading: false, results: action.payload, searched: true };
+        case 'SEARCH_ERROR':
+            return { ...state, loading: false, results: [] };
+        case 'SET_INFO_VISIBLE':
+            return { ...state, infoVisible: action.payload };
+        default:
+            return state;
+    }
+}
+
 // ─── Componente principal ─────────────────────────────────────
 const SearchScreen = ({ navigation, route }) => {
-    const [searchQuery, setSearchQuery] = useState(route.params?.initialQuery || '');
-    const [results, setResults] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [searched, setSearched] = useState(false);
-    const [mode, setMode] = useState('hybrid');
-    const [semanticAvailable, setSemanticAvailable] = useState(true);
-    const [infoVisible, setInfoVisible] = useState(false);
+    const [state, dispatch] = React.useReducer(searchReducer, {
+        ...initialState,
+        searchQuery: route.params?.initialQuery || ''
+    });
+
+    const { searchQuery, results, loading, searched, infoVisible, mode } = state;
 
     // Mostrar intro una sola vez en la primera visita
     useEffect(() => {
         AsyncStorage.getItem(SEARCH_INTRO_KEY).then(seen => {
-            if (!seen) setInfoVisible(true);
+            if (!seen) dispatch({ type: 'SET_INFO_VISIBLE', payload: true });
         });
     }, []);
 
     // Efecto para búsquedas iniciales (desde otras pantallas)
     useEffect(() => {
         if (route.params?.initialQuery) {
-            setSearchQuery(route.params.initialQuery);
+            dispatch({ type: 'SET_QUERY', payload: route.params.initialQuery });
             runUnifiedSearch(route.params.initialQuery);
         }
     }, [route.params?.initialQuery, runUnifiedSearch]);
 
-    // Animación del spinner semántico
-    const spin = useRef(new Animated.Value(0)).current;
-    const startSpin = () => {
-        spin.setValue(0);
-        Animated.loop(
-            Animated.timing(spin, { toValue: 1, duration: 1200, easing: Easing.linear, useNativeDriver: true })
-        ).start();
-    };
-    const stopSpin = () => spin.stopAnimation();
+    // Animación del spinner semántico con Reanimated
+    const spinValue = useSharedValue(0);
+
+    const spinStyle = useAnimatedStyle(() => ({
+        transform: [{ rotate: `${spinValue.value * 360}deg` }]
+    }));
+
+    const startSpin = useCallback(() => {
+        spinValue.value = withRepeat(
+            withTiming(1, { duration: 1200, easing: Easing.linear }),
+            -1,
+            false
+        );
+    }, []);
+
+    const stopSpin = useCallback(() => {
+        spinValue.value = 0;
+    }, []);
 
     // ── Búsqueda Unificada (Híbrida) ──────────────────────────
     const runUnifiedSearch = useCallback(async (query) => {
-        setLoading(true);
+        dispatch({ type: 'START_SEARCH' });
         startSpin();
         try {
             const data = await HybridSearchService.searchAll(query);
-            setResults(data);
-            setSearched(true);
+            dispatch({ type: 'SEARCH_SUCCESS', payload: data });
+            
+            if (data && data.length > 0) {
+                ReviewService.recordInteraction();
+            }
         } catch (e) {
             console.warn('Search error:', e);
-            setResults([]);
+            dispatch({ type: 'SEARCH_ERROR' });
         } finally {
-            setLoading(false);
             stopSpin();
         }
-    }, []);
+    }, [startSpin, stopSpin]);
 
     // ── Manejador de texto con debounce ───────────────────────
     const performSearch = useCallback(async (query) => {
         if (query.trim().length < 3) {
-            setResults([]);
-            setSearched(false);
+            dispatch({ type: 'SEARCH_SUCCESS', payload: [] });
             return;
         }
         await runUnifiedSearch(query);
@@ -114,7 +152,7 @@ const SearchScreen = ({ navigation, route }) => {
     const debouncedSearch = useDebounce(performSearch, 600);
 
     const handleChangeText = (text) => {
-        setSearchQuery(text);
+        dispatch({ type: 'SET_QUERY', payload: text });
         debouncedSearch(text);
     };
 
@@ -164,7 +202,9 @@ const SearchScreen = ({ navigation, route }) => {
                 // Artículo → ir a la ley y hacer scroll al artículo
                 navigation.navigate('LawDetail', {
                     lawId: item.law_id,
-                    jumpToIndex: item.index // PASAR EL ÍNDICE PARA EL SALTO
+                    jumpToIndex: item.index,
+                    initialItemId: item.id,
+                    initialItemNumber: item.number || item.item_number
                 });
             } else {
                 navigation.navigate('LawDetail', { lawId: item.id });
@@ -175,7 +215,12 @@ const SearchScreen = ({ navigation, route }) => {
         const snippet = (item.excerpt || item.searchableText || item.resumen || item.description || '').substring(0, 180);
 
         return (
-            <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
+            <Pressable 
+                onPress={onPress} 
+                style={({ pressed }) => [
+                    { opacity: pressed ? 0.85 : 1 }
+                ]}
+            >
                 <Card style={[
                     styles.resultCard,
                     isSemantic && styles.resultCardSemantic,
@@ -201,7 +246,7 @@ const SearchScreen = ({ navigation, route }) => {
                         {snippet ? (
                             <Text style={styles.resultSnippet} numberOfLines={3}>
                                 {isSemantic ? snippet : highlightText(snippet, searchQuery)}
-                                <Text style={{ color: COLORS.textSecondary }}>...</Text>
+                                <Text style={{ color: COLORS.textSecondary }}>…</Text>
                             </Text>
                         ) : null}
 
@@ -212,19 +257,17 @@ const SearchScreen = ({ navigation, route }) => {
                         )}
                     </Card.Content>
                 </Card>
-            </TouchableOpacity>
+            </Pressable>
         );
     }, [navigation, searchQuery, mode]);
 
-    // ── Spinner semántico ─────────────────────────────────────
-    const spinInterpolation = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
     return (
         <View style={styles.container}>
 
             {/* ── Barra de búsqueda ── */}
             <Searchbar
-                placeholder={'Buscar en leyes venezolanas...'}
+                placeholder={'Buscar en leyes venezolanas…'}
                 onChangeText={handleChangeText}
                 value={searchQuery}
                 style={styles.searchBar}
@@ -236,7 +279,7 @@ const SearchScreen = ({ navigation, route }) => {
                 visible={infoVisible}
                 onDismiss={async () => {
                     await AsyncStorage.setItem(SEARCH_INTRO_KEY, 'true');
-                    setInfoVisible(false);
+                    dispatch({ type: 'SET_INFO_VISIBLE', payload: false });
                 }}
                 mode="general"
             />
@@ -247,8 +290,10 @@ const SearchScreen = ({ navigation, route }) => {
             {loading && (
                 <View style={styles.centerContainer}>
                     <View style={styles.semanticLoading}>
-                        <ActivityIndicator size="large" color={COLORS.primary} />
-                        <Text style={styles.loadingText}>Buscando...</Text>
+                        <Animated.View style={spinStyle}>
+                            <ActivityIndicator size="large" color={COLORS.primary} />
+                        </Animated.View>
+                        <Text style={styles.loadingText}>Buscando…</Text>
                     </View>
                 </View>
             )}
@@ -292,11 +337,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         borderRadius: 14,
         backgroundColor: '#fff',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
     },
     searchInput: { fontSize: 15 },
 
@@ -368,11 +409,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderRadius: 14,
         backgroundColor: '#fff',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 6,
+        boxShadow: '0px 1px 6px rgba(0, 0, 0, 0.06)',
     },
     resultCardSemantic: {
         borderLeftWidth: 3,
@@ -508,3 +545,4 @@ const styles = StyleSheet.create({
 });
 
 export default SearchScreen;
+

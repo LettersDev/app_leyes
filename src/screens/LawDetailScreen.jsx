@@ -1,6 +1,6 @@
 import React, { useReducer, useCallback, useEffect, useRef } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { Searchbar, IconButton, Title, Paragraph, Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HistoryManager from '../utils/historyManager';
@@ -11,6 +11,8 @@ import { getLawById, getLawItems, getLawItemsAround, searchLawItemsByText, downl
 import HybridSearchService from '../services/hybridSearchService';
 import ReviewService from '../services/reviewService';
 import { COLORS } from '../utils/constants';
+import { supabase } from '../config/supabase';
+import AIService from '../services/aiService';
 
 // Components
 import LawArticle from '../components/LawArticle';
@@ -43,6 +45,9 @@ const initialState = {
     isDownloadingContent: false,
     isOfflineAvailable: false,
     infoVisible: false,
+    interpretationModalVisible: false,
+    interpretationLoading: false,
+    interpretationData: null,
 };
 
 function reducer(state, action) {
@@ -60,14 +65,14 @@ function reducer(state, action) {
 }
 
 const LawDetailScreen = ({ route, navigation }) => {
-    const { lawId, jumpToIndex } = route.params;
+    const { lawId, jumpToIndex, initialItemId, initialItemNumber } = route.params;
     const [state, dispatch] = useReducer(reducer, initialState);
     const {
         law, items, searchResults, loading, loadingMore, hasMore, lastIndex,
         searching, searchQuery, isSearching, searchTargetNum, error,
         settingsVisible, favoriteIds, notes,
         noteDialogVisible, editingNote, isDownloadingContent, isOfflineAvailable,
-        infoVisible
+        infoVisible, interpretationModalVisible, interpretationLoading, interpretationData
     } = state;
     const { fontSize, fontFamily } = useSettings();
 
@@ -91,12 +96,57 @@ const LawDetailScreen = ({ route, navigation }) => {
         try {
             const lawData = await getLawById(lawId);
             if (!lawData) throw new Error('Ley no encontrada');
+            
+            // Pre-formatear fecha para evitar new Date() en el renderizado
+            const ts = lawData.last_updated || lawData.date;
+            lawData.displayDate = ts ? new Date(ts.toDate ? ts.toDate() : ts).toLocaleDateString() : '';
+            
             dispatch({ type: 'SET_FIELD', field: 'law', value: lawData });
 
             const offline = await OfflineService.isLawOffline(lawId);
             dispatch({ type: 'SET_FIELD', field: 'isOfflineAvailable', value: offline });
 
-            const startIdx = (jumpToIndex !== undefined && jumpToIndex > 0) ? jumpToIndex - 1 : -1;
+            let startIdx = (jumpToIndex !== undefined && Number(jumpToIndex) > 0) ? Number(jumpToIndex) - 1 : -1;
+            let targetItemIndex = Number(jumpToIndex);
+
+            // Prioridad 1: Salto por número de artículo (más robusto)
+            const jumpNumber = initialItemNumber || (initialItemId?.match(/\d+/)?.[0]);
+            
+            if (jumpNumber) {
+                console.log('[DeepLink] Buscando por número:', jumpNumber);
+                const { data: numData } = await supabase
+                    .from('law_items')
+                    .select('index, number')
+                    .eq('law_id', lawId)
+                    .eq('number', jumpNumber.toString())
+                    .limit(1)
+                    .maybeSingle();
+
+                if (numData) {
+                    console.log('[DeepLink] Encontrado por número en índice:', numData.index);
+                    startIdx = numData.index - 1;
+                    targetItemIndex = numData.index;
+                    dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: numData.number.toString() });
+                }
+            } 
+            // Prioridad 2: Salto por ID técnico (si no hay número)
+            else if (initialItemId) {
+                console.log('[DeepLink] Buscando por ID:', initialItemId);
+                const { data: itemData } = await supabase
+                    .from('law_items')
+                    .select('index, number')
+                    .eq('id', initialItemId)
+                    .single();
+                
+                if (itemData) {
+                    startIdx = itemData.index - 1;
+                    targetItemIndex = itemData.index;
+                    if (itemData.number) {
+                        dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: itemData.number.toString() });
+                    }
+                }
+            }
+
             const initialItems = await getLawItems(lawId, startIdx, PAGE_SIZE);
             dispatch({ type: 'SET_FIELD', field: 'items', value: initialItems });
             dispatch({ type: 'SET_FIELD', field: 'lastIndex', value: initialItems[initialItems.length - 1]?.index || (startIdx === -1 ? 0 : startIdx) });
@@ -104,11 +154,13 @@ const LawDetailScreen = ({ route, navigation }) => {
             loadFavoriteStatus();
             loadNotes();
 
-            if (jumpToIndex !== undefined) {
+            if (targetItemIndex !== undefined) {
                 setTimeout(() => {
+                    // Si saltamos a un índice específico, scrollear al inicio del resultado
                     flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
                 }, 500);
             }
+
         } catch (err) {
             dispatch({ type: 'SET_FIELD', field: 'error', value: err.message });
         } finally {
@@ -174,7 +226,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                 // 1. Salto directo por número de artículo
                 const targetNum = parseInt(numMatch[0]);
                 dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: targetNum });
-                const res = await getLawItemsAround(lawId, targetNum, 1);
+                const res = await getLawItemsAround(lawId, targetNum, 0);
                 dispatch({ type: 'SET_FIELD', field: 'searchResults', value: res });
 
             } else if (isPotentialSemantic) {
@@ -185,10 +237,16 @@ const LawDetailScreen = ({ route, navigation }) => {
                 } else {
                     // Fallback inteligente: buscar cada palabra clave por separado
                     const keywords = extractKeywords(trimmed);
+                    
+                    // Optimización react-doctor: Ejecutar búsquedas en paralelo
+                    const resultsArray = await Promise.all(
+                        keywords.map(kw => searchLawItemsByText(lawId, kw))
+                    );
+
                     const combinedResults = [];
                     const seenIds = new Set();
-                    for (const kw of keywords) {
-                        const res = await searchLawItemsByText(lawId, kw);
+                    
+                    for (const res of resultsArray) {
                         for (const item of res) {
                             const uid = item.id || item.index;
                             if (!seenIds.has(uid)) {
@@ -224,7 +282,8 @@ const LawDetailScreen = ({ route, navigation }) => {
     const toggleFavoriteArticle = useCallback(async (item) => {
         if (!law) return;
         const id = `${lawId}-${item.id || item.index}`;
-        await FavoritesManager.toggleFavorite({ id, type: 'law_article', title: `Art. ${item.number} - ${law.title}`, subtitle: item.text.substring(0, 100) + '...', data: { lawId, itemIndex: item.index, articleNumber: item.number } });
+        await FavoritesManager.toggleFavorite({ id, type: 'law_article', title: `Art. ${item.number} - ${law.title}`, subtitle: item.text.substring(0, 100) + '…', data: { lawId, itemIndex: item.index, articleNumber: item.number } });
+
         loadFavoriteStatus();
     }, [law, lawId, loadFavoriteStatus]);
 
@@ -254,7 +313,12 @@ const LawDetailScreen = ({ route, navigation }) => {
     const handleJumpToContext = useCallback((idx) => {
         dispatch({ type: 'SET_FIELD', field: 'loading', value: true });
         dispatch({ type: 'RESET_SEARCH' });
-        navigation.setParams({ jumpToIndex: idx });
+        // Limpiamos los otros params de salto para que no interfieran
+        navigation.setParams({ 
+            jumpToIndex: idx, 
+            initialItemId: undefined, 
+            initialItemNumber: undefined 
+        });
     }, [navigation]);
 
     const handleDownloadContent = async () => {
@@ -277,22 +341,42 @@ const LawDetailScreen = ({ route, navigation }) => {
             }
         ]);
     };
+    
+    const handleInterpretArticle = useCallback(async (item) => {
+        dispatch({ type: 'SET_FIELD', field: 'interpretationLoading', value: true });
+        dispatch({ type: 'SET_FIELD', field: 'interpretationModalVisible', value: true });
+        dispatch({ type: 'SET_FIELD', field: 'interpretationData', value: null });
+        
+        try {
+            const data = await AIService.interpretArticle(`Art. ${item.number}`, item.text);
+            dispatch({ type: 'SET_FIELD', field: 'interpretationData', value: { ...data, lawTitle: law?.title } });
+            
+            // Registrar interacción de valor
+            ReviewService.recordInteraction();
+        } catch (error) {
+            dispatch({ type: 'SET_FIELD', field: 'interpretationModalVisible', value: false });
+            Alert.alert('Error', 'No se pudo obtener la interpretación en este momento.');
+        } finally {
+            dispatch({ type: 'SET_FIELD', field: 'interpretationLoading', value: false });
+        }
+    }, []);
 
     const renderItem = useCallback(({ item, index }) => (
         <LawArticle
             item={item} index={index} fontSize={fontSize} fontFamily={fontFamily} searchQuery={searchQuery}
-            isSearching={isSearching} isExactMatch={searchTargetNum && item.number === searchTargetNum}
+            isSearching={isSearching} isExactMatch={searchTargetNum && item.number?.toString() === searchTargetNum?.toString()}
             onOpenNote={handleOpenNote}
             onToggleFavorite={toggleFavoriteArticle}
             onShare={handleShareArticle}
             onJumpToContext={handleJumpToContext}
+            onInterpret={handleInterpretArticle}
             hasNote={!!notes[`${lawId}-${item.id || item.index}`]}
             noteText={notes[`${lawId}-${item.id || item.index}`]?.text}
             isFavorite={favoriteIds.has(`${lawId}-${item.id || item.index}`)}
         />
-    ), [fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, handleOpenNote, toggleFavoriteArticle, handleShareArticle, handleJumpToContext, notes, lawId, favoriteIds]);
+    ), [fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, handleOpenNote, toggleFavoriteArticle, handleShareArticle, handleJumpToContext, handleInterpretArticle, notes, lawId, favoriteIds]);
 
-    if (loading && !isSearching) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /><Text>Cargando ley...</Text></View>;
+    if (loading && !isSearching) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /><Text>Cargando ley…</Text></View>;
     if (error || !law) {
         if (error === 'OFFLINE_ERROR') {
             return (
@@ -355,19 +439,27 @@ const LawDetailScreen = ({ route, navigation }) => {
                             <Text style={styles.resultsText}>
                                 No hay resultados en esta ley.
                             </Text>
-                            <TouchableOpacity 
-                                style={styles.globalSearchBtn}
+                            <Pressable 
+                                style={({ pressed }) => [
+                                    styles.globalSearchBtn,
+                                    pressed && { opacity: 0.8 }
+                                ]}
                                 onPress={() => {
                                     navigation.navigate('Search', { screen: 'Search', params: { initialQuery: searchQuery } });
                                 }}
                             >
                                 <Text style={styles.globalSearchBtnText}>🔎 Buscar en todas las leyes</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
                     ) : (
-                        <Text style={styles.resultsText}>{searching ? 'Buscando...' : `${searchResults.length} resultados`}</Text>
+                        <Text style={styles.resultsText}>{searching ? 'Buscando…' : `${searchResults.length} resultados`}</Text>
                     )}
-                    <TouchableOpacity onPress={() => dispatch({ type: 'RESET_SEARCH' })}><Text style={styles.clearText}>Ver todo</Text></TouchableOpacity>
+                    <Pressable 
+                        onPress={() => dispatch({ type: 'RESET_SEARCH' })}
+                        style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                    >
+                        <Text style={styles.clearText}>Ver todo</Text>
+                    </Pressable>
                 </View>
             )}
             <FlatList
@@ -382,7 +474,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                         toggleFavoriteLaw={toggleFavoriteLaw} handleShareLaw={handleShareLaw}
                         handleRemoveOffline={handleRemoveOffline} handleDownloadContent={handleDownloadContent}
                         setSettingsVisible={(v) => dispatch({ type: 'SET_FIELD', field: 'settingsVisible', value: v })}
-                        formatDate={(ts) => ts ? new Date(ts.toDate ? ts.toDate() : ts).toLocaleDateString() : ''}
+                        formatDate={() => law.displayDate || ''}
                     />
                 )}
                 onEndReached={isSearching ? null : loadMoreItems}
@@ -399,6 +491,15 @@ const LawDetailScreen = ({ route, navigation }) => {
                 noteDialogVisible={noteDialogVisible} setNoteDialogVisible={(v) => dispatch({ type: 'SET_FIELD', field: 'noteDialogVisible', value: v })}
                 editingNote={editingNote} setEditingNote={(val) => dispatch({ type: 'SET_FIELD', field: 'editingNote', value: val })}
                 handleSaveNote={async () => { await NotesManager.saveNote(editingNote?.id, editingNote?.text); dispatch({ type: 'SET_FIELD', field: 'noteDialogVisible', value: false }); loadNotes(); }}
+            />
+
+            {/* AI Interpretation Modal */}
+            <SearchInfoModal
+                visible={interpretationModalVisible}
+                onDismiss={() => dispatch({ type: 'SET_FIELD', field: 'interpretationModalVisible', value: false })}
+                mode="interpretation"
+                data={interpretationData}
+                loading={interpretationLoading}
             />
         </View>
     );
@@ -437,3 +538,4 @@ const styles = StyleSheet.create({
 });
 
 export default LawDetailScreen;
+

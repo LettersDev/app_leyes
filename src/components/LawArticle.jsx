@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 
@@ -16,18 +16,20 @@ const LawArticle = React.memo(({
     onJumpToContext,
     hasNote,
     noteText,
-    isFavorite
+    isFavorite,
+    onInterpret
 }) => {
+    // Helper to highlight text - defined inside for access to styles, but logic is used within useMemo
     const highlightText = (text, query) => {
-        if (!text || !query) return <Text>{text}</Text>;
+        if (!text || !query) return text;
 
         const normalize = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
         const normText = normalize(text);
         const normQuery = normalize(query.trim());
-        if (!normQuery) return <Text>{text}</Text>;
+        if (!normQuery) return text;
 
         if (normQuery.length > 2 && !normText.includes(normQuery)) {
-            return <Text>{text}</Text>;
+            return text;
         }
 
         let lastIndex = 0;
@@ -35,7 +37,9 @@ const LawArticle = React.memo(({
         const regex = new RegExp(normQuery, 'gi');
         let match;
         while ((match = regex.exec(normText)) !== null) {
-            result.push(text.substring(lastIndex, match.index));
+            if (match.index > lastIndex) {
+                result.push(text.substring(lastIndex, match.index));
+            }
             result.push(
                 <Text key={match.index} style={styles.highlight}>
                     {text.substring(match.index, match.index + normQuery.length)}
@@ -43,8 +47,10 @@ const LawArticle = React.memo(({
             );
             lastIndex = match.index + normQuery.length;
         }
-        result.push(text.substring(lastIndex));
-        return <Text>{result}</Text>;
+        if (lastIndex < text.length) {
+            result.push(text.substring(lastIndex));
+        }
+        return result;
     };
 
     // Parsea el texto y renderiza [TABLA]...[FIN TABLA] como tablas visuales
@@ -62,7 +68,7 @@ const LawArticle = React.memo(({
                 const before = text.slice(lastIdx, match.index).trim();
                 if (before) {
                     segments.push(
-                        <Text key={key++} selectable style={textStyle}>
+                        <Text key={`txt-${key++}`} selectable style={textStyle}>
                             {query ? highlightText(before, query) : before}
                         </Text>
                     );
@@ -71,11 +77,15 @@ const LawArticle = React.memo(({
             // La tabla
             const tableLines = match[1].trim().split('\n').filter(l => l.trim().startsWith('|'));
             const rows = tableLines.map(line =>
-                line.split('|').map(c => c.trim()).filter(c => c !== '')
+                line.split('|').reduce((acc, c) => {
+                    const trimmed = c.trim();
+                    if (trimmed) acc.push(trimmed);
+                    return acc;
+                }, [])
             );
             const colCount = Math.max(...rows.map(r => r.length), 1);
             segments.push(
-                <ScrollView key={key++} horizontal showsHorizontalScrollIndicator={false} style={styles.tableWrapper}>
+                <ScrollView key={`tbl-${key++}`} horizontal showsHorizontalScrollIndicator={false} style={styles.tableWrapper}>
                     <View style={styles.table}>
                         {rows.map((row, rIdx) => (
                             <View key={rIdx} style={[styles.tableRow, rIdx === 0 && styles.tableHeaderRow]}>
@@ -98,7 +108,7 @@ const LawArticle = React.memo(({
         const after = text.slice(lastIdx).trim();
         if (after) {
             segments.push(
-                <Text key={key++} selectable style={textStyle}>
+                <Text key={`txt-${key++}`} selectable style={textStyle}>
                     {query ? highlightText(after, query) : after}
                 </Text>
             );
@@ -110,6 +120,28 @@ const LawArticle = React.memo(({
             </Text>
         );
     };
+
+    // Memoize the entire processed body to prevent heavy regex work and layout recalculations
+    const processedBody = React.useMemo(() => {
+        return renderArticleBody(
+            item.text,
+            searchQuery || null,
+            [
+                styles.articleText,
+                {
+                    fontSize,
+                    fontFamily: fontFamily === 'Serif' ? 'serif' : 'System',
+                    marginTop: 10,
+                    lineHeight: fontSize * 1.6
+                }
+            ]
+        );
+    }, [item.text, isSearching, searchQuery, fontSize, fontFamily]);
+
+    // Memoize the title too
+    const processedTitle = React.useMemo(() => {
+        return highlightText(item.title || `Artículo ${item.number}`, searchQuery);
+    }, [item.title, item.number, searchQuery]);
 
     if (item.type === 'header') {
         return (
@@ -134,7 +166,7 @@ const LawArticle = React.memo(({
                         { fontSize: fontSize + 2, fontFamily: fontFamily === 'Serif' ? 'serif' : 'System' }
                     ]}
                 >
-                    {highlightText(item.title || `Artículo ${item.number}`, searchQuery)}
+                    {processedTitle}
                 </Text>
 
                 <View style={styles.articleActions}>
@@ -162,19 +194,19 @@ const LawArticle = React.memo(({
                 </View>
             </View>
 
-            {renderArticleBody(
-                item.text,
-                isSearching ? searchQuery : null,
-                [
-                    styles.articleText,
-                    {
-                        fontSize,
-                        fontFamily: fontFamily === 'Serif' ? 'serif' : 'System',
-                        marginTop: 10,
-                        lineHeight: fontSize * 1.6
-                    }
-                ]
-            )}
+            {processedBody}
+
+            <View style={styles.articleFooter}>
+                <Pressable 
+                    style={({ pressed }) => [
+                        styles.aiInterpretBtn,
+                        pressed && { opacity: 0.7 }
+                    ]} 
+                    onPress={() => onInterpret(item)}
+                >
+                    <Text style={styles.aiInterpretText}>INTERPRETAR CON IA</Text>
+                </Pressable>
+            </View>
 
             {hasNote && (
                 <View style={styles.noteContent}>
@@ -187,9 +219,12 @@ const LawArticle = React.memo(({
 
     if (isSearching) {
         return (
-            <TouchableOpacity onPress={() => onJumpToContext(item.index)} activeOpacity={0.7}>
+            <Pressable 
+                onPress={() => onJumpToContext(item.index)} 
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
                 {Content}
-            </TouchableOpacity>
+            </Pressable>
         );
     }
 
@@ -211,7 +246,8 @@ const LawArticle = React.memo(({
         prevProps.isExactMatch === nextProps.isExactMatch &&
         prevProps.hasNote === nextProps.hasNote &&
         prevProps.isFavorite === nextProps.isFavorite &&
-        prevProps.noteText === nextProps.noteText
+        prevProps.noteText === nextProps.noteText &&
+        prevProps.onInterpret === nextProps.onInterpret
     );
 });
 
@@ -335,6 +371,25 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 12,
+    },
+    articleFooter: {
+        marginTop: 15,
+        paddingTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+    },
+    aiInterpretBtn: {
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+    },
+    aiInterpretText: {
+        color: COLORS.accent,
+        fontSize: 11,
+        fontWeight: '900',
+        letterSpacing: 1.2,
     },
 });
 

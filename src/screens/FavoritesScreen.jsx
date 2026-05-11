@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { List, Card, Title, Paragraph, IconButton, Text, Chip, Divider } from 'react-native-paper';
 import FavoritesManager from '../utils/favoritesManager';
@@ -50,8 +50,11 @@ const FavoritesScreen = ({ navigation }) => {
     };
 
     const renderItem = useCallback(({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
+        <Pressable
+            style={({ pressed }) => [
+                styles.card,
+                { opacity: pressed ? 0.7 : 1 }
+            ]}
             onPress={() => {
                 if (item.type === 'law') {
                     navigation.navigate('LawDetail', { lawId: item.data.lawId });
@@ -91,7 +94,7 @@ const FavoritesScreen = ({ navigation }) => {
                     <Paragraph style={styles.cardSubtitle} numberOfLines={2}>{item.subtitle}</Paragraph>
                 </Card.Content>
             </Card>
-        </TouchableOpacity>
+        </Pressable>
     ), [navigation, toggleFavorite]);
 
     const filteredFavorites = filter === 'all'

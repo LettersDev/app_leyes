@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+﻿import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Card, Title, Paragraph, IconButton } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
@@ -40,6 +40,11 @@ const CodesListScreen = ({ navigation }) => {
                 allCodes = await getLawsByParentCategory('codigos');
             }
 
+            // Cargar fecha de última sincronización
+            const lsd = await LawsIndexService.getLastSyncTime();
+            const lastSync = lsd ? new Date(lsd) : null;
+            setLastSyncDate(lsd);
+
             // Formatear para mostrar
             const formattedCodes = (allCodes || []).map((code, index) => {
                 const iconConfig = CODE_ICONS[code.category] || {
@@ -50,23 +55,24 @@ const CodesListScreen = ({ navigation }) => {
                 // Contar artículos si hay contenido
                 const articleCount = code.content?.articles?.filter(a => a.type === 'article').length || 0;
 
+                const rawDesc = code.description || '';
+                const isAutoDesc = rawDesc.toLowerCase().includes('extraído') || rawDesc.toLowerCase().includes('.pdf');
+
                 return {
                     id: code.id,
                     category: code.category,
                     name: code.title,
-                    description: code.description || 'Código legal de Venezuela',
+                    description: isAutoDesc ? 'Código legal de Venezuela' : (rawDesc || 'Código legal de Venezuela'),
                     icon: iconConfig.icon,
                     color: iconConfig.color,
                     articles: articleCount > 0 ? `${articleCount} artículos` : '',
-                    last_updated: code.last_updated
+                    last_updated: code.last_updated,
+                    isNew: lastSync && code.last_updated && new Date(code.last_updated) > lastSync
                 };
+
             });
 
             setCodes(formattedCodes);
-
-            // Cargar fecha de última sincronización
-            const lsd = await LawsIndexService.getLastSyncTime();
-            setLastSyncDate(lsd);
         } catch (error) {
             console.error('Error loading codes:', error);
         } finally {
@@ -85,7 +91,7 @@ const CodesListScreen = ({ navigation }) => {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Cargando códigos...</Text>
+                <Text style={styles.loadingText}>Cargando códigos…</Text>
             </View>
         );
     }
@@ -101,9 +107,10 @@ const CodesListScreen = ({ navigation }) => {
 
             <View style={styles.codesContainer}>
                 {codes.map((code) => (
-                    <TouchableOpacity
+                    <Pressable
                         key={code.id}
                         onPress={() => handleCodePress(code)}
+                        style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                     >
                         <Card style={styles.codeCard}>
                             <Card.Content style={styles.cardContent}>
@@ -113,7 +120,7 @@ const CodesListScreen = ({ navigation }) => {
                                 <View style={styles.codeInfo}>
                                     <View style={styles.titleRow}>
                                         <Title style={styles.codeTitle}>{code.name}</Title>
-                                        {lastSyncDate && code.last_updated && new Date(code.last_updated) > lastSyncDate && (
+                                        {code.isNew && (
                                             <View style={styles.newChip}>
                                                 <Text style={styles.newChipText}>NUEVA</Text>
                                             </View>
@@ -129,7 +136,7 @@ const CodesListScreen = ({ navigation }) => {
                                 <IconButton icon="chevron-right" size={24} iconColor={COLORS.textSecondary} />
                             </Card.Content>
                         </Card>
-                    </TouchableOpacity>
+                    </Pressable>
                 ))}
             </View>
         </ScrollView>
@@ -224,3 +231,4 @@ const styles = StyleSheet.create({
 });
 
 export default CodesListScreen;
+
