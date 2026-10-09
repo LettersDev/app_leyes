@@ -85,7 +85,7 @@ const LawArticle = React.memo(({
             );
             const colCount = Math.max(...rows.map(r => r.length), 1);
             segments.push(
-                <ScrollView key={`tbl-${key++}`} horizontal showsHorizontalScrollIndicator={false} style={styles.tableWrapper}>
+                <ScrollView key={`tbl-${key++}`} horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true} style={styles.tableWrapper}>
                     <View style={styles.table}>
                         {rows.map((row, rIdx) => (
                             <View key={rIdx} style={[styles.tableRow, rIdx === 0 && styles.tableHeaderRow]}>

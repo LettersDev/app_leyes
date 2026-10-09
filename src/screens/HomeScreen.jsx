@@ -1,4 +1,4 @@
-﻿import React, { useReducer, useCallback, useEffect } from 'react';
+import React, { useReducer, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { IconButton } from 'react-native-paper';
@@ -89,9 +89,8 @@ const HomeScreen = ({ navigation }) => {
                 StreakManager.getStreak(),
             ]);
 
-            // Para fines de prueba, permitimos que el banner se muestre si el quiz existe
-            // Independientemente de si ya fue respondido en esta sesión de depuración
-            const pending = !!todayQuiz;
+            // Pendiente si hay quiz hoy y aún no ha sido respondido (o fue reiniciado)
+            const pending = !!todayQuiz && (!alreadyAnswered || alreadyAnswered.quizId !== todayQuiz.id);
             dispatch({ type: 'SET_FIELD', field: 'quizPending', value: pending });
         } catch (e) {
             console.warn('[Home] Error al verificar quiz:', e.message);
@@ -133,7 +132,7 @@ const HomeScreen = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1 }}>
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles.container} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
                 <LinearGradient colors={GRADIENTS.legal} style={styles.header} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                     <View style={styles.headerTopRow}>
                         <View style={{ flex: 1 }}>

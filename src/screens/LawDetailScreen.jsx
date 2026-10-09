@@ -1,7 +1,15 @@
-import React, { useReducer, useCallback, useEffect, useRef } from 'react';
+import React, { useReducer, useCallback, useEffect, useRef, useState } from 'react';
+import Spinner from '../components/Spinner';
 import { useSettings } from '../context/SettingsContext';
-import { View, Text, StyleSheet, FlatList, Pressable, Alert, ActivityIndicator } from 'react-native';
-import { Searchbar, IconButton, Title, Paragraph, Button } from 'react-native-paper';
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    Pressable,
+    Alert
+} from 'react-native';
+import { Button, IconButton, Paragraph, Searchbar, Title } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HistoryManager from '../utils/historyManager';
 import FavoritesManager from '../utils/favoritesManager';
@@ -47,8 +55,7 @@ const initialState = {
     infoVisible: false,
     interpretationModalVisible: false,
     interpretationLoading: false,
-    interpretationData: null,
-};
+    interpretationData: null};
 
 function reducer(state, action) {
     switch (action.type) {
@@ -78,7 +85,9 @@ const LawDetailScreen = ({ route, navigation }) => {
 
     const flatListRef = useRef(null);
     const searchTimeout = useRef(null);
-    const introShownRef = useRef(false); // evita doble disparo
+    const introShownRef = useRef(false);
+    const [currentArticle, setCurrentArticle] = useState(null);
+    const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 });
 
     // Mostrar intro la primera vez que el usuario toca la barra de búsqueda
     const checkAndShowInternalIntro = useCallback(async () => {
@@ -96,11 +105,11 @@ const LawDetailScreen = ({ route, navigation }) => {
         try {
             const lawData = await getLawById(lawId);
             if (!lawData) throw new Error('Ley no encontrada');
-            
+
             // Pre-formatear fecha para evitar new Date() en el renderizado
             const ts = lawData.last_updated || lawData.date;
             lawData.displayDate = ts ? new Date(ts.toDate ? ts.toDate() : ts).toLocaleDateString() : '';
-            
+
             dispatch({ type: 'SET_FIELD', field: 'law', value: lawData });
 
             const offline = await OfflineService.isLawOffline(lawId);
@@ -111,7 +120,7 @@ const LawDetailScreen = ({ route, navigation }) => {
 
             // Prioridad 1: Salto por número de artículo (más robusto)
             const jumpNumber = initialItemNumber || (initialItemId?.match(/\d+/)?.[0]);
-            
+
             if (jumpNumber) {
                 console.log('[DeepLink] Buscando por número:', jumpNumber);
                 const { data: numData } = await supabase
@@ -128,7 +137,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                     targetItemIndex = numData.index;
                     dispatch({ type: 'SET_FIELD', field: 'searchTargetNum', value: numData.number.toString() });
                 }
-            } 
+            }
             // Prioridad 2: Salto por ID técnico (si no hay número)
             else if (initialItemId) {
                 console.log('[DeepLink] Buscando por ID:', initialItemId);
@@ -137,7 +146,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                     .select('index, number')
                     .eq('id', initialItemId)
                     .single();
-                
+
                 if (itemData) {
                     startIdx = itemData.index - 1;
                     targetItemIndex = itemData.index;
@@ -153,6 +162,14 @@ const LawDetailScreen = ({ route, navigation }) => {
 
             loadFavoriteStatus();
             loadNotes();
+
+            // Guardar en historial "Continuar leyendo"
+            await HistoryManager.addVisit({
+                id: lawId,
+                type: 'law',
+                title: lawData.title,
+                subtitle: `${lawData.itemCount || ''} artículos`,
+                lastArticleIndex: jumpToIndex || 0});
 
             if (targetItemIndex !== undefined) {
                 setTimeout(() => {
@@ -170,11 +187,20 @@ const LawDetailScreen = ({ route, navigation }) => {
 
     useEffect(() => {
         loadInitialData();
-        // Al desmontar la pantalla (usuario cierra la ley) → registrar cierre para la reseña
         return () => {
             ReviewService.recordLawClose();
         };
     }, [loadInitialData]);
+
+    // Actualizar artículo actual visible y guardar en historial
+    const onViewableItemsChanged = useCallback(({ viewableItems }) => {
+        if (isSearching || viewableItems.length === 0) return;
+        const first = viewableItems[0]?.item;
+        if (first?.index) {
+            setCurrentArticle(first.number || first.index);
+            HistoryManager.updateVisitIndex(lawId, first.index);
+        }
+    }, [lawId, isSearching]);
 
     const loadFavoriteStatus = async () => {
         const favs = await FavoritesManager.getFavorites();
@@ -237,7 +263,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                 } else {
                     // Fallback inteligente: buscar cada palabra clave por separado
                     const keywords = extractKeywords(trimmed);
-                    
+
                     // Optimización react-doctor: Ejecutar búsquedas en paralelo
                     const resultsArray = await Promise.all(
                         keywords.map(kw => searchLawItemsByText(lawId, kw))
@@ -245,7 +271,7 @@ const LawDetailScreen = ({ route, navigation }) => {
 
                     const combinedResults = [];
                     const seenIds = new Set();
-                    
+
                     for (const res of resultsArray) {
                         for (const item of res) {
                             const uid = item.id || item.index;
@@ -314,10 +340,10 @@ const LawDetailScreen = ({ route, navigation }) => {
         dispatch({ type: 'SET_FIELD', field: 'loading', value: true });
         dispatch({ type: 'RESET_SEARCH' });
         // Limpiamos los otros params de salto para que no interfieran
-        navigation.setParams({ 
-            jumpToIndex: idx, 
-            initialItemId: undefined, 
-            initialItemNumber: undefined 
+        navigation.setParams({
+            jumpToIndex: idx,
+            initialItemId: undefined,
+            initialItemNumber: undefined
         });
     }, [navigation]);
 
@@ -341,16 +367,16 @@ const LawDetailScreen = ({ route, navigation }) => {
             }
         ]);
     };
-    
+
     const handleInterpretArticle = useCallback(async (item) => {
         dispatch({ type: 'SET_FIELD', field: 'interpretationLoading', value: true });
         dispatch({ type: 'SET_FIELD', field: 'interpretationModalVisible', value: true });
         dispatch({ type: 'SET_FIELD', field: 'interpretationData', value: null });
-        
+
         try {
             const data = await AIService.interpretArticle(`Art. ${item.number}`, item.text);
             dispatch({ type: 'SET_FIELD', field: 'interpretationData', value: { ...data, lawTitle: law?.title } });
-            
+
             // Registrar interacción de valor
             ReviewService.recordInteraction();
         } catch (error) {
@@ -376,7 +402,7 @@ const LawDetailScreen = ({ route, navigation }) => {
         />
     ), [fontSize, fontFamily, searchQuery, isSearching, searchTargetNum, handleOpenNote, toggleFavoriteArticle, handleShareArticle, handleJumpToContext, handleInterpretArticle, notes, lawId, favoriteIds]);
 
-    if (loading && !isSearching) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /><Text>Cargando ley…</Text></View>;
+    if (loading && !isSearching) return <View style={styles.center}><Spinner size={28} color={COLORS.primary} /><Text>Cargando ley…</Text></View>;
     if (error || !law) {
         if (error === 'OFFLINE_ERROR') {
             return (
@@ -439,7 +465,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                             <Text style={styles.resultsText}>
                                 No hay resultados en esta ley.
                             </Text>
-                            <Pressable 
+                            <Pressable
                                 style={({ pressed }) => [
                                     styles.globalSearchBtn,
                                     pressed && { opacity: 0.8 }
@@ -454,7 +480,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                     ) : (
                         <Text style={styles.resultsText}>{searching ? 'Buscando…' : `${searchResults.length} resultados`}</Text>
                     )}
-                    <Pressable 
+                    <Pressable
                         onPress={() => dispatch({ type: 'RESET_SEARCH' })}
                         style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                     >
@@ -467,6 +493,7 @@ const LawDetailScreen = ({ route, navigation }) => {
                 data={isSearching ? searchResults : items}
                 renderItem={renderItem}
                 keyExtractor={(it) => `it-${it.id || it.index}`}
+                nestedScrollEnabled={true}
                 ListHeaderComponent={isSearching ? null : (
                     <LawDetailHeader
                         law={law} isOfflineAvailable={isOfflineAvailable} isDownloadingContent={isDownloadingContent}
@@ -485,6 +512,8 @@ const LawDetailScreen = ({ route, navigation }) => {
                 windowSize={5}
                 updateCellsBatchingPeriod={50}
                 removeClippedSubviews={true}
+                onViewableItemsChanged={onViewableItemsChanged}
+                viewabilityConfig={viewabilityConfig.current}
             />
             <ReadingSettingsModal visible={settingsVisible} onDismiss={() => dispatch({ type: 'SET_FIELD', field: 'settingsVisible', value: false })} />
             <LawDetailDialogs
@@ -510,15 +539,13 @@ const styles = StyleSheet.create({
     center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
     searchRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-    },
+        alignItems: 'center'},
     searchBar: {
         flex: 1,
         margin: 10,
         borderRadius: 10,
         backgroundColor: '#fff',
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
-    },
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)'},
     searchResultsHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, backgroundColor: '#f1f5f9' },
     resultsText: { fontWeight: 'bold', color: COLORS.primary },
     clearText: { color: COLORS.accent, fontWeight: 'bold' },

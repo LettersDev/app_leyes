@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import Spinner from "../components/Spinner";
 import { View, StyleSheet, FlatList, SectionList, Linking, Alert, ScrollView, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import FavoritesManager from '../utils/favoritesManager';
@@ -8,8 +9,7 @@ import {
     Card,
     Title,
     Paragraph,
-    Text,
-    ActivityIndicator,
+    Text, 
     Chip,
     Button,
     useTheme,
@@ -344,7 +344,7 @@ const JurisprudenceScreen = ({ navigation }) => {
     if (loading && rawData.length === 0) {
         MainView = (
             <View style={styles.center}>
-                <ActivityIndicator animating={true} color={COLORS.primary} size="large" />
+                <Spinner animating={true} color={COLORS.primary} size={28} />
                 <Text style={styles.loadingText}>Buscando jurisprudencia…</Text>
             </View>
         );
@@ -480,116 +480,93 @@ const JurisprudenceScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
+        backgroundColor: '#f5f5f5'},
     header: {
         padding: 10,
         backgroundColor: '#fff',
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-    },
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)'},
     searchbar: {
         margin: 16,
         backgroundColor: '#fff',
         borderRadius: 15,
         height: 55,
-        boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1)',
-    },
+        boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1)'},
     chipsContainer: {
-        paddingVertical: 5,
-    },
+        paddingVertical: 5},
     chip: {
-        marginRight: 8,
-    },
+        marginRight: 8},
     list: {
-        padding: 10,
-    },
+        padding: 10},
     jurisCard: {
         marginBottom: 16,
         borderRadius: 12,
         backgroundColor: '#fff',
-        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.05)',
-    },
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.05)'},
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 5,
-    },
+        marginBottom: 5},
     expediente: {
         fontSize: 12,
         color: '#666',
-        fontWeight: 'bold',
-    },
+        fontWeight: 'bold'},
     title: {
         fontSize: 16,
         lineHeight: 20,
         marginBottom: 8,
-        color: COLORS.primary,
-    },
+        color: COLORS.primary},
     metaRow: {
         flexDirection: 'row',
-        marginBottom: 2,
-    },
+        marginBottom: 2},
     metaLabel: {
         fontWeight: 'bold',
         width: 60,
-        color: '#777',
-    },
+        color: '#777'},
     metaValue: {
         flex: 1,
-        color: '#333',
-    },
+        color: '#333'},
     resumen: {
         marginTop: 10,
         fontSize: 13,
         color: '#444',
-        fontStyle: 'italic',
-    },
+        fontStyle: 'italic'},
     center: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
-    },
+        padding: 20},
     loadingText: {
         marginTop: 10,
-        color: '#666',
-    },
+        color: '#666'},
     errorTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: COLORS.primary,
-        marginTop: 10,
-    },
+        marginTop: 10},
     errorText: {
         textAlign: 'center',
         color: '#666',
         marginVertical: 10,
-        paddingHorizontal: 20,
-    },
+        paddingHorizontal: 20},
     errorButton: {
-        marginTop: 10,
-    },
+        marginTop: 10},
     cardActions: {
         justifyContent: 'space-between',
-        paddingHorizontal: 8,
-    },
+        paddingHorizontal: 8},
     leftActions: {
-        flexDirection: 'row',
-    },
+        flexDirection: 'row'},
     sectionHeader: {
         backgroundColor: '#f5f5f5', // Mismo que el fondo para que parezca separado
         paddingVertical: 8,
         paddingHorizontal: 12,
         marginBottom: 5,
         borderLeftWidth: 4,
-        borderLeftColor: COLORS.primary,
-    },
+        borderLeftColor: COLORS.primary},
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.primary,
-    },
+        color: COLORS.primary},
     yearFilterContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -597,8 +574,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 5
     },
     yearButton: {
-        borderColor: COLORS.primary,
-    }
+        borderColor: COLORS.primary}
 });
 
 export default JurisprudenceScreen;

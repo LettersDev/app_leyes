@@ -4,11 +4,10 @@ import {
     Text,
     StyleSheet,
     FlatList,
-    Pressable,
-    ActivityIndicator,
+    Pressable
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { IconButton } from 'react-native-paper';
+import { ActivityIndicator, IconButton } from 'react-native-paper';
 import { COLORS, CATEGORY_NAMES } from '../utils/constants';
 import QuizService from '../services/quizService';
 
@@ -59,7 +58,7 @@ const QuizHistoryScreen = ({ navigation }) => {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+                <ActivityIndicator size={28} color={COLORS.primary} />
                 <Text style={styles.loadingText}>Recuperando registros históricos…</Text>
             </View>
         );

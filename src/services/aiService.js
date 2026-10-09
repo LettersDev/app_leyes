@@ -19,12 +19,14 @@ const AIService = {
     },
 
     /**
-     * Realiza una consulta legal basada en un caso (RAG)
+     * Realiza una consulta legal basada en un caso (RAG) con historial de conversación
+     * @param {string} query - Pregunta actual del usuario
+     * @param {Array<{role: string, content: string}>} conversationHistory - Historial previo
      */
-    consultCase: async (query) => {
+    consultCase: async (query, conversationHistory = []) => {
         try {
             const { data, error } = await supabase.functions.invoke('assistant-consult', {
-                body: { query }
+                body: { query, conversationHistory }
             });
 
             if (error) throw error;

@@ -6,80 +6,112 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
-const EMBED_MODEL = 'models/gemini-embedding-001'
-const EMBED_URL = `https://generativelanguage.googleapis.com/v1beta/${EMBED_MODEL}:embedContent?key=${GEMINI_API_KEY}`
+// ─── Embedding ────────────────────────────────────────────────────────────────
 
-async function getEmbedding(text: string): Promise<number[] | null> {
-  const res = await fetch(EMBED_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: EMBED_MODEL,
-      content: { parts: [{ text: text.substring(0, 500) }] },
-      taskType: 'RETRIEVAL_QUERY',
-    }),
-  })
-
-  if (!res.ok) return null
-  const data = await res.json()
-  let values: number[] = data?.embedding?.values ?? []
-  if (values.length > 768) values = values.slice(0, 768) // Truncate to match DB
-  return values.length > 0 ? values : null
+async function getEmbedding(text: string, geminiKey: string): Promise<number[] | null> {
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: { parts: [{ text: text.substring(0, 500) }] },
+          taskType: 'RETRIEVAL_QUERY',
+        }),
+      }
+    )
+    if (!res.ok) {
+      console.error('[Embedding] Gemini error:', res.status, await res.text())
+      return null
+    }
+    const data = await res.json()
+    const values: number[] = data?.embedding?.values ?? []
+    return values.length > 0 ? values.slice(0, 768) : null
+  } catch (e) {
+    console.error('[Embedding] fetch error:', e)
+    return null
+  }
 }
 
+// ─── Main handler ─────────────────────────────────────────────────────────────
+
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { query } = await req.json()
-    if (!query) throw new Error('Query is required')
+    const { query, conversationHistory = [] } = await req.json()
+    if (!query || typeof query !== 'string') {
+      return new Response(JSON.stringify({ error: 'Query is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
+    const geminiKey = Deno.env.get('GEMINI_API_KEY') || ''
+    const groqKey   = Deno.env.get('GROQ_API_KEY')   || ''
 
-    // 1. RAG: Buscar artículos relevantes
-    const embedding = await getEmbedding(query)
-    let context = ""
+    // ── 1. RAG: Embedding + búsqueda vectorial ────────────────────────────────
     let references: any[] = []
+    let context = ''
 
+    const embedding = await getEmbedding(query, geminiKey)
     if (embedding) {
-      const { data: articles } = await supabase.rpc('match_law_items', {
+      const { data: articles, error: rpcError } = await supabase.rpc('match_law_items', {
         query_embedding: embedding,
-        match_threshold: 0.35,
+        match_threshold: 0.25,
         match_count: 5,
       })
 
-      if (articles && articles.length > 0) {
-        context = articles.map((a: any) => `[ARTÍCULO ${a.number}]: ${a.text}`).join('\n\n')
+      if (rpcError) {
+        console.error('[RAG] RPC error:', rpcError.message)
+      } else if (articles && articles.length > 0) {
+        context = articles
+          .map((a: any) => `[${a.law_title || 'Ley'} - Art. ${a.number}]: ${a.text}`)
+          .join('\n\n')
         references = articles.map((a: any) => ({
-          id: a.id,
-          number: a.number,
-          law_id: a.law_id,
+          id:        a.id,
+          law_id:    a.law_id,
           law_title: a.law_title || 'Artículo de Ley',
-          text: a.text.substring(0, 100) + '...'
+          number:    a.number,
+          index:     a.index,
+          text:      a.text.substring(0, 100) + '...',
         }))
       }
     }
 
-    const systemPrompt = `Eres un asistente legal especializado en legislación venezolana. 
-Tu tarea es responder consultas legales basándote ÚNICAMENTE en el contexto proporcionado.
-Si el contexto no tiene la información suficiente, indícalo claramente y sugiere consultar con un abogado profesional.
-No inventes leyes ni artículos.
-Estructura tu respuesta de forma clara y profesional. Al final, menciona los artículos que utilizaste.`
+    const hasContext = context.length > 0
 
-    const userPrompt = `Consulta del usuario: "${query}"\n\nContexto legal recuperado:\n${context || "No se encontraron artículos específicos en la base de datos."}`
+    // ── 2. Construir prompts ──────────────────────────────────────────────────
+    const systemPrompt = `Eres un abogado experto especializado en legislación venezolana con memoria de conversación.
+Mantienes el hilo de la conversación y respondes preguntas de seguimiento basándote en lo discutido anteriormente.
+Usa el contexto legal de la base de datos TuLey como fuente primaria.
+Si el contexto no cubre la pregunta, complementa con tu conocimiento de legislación venezolana, indicándolo con "[Conocimiento general]".
+Cuando cites artículos de la base de datos, indícalo con "[Base de datos TuLey]".
+Nunca inventes números de artículos sin estar seguro. Sé claro, profesional y conciso.
+Siempre recomienda verificar con un abogado profesional.`
 
-    // 2. IA Engine (Groq with Gemini Fallback)
-    const groqKey = Deno.env.get('GROQ_API_KEY')
-    let resultText = ""
-    let provider = ""
+    const userPrompt = hasContext
+      ? `${query}\n\nContexto legal disponible:\n${context}`
+      : query
 
-    if (groqKey) {
+    // Mensajes: sistema + historial + pregunta actual con contexto RAG
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...conversationHistory,
+      { role: 'user', content: userPrompt },
+    ]
+
+    // ── 3. IA: Groq → Gemini fallback ────────────────────────────────────────
+    let answer   = ''
+    let provider = ''
+
+    // 3a. Groq (llama-3.3-70b-versatile — modelo actual, alta calidad legal)
+    if (groqKey && !answer) {
       try {
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -88,53 +120,91 @@ Estructura tu respuesta de forma clara y profesional. Al final, menciona los art
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'llama3-70b-8192',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt }
-            ],
+            model: 'llama-3.3-70b-versatile', // ✅ modelo actualizado (8b-instant deprecado para razonamiento legal)
+            messages,
             temperature: 0.3,
+            max_tokens: 1024,
           }),
         })
 
+        // ⚠️ IMPORTANTE: verificar groqRes.ok ANTES de parsear
+        // Si no se verifica, un 429/503 crashea silenciosamente y no activa el fallback
         if (groqRes.ok) {
-          const data = await groqRes.json()
-          resultText = data.choices[0].message.content
-          provider = 'groq'
+          const gData = await groqRes.json()
+          const content = gData?.choices?.[0]?.message?.content
+          if (content) {
+            answer   = content
+            provider = 'groq'
+          } else {
+            console.warn('[Groq] Respuesta vacía o malformada:', JSON.stringify(gData))
+          }
+        } else {
+          const errBody = await groqRes.text()
+          console.warn(`[Groq] HTTP ${groqRes.status}:`, errBody)
+          // Si es 429 (rate limit), activamos fallback a Gemini
         }
-      } catch (e) { console.error('Groq Error:', e) }
-    }
-
-    if (!resultText && GEMINI_API_KEY) {
-      const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-        }),
-      })
-
-      if (geminiRes.ok) {
-        const data = await geminiRes.json()
-        resultText = data.candidates[0].content.parts[0].text
-        provider = 'gemini'
+      } catch (e) {
+        console.error('[Groq] fetch error:', e)
       }
     }
 
-    if (!resultText) throw new Error('Failed to generate response')
+    // 3b. Gemini 2.0 Flash (fallback si Groq falla o está sin key)
+    if (!answer && geminiKey) {
+      try {
+        // Convertir historial al formato de Gemini (multi-turno)
+        const geminiContents = [
+          ...conversationHistory.map((m: any) => ({
+            role:  m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }],
+          })),
+          { role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] },
+        ]
 
-    return new Response(JSON.stringify({ 
-      answer: resultText,
-      references,
-      provider 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+        const gemRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: geminiContents }),
+          }
+        )
 
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+        if (gemRes.ok) {
+          const gemData = await gemRes.json()
+          const content = gemData?.candidates?.[0]?.content?.parts?.[0]?.text
+          if (content) {
+            answer   = content
+            provider = 'gemini'
+          } else {
+            console.warn('[Gemini] Respuesta vacía o malformada:', JSON.stringify(gemData))
+          }
+        } else {
+          const errBody = await gemRes.text()
+          console.error(`[Gemini] HTTP ${gemRes.status}:`, errBody)
+        }
+      } catch (e) {
+        console.error('[Gemini] fetch error:', e)
+      }
+    }
+
+    if (!answer) {
+      // Ambos proveedores fallaron — devolvemos error descriptivo
+      return new Response(
+        JSON.stringify({ error: 'No se pudo generar una respuesta. Intenta de nuevo en unos segundos.' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    return new Response(
+      JSON.stringify({ answer, references, provider }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error: any) {
+    console.error('[assistant-consult] Error no controlado:', error)
+    return new Response(
+      JSON.stringify({ error: error?.message || 'Error interno del servidor' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
   }
 })

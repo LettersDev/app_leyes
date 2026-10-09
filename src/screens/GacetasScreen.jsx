@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useReducer } from 'react';
+import Spinner from '../components/Spinner';
 import { View, StyleSheet, SectionList, Alert, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import HistoryManager from '../utils/historyManager';
@@ -7,12 +8,10 @@ import {
     Searchbar,
     Title,
     Paragraph,
-    Text,
-    ActivityIndicator,
+    Text, 
     Button,
     IconButton,
-    Menu,
-} from 'react-native-paper';
+    Menu} from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 import GacetaService from '../services/gacetaService';
 import GacetaCard from '../components/GacetaCard';
@@ -29,8 +28,7 @@ const initialState = {
     hasMore: true,
     refreshing: false,
     indexError: false,
-    favoriteIds: new Set(),
-};
+    favoriteIds: new Set()};
 
 function reducer(state, action) {
     switch (action.type) {
@@ -287,8 +285,8 @@ const GacetasScreen = ({ navigation }) => {
 
             {loading && !refreshing && rawData.length === 0 ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
-                    <Text style={{ marginTop: 10, color: COLORS.textSecondary }}>Cargando Gacetas…</Text>
+                    <Spinner size={28} color={COLORS.primary} />
+                    <Text style={styles.loadingText}>Cargando Gacetas...</Text>
                 </View>
             ) : indexError ? (
                 <View style={styles.errorContainer}>
@@ -325,7 +323,7 @@ const GacetasScreen = ({ navigation }) => {
                         if (hasMore && !loading) fetchGacetas(false);
                     }}
                     onEndReachedThreshold={0.5}
-                    ListFooterComponent={loading && hasMore ? <ActivityIndicator style={{ margin: 20 }} /> : null}
+                    ListFooterComponent={loading && hasMore ? <Spinner style={{ margin: 20 }} /> : null}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Text>No se encontraron resultados.</Text>
@@ -345,86 +343,75 @@ const GacetasScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
-    },
+        backgroundColor: COLORS.background},
     headerContainer: {
         padding: 16,
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0',
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
-    },
+        elevation: 2},
     searchbar: {
         backgroundColor: '#f1f5f9',
         borderRadius: 12,
-        height: 48,
-    },
+        height: 48},
     searchInput: {
-        fontSize: 14,
-    },
+        fontSize: 14},
     filtersContainer: {
         marginTop: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-    },
+        justifyContent: 'space-between'},
     yearFilterContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-    },
+        alignItems: 'center'},
     yearButton: {
-        borderColor: COLORS.primary,
-    },
+        borderColor: COLORS.primary},
     list: {
         padding: 16,
-        paddingBottom: 80,
-    },
+        paddingBottom: 80},
     loadingContainer: {
-        flex: 1,
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: COLORS.background,
-    },
+        backgroundColor: COLORS.background},
+    loadingText: {
+        marginTop: 12,
+        color: COLORS.textSecondary,
+        fontSize: 14},
     sectionHeader: {
         backgroundColor: COLORS.background,
         paddingVertical: 8,
         paddingHorizontal: 4,
-        marginBottom: 8,
-    },
+        marginBottom: 8},
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.primary,
-    },
+        color: COLORS.primary},
     errorContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 40,
-        backgroundColor: COLORS.background,
-    },
+        backgroundColor: COLORS.background},
     errorTitle: {
         textAlign: 'center',
         marginBottom: 8,
         fontWeight: 'bold',
-        color: COLORS.text,
-    },
+        color: COLORS.text},
     errorText: {
         textAlign: 'center',
         color: COLORS.textSecondary,
         marginBottom: 24,
-        lineHeight: 20,
-    },
+        lineHeight: 20},
     retryButton: {
         borderRadius: 25,
         paddingHorizontal: 16,
-        backgroundColor: COLORS.primary,
-    },
+        backgroundColor: COLORS.primary},
     retryButtonLabel: {
         color: '#FFFFFF',
         fontWeight: 'bold',
-        fontSize: 16,
-    },
+        fontSize: 16},
     emptyContainer: {
         alignItems: 'center',
         marginTop: 50

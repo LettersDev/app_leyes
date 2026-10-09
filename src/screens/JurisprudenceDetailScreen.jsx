@@ -1,113 +1,41 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { useTheme, IconButton, Text } from 'react-native-paper';
+﻿import React from 'react';
+import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
 import { COLORS } from '../utils/constants';
 
-const JurisprudenceDetailScreen = ({ route, navigation }) => {
+const JurisprudenceDetailScreen = ({ route }) => {
     const { url, title } = route.params;
-    const [lastError, setLastError] = useState(null);
-    const theme = useTheme();
-    const isMounted = useRef(true);
-
-    useEffect(() => {
-        return () => {
-            isMounted.current = false;
-        };
-    }, []);
-
-    // Script para limpiar la interfaz del TSJ (ocultar cabeceras, pies de página y menús)
-    const injectedData = `
-        (function() {
-            var style = document.createElement('style');
-            style.innerHTML = ' \
-                #banner, #footer, #navigation, .portal-add-content, \
-                .portlet-topper, .lfr-message, #p_p_id_56_INSTANCE_C808K7b2myu1_, \
-                header, footer, nav, aside { display: none !important; } \
-                body, .portlet-content, .portlet-boundary { background: white !important; padding: 10px !important; } \
-                * { font-family: sans-serif !important; } \
-            ';
-            document.head.appendChild(style);
-        })();
-    `;
-
     return (
         <View style={styles.container}>
-            <WebView
-                source={{ uri: url }}
-                injectedJavaScript={injectedData}
-                onLoadStart={() => {
-                    // console.log('WebView start');
-                }}
-                onLoadEnd={() => {
-                    // console.log('WebView end');
-                }}
-                onError={(syntheticEvent) => {
-                    if (!isMounted.current) return;
-                    const { nativeEvent } = syntheticEvent;
-                    console.warn('WebView error: ', nativeEvent);
-                    setLastError(`${nativeEvent.description} (Code: ${nativeEvent.code})`);
-                }}
-                onHttpError={(syntheticEvent) => {
-                    if (!isMounted.current) return;
-                    const { nativeEvent } = syntheticEvent;
-                    console.warn('WebView HTTP error: ', nativeEvent);
-                    setLastError(`HTTP Error: ${nativeEvent.statusCode}`);
-                }}
-                style={styles.webview}
-                javaScriptEnabled={true}
-                domStorageEnabled={true}
-                startInLoadingState={true}
-                mixedContentMode="always"
-                renderLoading={() => (
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator color={COLORS.primary} size="large" />
-                        <Text style={styles.loadingText}>Cargando sentencia…</Text>
-                    </View>
-                )}
-                renderError={() => (
-                    <View style={styles.loadingContainer}>
-                        <Text style={[styles.loadingText, { color: 'red', marginBottom: 10 }]}>
-                            No se pudo cargar la sentencia.
-                        </Text>
-                        {lastError && (
-                            <Text style={{ color: 'red', marginBottom: 10, fontSize: 12, textAlign: 'center', paddingHorizontal: 10 }}>
-                                {lastError}
-                            </Text>
-                        )}
-                        <Text style={{ fontSize: 12, color: '#666', textAlign: 'center', paddingHorizontal: 20 }}>
-                            Es posible que el sitio web del TSJ esté caído, bloqueando la conexión, o falte configuración de red (Cleartext).
-                        </Text>
-                    </View>
-                )}
-            />
+            <View style={styles.iconWrap}>
+                <Text style={styles.icon}>{String.fromCodePoint(0x2696)}</Text>
+            </View>
+            <Text style={styles.titleText} numberOfLines={3}>
+                {title || 'Sentencia del TSJ'}
+            </Text>
+            <Text style={styles.bodyText}>
+                El servidor del TSJ no esta disponible en este momento.
+                Puedes leer la sentencia directamente desde tu navegador.
+            </Text>
+            <Pressable
+                style={({ pressed }) => [styles.btn, pressed && { opacity: 0.8 }]}
+                onPress={() => Linking.openURL(url)}
+            >
+                <Text style={styles.btnText}>Abrir en el navegador</Text>
+            </Pressable>
+            <Text style={styles.urlText} numberOfLines={2}>{url}</Text>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
-    webview: {
-        flex: 1,
-    },
-    loadingContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-    },
-    loadingText: {
-        marginTop: 15,
-        color: '#666',
-    }
+    container: { flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', padding: 32 },
+    iconWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+    icon: { fontSize: 38 },
+    titleText: { fontSize: 16, fontWeight: '700', color: COLORS.primary, textAlign: 'center', marginBottom: 16, lineHeight: 22 },
+    bodyText: { fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 21, marginBottom: 28 },
+    btn: { backgroundColor: COLORS.primary, paddingHorizontal: 28, paddingVertical: 14, borderRadius: 14, marginBottom: 16 },
+    btnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+    urlText: { fontSize: 10, color: '#CBD5E1', textAlign: 'center', paddingHorizontal: 10 },
 });
 
 export default JurisprudenceDetailScreen;
-

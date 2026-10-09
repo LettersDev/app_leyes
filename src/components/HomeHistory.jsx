@@ -19,7 +19,11 @@ const HomeHistory = ({ history, onHistoryPress, onRemoveHistory }) => {
                         />
                         <View style={styles.historyInfo}>
                             <Text style={styles.historyTitle} numberOfLines={1}>{item.title}</Text>
-                            <Text style={styles.historySubtitle} numberOfLines={1}>{item.subtitle}</Text>
+                            <Text style={styles.historySubtitle} numberOfLines={1}>
+                                {item.type === 'law' && item.lastArticleIndex > 0
+                                    ? `Art. ${item.lastArticleIndex} · ${item.subtitle}`
+                                    : item.subtitle}
+                            </Text>
                         </View>
                     </View>
                 </Surface>
@@ -46,6 +50,7 @@ const HomeHistory = ({ history, onHistoryPress, onRemoveHistory }) => {
                 showsHorizontalScrollIndicator={false}
                 renderItem={renderHistoryItem}
                 contentContainerStyle={styles.historyList}
+                nestedScrollEnabled={true}
             />
         </View>
     );
@@ -100,7 +105,6 @@ const styles = StyleSheet.create({
         top: 0,
         right: 0,
         margin: 0,
-        zIndex: 2,
     },
 });
 

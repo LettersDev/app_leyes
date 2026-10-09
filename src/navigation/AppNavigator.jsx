@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Spinner from '../screens/../components/Spinner';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { COLORS } from '../utils/constants';
@@ -20,7 +21,10 @@ import DailyQuizScreen from '../screens/DailyQuizScreen';
 import QuizHistoryScreen from '../screens/QuizHistoryScreen';
 import AIConsultScreen from '../screens/AIConsultScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, View } from 'react-native';
+import {
+    View
+} from 'react-native';
+import {} from 'react-native-paper';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,10 +38,7 @@ const linking = {
             LawDetail: 'law/:id',
             JurisprudenceDetail: 'sentencia/:id',
             DailyQuiz: 'quiz',
-            QuizHistory: 'quiz-history',
-        },
-    },
-};
+            QuizHistory: 'quiz-history'}}};
 
 const AppNavigator = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -63,7 +64,7 @@ const AppNavigator = () => {
     if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Spinner size={28} color={COLORS.primary} />
             </View>
         );
     }
@@ -74,13 +75,10 @@ const AppNavigator = () => {
                 initialRouteName={showOnboarding ? "Onboarding" : "Home"}
                 screenOptions={{
                     headerStyle: {
-                        backgroundColor: COLORS.primary,
-                    },
+                        backgroundColor: COLORS.primary},
                     headerTintColor: '#fff',
                     headerTitleStyle: {
-                        fontWeight: 'bold',
-                    },
-                }}
+                        fontWeight: 'bold'}}}
             >
                 <Stack.Screen
                     name="Home"

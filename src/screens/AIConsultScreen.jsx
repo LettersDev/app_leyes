@@ -1,307 +1,371 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENTS } from '../utils/constants';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Spinner from '../components/Spinner';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TextInput,
+    Pressable,
+    KeyboardAvoidingView,
+    Platform,
+    FlatList
+} from 'react-native';
+import { Divider } from 'react-native-paper';
+import Markdown from 'react-native-markdown-display';
+import { COLORS } from '../utils/constants';
 import AIService from '../services/aiService';
 import ReviewService from '../services/reviewService';
 import AIHistoryManager from '../utils/aiHistoryManager';
-import { Divider } from 'react-native-paper';
+
+// Optimizacion de tokens: maximos intercambios en contexto y chars de historial
+const MAX_HISTORY_EXCHANGES = 3;
+const MAX_HISTORY_CHARS = 600;
+
+const UserBubble = ({ text }) => (
+    <View style={styles.userBubbleRow}>
+        <View style={styles.userBubble}>
+            <Text style={styles.userBubbleText}>{text}</Text>
+        </View>
+    </View>
+);
+
+function getProviderLabel(provider) {
+    if (!provider) return '';
+    if (provider.startsWith('groq/')) {
+        const model = provider.replace('groq/', '');
+        if (model.includes('70b')) return 'Llama 3.3 70B';
+        if (model.includes('8b')) return 'Llama 3.1 8B';
+        if (model.includes('gpt-oss-20b')) return 'GPT-OSS 20B';
+        return model;
+    }
+    if (provider === 'gemini') return 'Gemini';
+    return provider;
+}
+
+const AiBubble = ({ message, onNavigate }) => (
+    <View style={styles.aiBubbleRow}>
+        <View style={styles.aiAvatar}>
+            <Text style={styles.aiAvatarText}>⚖️</Text>
+        </View>
+        <View style={styles.aiBubbleContent}>
+            <View style={[styles.aiBubble, message.error && styles.aiBubbleError]}>
+                {message.error ? (
+                    <Text style={styles.aiBubbleErrorText}>{message.error}</Text>
+                ) : (
+                    <Markdown style={markdownStyles}>{message.content}</Markdown>
+                )}
+            </View>
+            {!message.error && message.provider && (
+                <Text style={styles.providerLabel}>{getProviderLabel(message.provider)}</Text>
+            )}
+            {!message.error && message.references && message.references.length > 0 && (
+                <View style={styles.refsContainer}>
+                    <Text style={styles.refsTitle}>ARTICULOS RELACIONADOS</Text>
+                    {message.references.map((ref) => (
+                        <Pressable
+                            key={`ref-${ref.law_id}-${ref.index ?? ref.id ?? String(ref.number)}`}
+                            style={({ pressed }) => [styles.refItem, pressed && { opacity: 0.7 }]}
+                            onPress={() => onNavigate(ref)}
+                        >
+                            <View style={styles.refHeader}>
+                                <Text style={styles.refLaw} numberOfLines={1}>{ref.law_title}</Text>
+                                <Text style={styles.refArt}>Art. {ref.number}</Text>
+                            </View>
+                            <Text style={styles.refText} numberOfLines={2}>{ref.text}</Text>
+                        </Pressable>
+                    ))}
+                </View>
+            )}
+        </View>
+    </View>
+);
+
+const TypingIndicator = () => (
+    <View style={styles.aiBubbleRow}>
+        <View style={styles.aiAvatar}>
+            <Text style={styles.aiAvatarText}>⚖️</Text>
+        </View>
+        <View style={[styles.aiBubble, styles.typingBubble]}>
+            <Spinner size={18} color={COLORS.primary} />
+            <Text style={styles.typingText}>Analizando...</Text>
+        </View>
+    </View>
+);
 
 const AIConsultScreen = ({ navigation }) => {
-    const [query, setQuery] = useState('');
+    const [chatMessages, setChatMessages] = useState([]);
+    const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState(null);
-    const [history, setHistory] = useState([]);
+    const [pastHistory, setPastHistory] = useState([]);
     const [showHistory, setShowHistory] = useState(false);
-    const scrollViewRef = useRef();
+    const flatListRef = useRef(null);
+    const inputRef = useRef(null);
 
-    useEffect(() => {
-        loadHistory();
-    }, []);
+    useEffect(() => { loadPastHistory(); }, []);
 
-    const loadHistory = async () => {
+    const loadPastHistory = async () => {
         const h = await AIHistoryManager.getHistory();
-        setHistory(h);
+        setPastHistory(h);
     };
 
-    const handleConsult = async () => {
-        if (!query.trim() || loading) return;
-        setLoading(true);
-        setResult(null);
-        setShowHistory(false);
-        try {
-            const data = await AIService.consultCase(query);
-            setResult(data);
-            
-            // Guardar en historial
-            const newHistory = await AIHistoryManager.saveConsult(query, data);
-            setHistory(newHistory);
-            
-            // Registrar interacción de valor
-            ReviewService.recordInteraction();
+    // Construye historial optimizado: solo ultimos N intercambios, respuestas truncadas
+    const buildApiHistory = useCallback(() => {
+        const validMessages = chatMessages.filter(m => !m.error);
+        const maxMessages = MAX_HISTORY_EXCHANGES * 2;
+        const recent = validMessages.slice(-maxMessages);
+        return recent.map(msg => ({
+            role: msg.role === 'assistant' ? 'assistant' : 'user',
+            content: msg.role === 'assistant' && msg.content?.length > MAX_HISTORY_CHARS
+                ? msg.content.substring(0, MAX_HISTORY_CHARS) + '...'
+                : msg.content
+        }));
+    }, [chatMessages]);
 
-            // Scroll al resultado
-            setTimeout(() => {
-                scrollViewRef.current?.scrollTo({ y: 300, animated: true });
-            }, 500);
+    const handleSend = async () => {
+        const trimmed = inputText.trim();
+        if (!trimmed || loading) return;
+        const userMsg = { id: `u-${Date.now()}`, role: 'user', content: trimmed };
+        setChatMessages(prev => [...prev, userMsg]);
+        setInputText('');
+        setLoading(true);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+        try {
+            const apiHistory = buildApiHistory();
+            const data = await AIService.consultCase(trimmed, apiHistory);
+            const aiMsg = {
+                id: `ai-${Date.now()}`,
+                role: 'assistant',
+                content: data.error ? null : data.answer,
+                references: data.references || [],
+                provider: data.provider,
+                error: data.error || null
+            };
+            setChatMessages(prev => [...prev, aiMsg]);
+            if (chatMessages.length === 0) {
+                const newHistory = await AIHistoryManager.saveConsult(trimmed, data);
+                setPastHistory(newHistory);
+            }
+            ReviewService.recordInteraction();
         } catch (error) {
-            alert('Error en la consulta. Intente de nuevo más tarde.');
+            setChatMessages(prev => [...prev, {
+                id: `err-${Date.now()}`,
+                role: 'assistant',
+                content: null,
+                error: 'Error al procesar la consulta. Intente de nuevo.',
+                references: []
+            }]);
         } finally {
             setLoading(false);
+            setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 200);
         }
     };
 
-    const resetConsult = () => {
-        setResult(null);
-        setQuery('');
-        setShowHistory(false);
-    };
+    const handleNewChat = () => { setChatMessages([]); setInputText(''); setShowHistory(false); };
+
+    const handleNavigateToArticle = useCallback((ref) => {
+        navigation.navigate('LawDetail', { lawId: ref.law_id, jumpToIndex: ref.index, initialItemNumber: ref.number });
+    }, [navigation]);
+
+    const renderMessage = useCallback(({ item }) => {
+        if (item.role === 'user') return <UserBubble text={item.content} />;
+        return <AiBubble message={item} onNavigate={handleNavigateToArticle} />;
+    }, [handleNavigateToArticle]);
+
+    const isFirstMessage = chatMessages.length === 0;
+    const exchangeCount = Math.ceil(chatMessages.length / 2);
+    const TIPS = [
+        '¿Cuales son mis Derechos Labores?',
+        '¿Me pueden despedir sin causa?',
+        '¿Como me puedo divorciar?',
+    ];
 
     return (
-        <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
             style={styles.container}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
         >
-            <ScrollView 
-                ref={scrollViewRef}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-            >
-                <View style={styles.header}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text style={styles.tag}>SISTEMA DE ASISTENCIA</Text>
-                        {history.length > 0 && (
-                            <Pressable onPress={() => setShowHistory(!showHistory)}>
-                                <Text style={{ color: COLORS.primary, fontSize: 12, fontWeight: 'bold' }}>
-                                    {showHistory ? 'CERRAR HISTORIAL' : 'VER RECIENTES'}
-                                </Text>
-                            </Pressable>
-                        )}
-                    </View>
-                    <Text style={styles.title}>Consulta Legal Inteligente</Text>
-                    <Text style={styles.subtitle}>
-                        Describa su situación con sus propias palabras. Buscaremos la base legal en nuestra base de datos.
-                    </Text>
+            <View style={styles.header}>
+                <View style={styles.headerLeft}>
+                    <Text style={styles.headerTitle}>Consulta Legal IA</Text>
+                    {!isFirstMessage && (
+                        <Text style={styles.headerSub}>
+                            {exchangeCount} intercambios · contexto: ultimos {Math.min(exchangeCount, MAX_HISTORY_EXCHANGES)}
+                        </Text>
+                    )}
                 </View>
+                <View style={styles.headerActions}>
+                    {pastHistory.length > 0 && (
+                        <Pressable
+                            onPress={() => setShowHistory(!showHistory)}
+                            style={[styles.headerBtn, showHistory && styles.headerBtnActive]}
+                        >
+                            <Text style={styles.headerBtnText}>🕐</Text>
+                        </Pressable>
+                    )}
+                    {!isFirstMessage && (
+                        <Pressable onPress={handleNewChat} style={[styles.headerBtn, styles.newChatBtn]}>
+                            <Text style={styles.newChatBtnText}>+ Nueva</Text>
+                        </Pressable>
+                    )}
+                </View>
+            </View>
 
-                {showHistory && (
-                    <View style={styles.historyContainer}>
-                        <Text style={styles.historyTitle}>CONSULTAS RECIENTES</Text>
-                        {history.map((h) => (
-                            <Pressable 
-                                key={h.id} 
-                                style={styles.historyItem}
-                                onPress={() => {
-                                    setQuery(h.query);
-                                    setResult(h.result);
-                                    setShowHistory(false);
-                                }}
-                            >
-                                <Text style={styles.historyText} numberOfLines={1}>{h.query}</Text>
-                                <Text style={styles.historyDate}>{h.date ? new Date(h.date).toLocaleDateString('es-VE') : ''}</Text>
+            {showHistory && (
+                <View style={styles.historyPanel}>
+                    <Text style={styles.historyPanelTitle}>CONSULTAS RECIENTES</Text>
+                    {pastHistory.map((h) => (
+                        <Pressable
+                            key={h.id}
+                            style={styles.historyPanelItem}
+                            onPress={() => { handleNewChat(); setInputText(h.query); setShowHistory(false); }}
+                        >
+                            <Text style={styles.historyPanelText} numberOfLines={1}>{h.query}</Text>
+                            <Text style={styles.historyPanelDate}>
+                                {h.date ? new Date(h.date).toLocaleDateString('es-VE') : ''}
+                            </Text>
+                        </Pressable>
+                    ))}
+                    <Divider style={{ marginTop: 8 }} />
+                </View>
+            )}
+
+            {isFirstMessage ? (
+                <View style={styles.welcomeContainer}>
+                    <View style={styles.welcomeIconBg}>
+                        <Text style={styles.welcomeEmoji}>⚖️</Text>
+                    </View>
+                    <Text style={styles.welcomeTitle}>Asistente Legal</Text>
+                    <Text style={styles.welcomeSubtitle}>
+                        Describe tu situacion y te ayudare con base en la legislacion venezolana.
+                        Puedes hacer preguntas de seguimiento para profundizar.
+                    </Text>
+                    <View style={styles.welcomeTips}>
+                        {TIPS.map(tip => (
+                            <Pressable key={tip} style={styles.tipChip} onPress={() => setInputText(tip)}>
+                                <Text style={styles.tipChipText}>{tip}</Text>
                             </Pressable>
                         ))}
-                        <Divider style={{ marginVertical: 15 }} />
-                    </View>
-                )}
-
-                <View style={styles.inputCard}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Ej: Me quieren desalojar sin previo aviso, ¿qué puedo hacer?"
-                        placeholderTextColor="#94A3B8"
-                        multiline
-                        numberOfLines={4}
-                        value={query}
-                        onChangeText={setQuery}
-                        maxLength={500}
-                    />
-                    <View style={styles.inputFooter}>
-                        <Text style={styles.charCount}>{query.length}/500</Text>
-                        <View style={{ flexDirection: 'row', gap: 10 }}>
-                            {result && (
-                                <Pressable style={styles.secondaryButton} onPress={resetConsult}>
-                                    <Text style={styles.secondaryButtonText}>NUEVA</Text>
-                                </Pressable>
-                            )}
-                            <Pressable 
-                                style={({ pressed }) => [
-                                    styles.button, 
-                                    (!query.trim() || loading) && styles.buttonDisabled,
-                                    pressed && { opacity: 0.8 }
-                                ]} 
-                                onPress={handleConsult}
-                                disabled={!query.trim() || loading}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator color="#fff" size="small" />
-                                ) : (
-                                    <Text style={styles.buttonText}>{result ? 'RE-ANALIZAR' : 'ANALIZAR CASO'}</Text>
-                                )}
-                            </Pressable>
-                        </View>
                     </View>
                 </View>
+            ) : (
+                <FlatList
+                    ref={flatListRef}
+                    data={chatMessages}
+                    renderItem={renderMessage}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.chatContent}
+                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                    ListFooterComponent={loading ? <TypingIndicator /> : null}
+                />
+            )}
 
-                {result && (
-                    <View style={styles.resultContainer}>
-                        <View style={styles.resultHeader}>
-                            <Text style={[styles.resultTag, result.error && { color: COLORS.error }]}>
-                                {result.error ? 'ERROR EN CONSULTA' : 'ANÁLISIS GENERADO'}
-                            </Text>
-                        </View>
-                        <View style={[styles.resultCard, result.error && { borderLeftColor: COLORS.error }]}>
-                            <Text style={styles.answerText}>
-                                {result.error || result.answer}
-                            </Text>
-                        </View>
+            <View style={styles.inputContainer}>
+                <TextInput
+                    ref={inputRef}
+                    style={styles.input}
+                    placeholder={isFirstMessage ? 'Describe tu situacion legal...' : 'Pregunta de seguimiento...'}
+                    placeholderTextColor="#94A3B8"
+                    multiline
+                    value={inputText}
+                    onChangeText={setInputText}
+                    maxLength={500}
+                    textAlignVertical="top"
+                    cursorColor={COLORS.primary}
+                />
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.sendBtn,
+                        (!inputText.trim() || loading) && styles.sendBtnDisabled,
+                        pressed && { opacity: 0.8 },
+                    ]}
+                    onPress={handleSend}
+                    disabled={!inputText.trim() || loading}
+                >
+                    <Text style={styles.sendBtnText}>➤</Text>
+                </Pressable>
+            </View>
 
-                        {!result.error && result.references && result.references.length > 0 && (
-                            <View style={styles.refsContainer}>
-                                <Text style={styles.refsTitle}>REFERENCIAS UTILIZADAS</Text>
-                                {result.references.map((ref) => (
-                                    <Pressable 
-                                    key={`ref-${ref.law_id}-${ref.index ?? ref.id ?? String(ref.number)}`}
-                                        style={({ pressed }) => [
-                                            styles.refItem,
-                                            pressed && { opacity: 0.7 }
-                                        ]}
-                                        onPress={() => navigation.navigate('LawDetail', { 
-                                            lawId: ref.law_id, 
-                                            jumpToIndex: ref.index,
-                                            initialItemNumber: ref.number
-                                        })}
-                                    >
-                                        <Text style={styles.refNumber}>{ref.law_title} - ARTÍCULO {ref.number}</Text>
-                                        <Text style={styles.refText} numberOfLines={2}>{ref.text}</Text>
-                                    </Pressable>
-                                ))}
-                            </View>
-                        )}
-                        
-                        <Text style={styles.disclaimer}>
-                            Este análisis es generado por IA basado en la legislación vigente cargada en la app. No sustituye la asesoría de un abogado colegiado.
-                        </Text>
-                    </View>
-                )}
-            </ScrollView>
+            <Text style={styles.disclaimer}>
+                La IA puede cometer errores. Verifica siempre con un abogado profesional.
+            </Text>
         </KeyboardAvoidingView>
     );
 };
 
+const markdownStyles = {
+    body: { fontSize: 15, color: '#1E293B', lineHeight: 24 },
+    heading1: { fontSize: 17, fontWeight: 'bold', color: COLORS.primary, marginTop: 10, marginBottom: 4 },
+    heading2: { fontSize: 15, fontWeight: 'bold', color: COLORS.primary, marginTop: 8, marginBottom: 4 },
+    strong: { fontWeight: '700', color: '#0F172A' },
+    em: { fontStyle: 'italic', color: '#475569' },
+    bullet_list: { marginVertical: 4 },
+    ordered_list: { marginVertical: 4 },
+    list_item: { marginVertical: 2 },
+    bullet_list_icon: { color: COLORS.accent, fontWeight: 'bold' },
+    // Tablas: sin bordes ni fondos, se ven como texto plano en movil
+    table: { marginVertical: 4 },
+    thead: {},
+    th: { fontSize: 14, fontWeight: 'bold', color: '#0F172A', paddingVertical: 2, paddingRight: 8 },
+    td: { fontSize: 14, color: '#1E293B', paddingVertical: 2, paddingRight: 8 },
+    tr: { flexDirection: 'row', flexWrap: 'wrap' },
+    blockquote: { backgroundColor: '#EFF6FF', borderLeftWidth: 3, borderLeftColor: COLORS.accent, paddingHorizontal: 12, paddingVertical: 6, marginVertical: 6, borderRadius: 4 },
+    code_inline: { backgroundColor: '#F1F5F9', color: '#0F172A', fontFamily: 'monospace', fontSize: 13, paddingHorizontal: 4, borderRadius: 4 },
+    hr: { backgroundColor: '#E2E8F0', height: 1, marginVertical: 10 }
+};
+
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
-    scrollContent: { padding: 24, paddingBottom: 60 },
-    header: { marginBottom: 30, marginTop: 10 },
-    tag: { color: COLORS.accent, fontSize: 11, fontWeight: '900', letterSpacing: 2, marginBottom: 8 },
-    title: { color: COLORS.primary, fontSize: 28, fontWeight: 'bold', marginBottom: 12 },
-    subtitle: { color: COLORS.textSecondary, fontSize: 15, lineHeight: 22 },
-    inputCard: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        padding: 20,
-        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    },
-    input: {
-        fontSize: 16,
-        color: COLORS.text,
-        textAlignVertical: 'top',
-        minHeight: 120,
-    },
-    inputFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 15,
-        borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
-        paddingTop: 15,
-    },
-    charCount: { color: '#94A3B8', fontSize: 12 },
-    button: {
-        backgroundColor: COLORS.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 12,
-    },
-    buttonDisabled: { opacity: 0.5 },
-    buttonText: { color: '#fff', fontSize: 12, fontWeight: '800', letterSpacing: 1 },
-    resultContainer: { marginTop: 40 },
-    resultHeader: { marginBottom: 15 },
-    resultTag: { color: COLORS.success, fontSize: 11, fontWeight: '900', letterSpacing: 2 },
-    resultCard: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        padding: 24,
-        borderLeftWidth: 4,
-        borderLeftColor: COLORS.success,
-        boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.05)',
-    },
-    answerText: { fontSize: 16, color: COLORS.text, lineHeight: 26 },
-    refsContainer: { marginTop: 30 },
-    refsTitle: { color: COLORS.primary, fontSize: 12, fontWeight: '900', letterSpacing: 1.5, marginBottom: 15 },
-    refItem: {
-        backgroundColor: '#F8FAFC',
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-    },
-    refNumber: { color: COLORS.accent, fontSize: 11, fontWeight: 'bold', marginBottom: 4 },
-    refText: { color: COLORS.textSecondary, fontSize: 13 },
-    disclaimer: {
-        marginTop: 30,
-        textAlign: 'center',
-        fontSize: 11,
-        color: '#94A3B8',
-        fontStyle: 'italic',
-        lineHeight: 16,
-    },
-    // Nuevos estilos para Historial e IA Premium
-    historyContainer: {
-        backgroundColor: '#F1F5F9',
-        borderRadius: 16,
-        padding: 15,
-        marginBottom: 20,
-    },
-    historyTitle: {
-        fontSize: 10,
-        fontWeight: '900',
-        color: '#64748B',
-        letterSpacing: 1.5,
-        marginBottom: 10,
-    },
-    historyItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
-    },
-    historyText: {
-        fontSize: 13,
-        color: COLORS.text,
-        flex: 1,
-        marginRight: 10,
-    },
-    historyDate: {
-        fontSize: 11,
-        color: '#94A3B8',
-    },
-    secondaryButton: {
-        backgroundColor: '#F1F5F9',
-        paddingVertical: 12,
-        paddingHorizontal: 15,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-    },
-    secondaryButtonText: {
-        color: COLORS.textSecondary,
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
+    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
+    headerLeft: { flex: 1 },
+    headerTitle: { fontSize: 18, fontWeight: '800', color: COLORS.primary },
+    headerSub: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
+    headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    headerBtn: { padding: 8, borderRadius: 10, backgroundColor: '#F1F5F9' },
+    headerBtnActive: { backgroundColor: COLORS.primary + '20' },
+    headerBtnText: { fontSize: 16 },
+    newChatBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 12 },
+    newChatBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+    historyPanel: { backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 12, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
+    historyPanelTitle: { fontSize: 10, fontWeight: '900', color: '#64748B', letterSpacing: 1.5, marginBottom: 8 },
+    historyPanelItem: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+    historyPanelText: { fontSize: 13, color: '#1E293B', flex: 1, marginRight: 10 },
+    historyPanelDate: { fontSize: 11, color: '#94A3B8' },
+    welcomeContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, paddingBottom: 20 },
+    welcomeIconBg: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+    welcomeEmoji: { fontSize: 38 },
+    welcomeTitle: { fontSize: 24, fontWeight: '800', color: COLORS.primary, marginBottom: 10, textAlign: 'center' },
+    welcomeSubtitle: { fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 21, marginBottom: 24 },
+    welcomeTips: { width: '100%', gap: 8 },
+    tipChip: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 },
+    tipChipText: { fontSize: 13, color: COLORS.primary, fontWeight: '500' },
+    chatContent: { padding: 16, paddingBottom: 8 },
+    userBubbleRow: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 12 },
+    userBubble: { backgroundColor: COLORS.primary, borderRadius: 18, borderBottomRightRadius: 4, paddingHorizontal: 16, paddingVertical: 12, maxWidth: '80%' },
+    userBubbleText: { color: '#fff', fontSize: 15, lineHeight: 22 },
+    aiBubbleRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12, maxWidth: '92%' },
+    aiAvatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginRight: 8, marginTop: 2 },
+    aiAvatarText: { fontSize: 16 },
+    aiBubbleContent: { flex: 1 },
+    aiBubble: { backgroundColor: '#fff', borderRadius: 18, borderBottomLeftRadius: 4, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+    aiBubbleError: { borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' },
+    aiBubbleErrorText: { fontSize: 14, color: '#DC2626', lineHeight: 21 },
+    typingBubble: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14 },
+    typingText: { fontSize: 13, color: '#94A3B8' },
+    providerLabel: { fontSize: 10, color: '#94A3B8', marginTop: 5, marginLeft: 4 },
+    refsContainer: { marginTop: 10 },
+    refsTitle: { fontSize: 10, fontWeight: '900', color: '#64748B', letterSpacing: 1.5, marginBottom: 8 },
+    refItem: { backgroundColor: '#F8FAFC', borderRadius: 10, padding: 10, marginBottom: 6, borderWidth: 1, borderColor: '#E2E8F0' },
+    refHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
+    refLaw: { color: COLORS.primary, fontSize: 11, fontWeight: '700', flex: 1, marginRight: 8 },
+    refArt: { color: COLORS.accent, fontSize: 11, fontWeight: 'bold' },
+    refText: { color: '#64748B', fontSize: 12, lineHeight: 17 },
+    inputContainer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E2E8F0', gap: 8, paddingBottom: Platform.OS === 'ios' ? 20 : 12 },
+    input: { flex: 1, backgroundColor: '#F1F5F9', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#1E293B', maxHeight: 120 },
+    sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
+    sendBtnDisabled: { backgroundColor: '#CBD5E1' },
+    sendBtnText: { color: '#fff', fontSize: 18 },
+    disclaimer: { textAlign: 'center', fontSize: 10, color: '#94A3B8', paddingHorizontal: 20, paddingBottom: Platform.OS === 'ios' ? 8 : 10, backgroundColor: '#fff' }
 });
 
 export default AIConsultScreen;

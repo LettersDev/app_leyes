@@ -1,6 +1,13 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { Card, Title, Paragraph, IconButton } from 'react-native-paper';
+import Spinner from '../components/Spinner';
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    Pressable
+} from 'react-native';
+import { Card, IconButton, Paragraph, Title } from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
 import { getLawsByParentCategory } from '../services/lawService';
@@ -15,8 +22,7 @@ const CODE_ICONS = {
     'codigo_organico_tributario': { icon: 'cash-multiple', color: '#0891B2' },
     'codigo_organico_justicia_militar': { icon: 'shield-star', color: '#65A30D' },
     'codigo_abogado': { icon: 'account-tie', color: '#4F46E5' },
-    'codigo_deontologia': { icon: 'medical-bag', color: '#E11D48' },
-};
+    'codigo_deontologia': { icon: 'medical-bag', color: '#E11D48' }};
 
 // Colores para códigos nuevos (rotación automática)
 const DEFAULT_COLORS = ['#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B', '#10B981'];
@@ -83,14 +89,13 @@ const CodesListScreen = ({ navigation }) => {
     const handleCodePress = (code) => {
         navigation.navigate('LawsList', {
             category: code.category,
-            categoryName: code.name,
-        });
+            categoryName: code.name});
     };
 
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Spinner size={28} color={COLORS.primary} />
                 <Text style={styles.loadingText}>Cargando códigos…</Text>
             </View>
         );
@@ -146,73 +151,58 @@ const CodesListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
-    },
+        backgroundColor: COLORS.background},
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: COLORS.background,
-    },
+        backgroundColor: COLORS.background},
     loadingText: {
         marginTop: 12,
-        color: COLORS.textSecondary,
-    },
+        color: COLORS.textSecondary},
     header: {
         padding: 20,
-        backgroundColor: COLORS.primary,
-    },
+        backgroundColor: COLORS.primary},
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         color: '#fff',
-        marginBottom: 8,
-    },
+        marginBottom: 8},
     subtitle: {
         fontSize: 14,
-        color: '#E5E7EB',
-    },
+        color: '#E5E7EB'},
     codesContainer: {
-        padding: 16,
-    },
+        padding: 16},
     codeCard: {
         marginBottom: 12,
         backgroundColor: COLORS.surface,
         borderRadius: 12,
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-    },
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)'},
     cardContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 8,
-    },
+        padding: 8},
     iconContainer: {
         borderRadius: 12,
-        marginRight: 12,
-    },
+        marginRight: 12},
     codeInfo: {
-        flex: 1,
-    },
+        flex: 1},
     codeTitle: {
         fontSize: 15,
         fontWeight: '600',
         color: COLORS.text,
-        marginBottom: 4,
-    },
+        marginBottom: 4},
     codeDescription: {
         fontSize: 12,
         color: COLORS.textSecondary,
-        marginBottom: 4,
-    },
+        marginBottom: 4},
     articlesCount: {
         fontSize: 11,
         color: COLORS.primary,
-        fontWeight: '500',
-    },
+        fontWeight: '500'},
     titleRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-    },
+        alignItems: 'center'},
     newChip: {
         backgroundColor: '#EF4444',
         paddingHorizontal: 6,
@@ -220,15 +210,12 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         marginLeft: 8,
         height: 18,
-        justifyContent: 'center',
-    },
+        justifyContent: 'center'},
     newChipText: {
         fontSize: 10,
         fontWeight: '900',
         color: '#fff',
-        lineHeight: 12,
-    },
-});
+        lineHeight: 12}});
 
 export default CodesListScreen;
 

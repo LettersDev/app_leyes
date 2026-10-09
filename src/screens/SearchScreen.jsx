@@ -1,10 +1,10 @@
 import React, { useCallback, useRef, useEffect } from 'react';
+import Spinner from '../components/Spinner';
 import {
     View, Text, StyleSheet, FlatList,
-    Pressable,
-} from 'react-native';
+    Pressable} from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
-import { Searchbar, Card, ActivityIndicator } from 'react-native-paper';
+import { Searchbar, Card} from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { searchLaws } from '../services/lawService';
@@ -34,8 +34,7 @@ const ResultBadge = ({ type, similarity }) => {
         semantic_article: { label: '📄 Artículo', color: '#0369A1', bg: '#E0F2FE' },
         law: { label: '📚 Ley', color: '#065F46', bg: '#D1FAE5' },
         article: { label: '📄 Artículo', color: '#0369A1', bg: '#E0F2FE' },
-        jurisprudencia: { label: '⚖️ Jurisprudencia', color: '#92400E', bg: '#FEF3C7' },
-    };
+        jurisprudencia: { label: '⚖️ Jurisprudencia', color: '#92400E', bg: '#FEF3C7' }};
     const c = config[type] || config.law;
     return (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
@@ -58,8 +57,7 @@ const initialState = {
     searched: false,
     mode: 'hybrid',
     semanticAvailable: true,
-    infoVisible: false,
-};
+    infoVisible: false};
 
 function searchReducer(state, action) {
     switch (action.type) {
@@ -196,8 +194,7 @@ const SearchScreen = ({ navigation, route }) => {
             if (isJур) {
                 navigation.navigate('JurisprudenceDetail', {
                     url: item.url_original,
-                    title: `Sentencia Exp: ${item.expediente}`,
-                });
+                    title: `Sentencia Exp: ${item.expediente}`});
             } else if (isArticle) {
                 // Artículo → ir a la ley y hacer scroll al artículo
                 navigation.navigate('LawDetail', {
@@ -291,7 +288,7 @@ const SearchScreen = ({ navigation, route }) => {
                 <View style={styles.centerContainer}>
                     <View style={styles.semanticLoading}>
                         <Animated.View style={spinStyle}>
-                            <ActivityIndicator size="large" color={COLORS.primary} />
+                            <Spinner size={28} color={COLORS.primary} />
                         </Animated.View>
                         <Text style={styles.loadingText}>Buscando…</Text>
                     </View>
@@ -330,15 +327,13 @@ const SearchScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
-    },
+        backgroundColor: COLORS.background},
     searchBar: {
         margin: 16,
         marginBottom: 8,
         borderRadius: 14,
         backgroundColor: '#fff',
-        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-    },
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)'},
     searchInput: { fontSize: 15 },
 
     // ── Selector de modo
@@ -346,39 +341,30 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 16,
         gap: 8,
-        marginBottom: 4,
-    },
+        marginBottom: 4},
     modeBtn: {
         flex: 1,
         paddingVertical: 8,
         paddingHorizontal: 12,
         borderRadius: 10,
         backgroundColor: '#F1F5F9',
-        alignItems: 'center',
-    },
+        alignItems: 'center'},
     modeBtnActive: {
-        backgroundColor: COLORS.primary,
-    },
+        backgroundColor: COLORS.primary},
     modeBtnActiveSemantic: {
-        backgroundColor: '#7C3AED',
-    },
+        backgroundColor: '#7C3AED'},
     modeBtnDisabled: {
-        opacity: 0.4,
-    },
+        opacity: 0.4},
     modeBtnText: {
         fontSize: 13,
         fontWeight: '600',
-        color: COLORS.textSecondary,
-    },
+        color: COLORS.textSecondary},
     modeBtnTextActive: {
-        color: '#fff',
-    },
+        color: '#fff'},
     modeBtnTextActiveSemantic: {
-        color: '#fff',
-    },
+        color: '#fff'},
     modeBtnTextDisabled: {
-        color: '#999',
-    },
+        color: '#999'},
 
     // ── Hint semántico
     semanticHint: {
@@ -387,162 +373,132 @@ const styles = StyleSheet.create({
         gap: 4,
         marginHorizontal: 16,
         marginBottom: 4,
-        marginTop: 2,
-    },
+        marginTop: 2},
     semanticHintText: {
         fontSize: 12,
-        color: '#7C3AED',
-    },
+        color: '#7C3AED'},
 
     // ── Resultados
     resultsList: {
         padding: 16,
-        paddingTop: 8,
-    },
+        paddingTop: 8},
     resultsCount: {
         fontSize: 13,
         color: COLORS.textSecondary,
         marginBottom: 12,
-        fontWeight: '600',
-    },
+        fontWeight: '600'},
     resultCard: {
         marginBottom: 10,
         borderRadius: 14,
         backgroundColor: '#fff',
-        boxShadow: '0px 1px 6px rgba(0, 0, 0, 0.06)',
-    },
+        boxShadow: '0px 1px 6px rgba(0, 0, 0, 0.06)'},
     resultCardSemantic: {
         borderLeftWidth: 3,
-        borderLeftColor: '#7C3AED',
-    },
+        borderLeftColor: '#7C3AED'},
     resultCardJur: {
         borderLeftWidth: 3,
-        borderLeftColor: COLORS.accent,
-    },
+        borderLeftColor: COLORS.accent},
     resultTitle: {
         fontSize: 15,
         fontWeight: '700',
         color: COLORS.text,
         marginBottom: 6,
-        lineHeight: 21,
-    },
+        lineHeight: 21},
     resultSnippet: {
         fontSize: 13,
         color: COLORS.textSecondary,
-        lineHeight: 19,
-    },
+        lineHeight: 19},
     jurMeta: {
         marginTop: 6,
         fontSize: 11,
         color: COLORS.accent,
-        fontWeight: '600',
-    },
+        fontWeight: '600'},
     lawSourceRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginTop: 4,
         marginBottom: 4,
-        gap: 4,
-    },
+        gap: 4},
     lawSourceIcon: {
-        fontSize: 11,
-    },
+        fontSize: 11},
     lawSourceText: {
         fontSize: 11,
         color: COLORS.primary,
         fontWeight: '700',
-        flexShrink: 1,
-    },
+        flexShrink: 1},
     highlight: {
         backgroundColor: '#FBBF24',
         color: '#000',
-        fontWeight: 'bold',
-    },
+        fontWeight: 'bold'},
 
     // ── Badge
     badge: {
         paddingHorizontal: 8,
         paddingVertical: 2,
-        borderRadius: 6,
-    },
+        borderRadius: 6},
     badgeText: {
         fontSize: 11,
-        fontWeight: '700',
-    },
+        fontWeight: '700'},
     similarityText: {
         fontSize: 11,
         color: '#7C3AED',
-        fontWeight: '600',
-    },
+        fontWeight: '600'},
 
     // ── Loading
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 24,
-    },
+        padding: 24},
     semanticLoading: {
         alignItems: 'center',
-        gap: 12,
-    },
+        gap: 12},
     semanticSpinner: {
-        fontSize: 48,
-    },
+        fontSize: 48},
     loadingText: {
         marginTop: 8,
         fontSize: 16,
         color: COLORS.text,
-        fontWeight: '600',
-    },
+        fontWeight: '600'},
     loadingSubtext: {
         fontSize: 13,
         color: COLORS.textSecondary,
-        textAlign: 'center',
-    },
+        textAlign: 'center'},
 
     // ── Vacío / inicial
     emptyIcon: {
         fontSize: 48,
-        marginBottom: 12,
-    },
+        marginBottom: 12},
     emptyText: {
         fontSize: 16,
         color: COLORS.text,
         textAlign: 'center',
         fontWeight: '600',
-        marginBottom: 6,
-    },
+        marginBottom: 6},
     emptySubtext: {
         fontSize: 13,
         color: COLORS.textSecondary,
-        textAlign: 'center',
-    },
+        textAlign: 'center'},
     instructionText: {
         fontSize: 15,
         color: COLORS.textSecondary,
         textAlign: 'center',
-        marginBottom: 20,
-    },
+        marginBottom: 20},
 
     // ── Chips de ejemplo
     examplesContainer: {
         gap: 8,
         alignItems: 'center',
-        marginTop: 4,
-    },
+        marginTop: 4},
     exampleChip: {
         backgroundColor: '#EDE9FE',
         paddingHorizontal: 14,
         paddingVertical: 8,
-        borderRadius: 20,
-    },
+        borderRadius: 20},
     exampleChipText: {
         color: '#7C3AED',
         fontSize: 13,
-        fontWeight: '600',
-    },
-});
+        fontWeight: '600'}});
 
 export default SearchScreen;
 

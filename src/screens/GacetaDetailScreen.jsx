@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
+import Spinner from "../components/Spinner";
 import { View, StyleSheet, ScrollView, Alert, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { Text, Card, Button, Divider, IconButton, Chip, ActivityIndicator } from 'react-native-paper';
+import { Text, Card, Button, Divider, IconButton, Chip} from 'react-native-paper';
 import { COLORS } from '../utils/constants';
 
 const TSJ_BASE = 'http://historico.tsj.gob.ve';
 
 const toGoogleViewer = (pdfUrl) => {
+    if (!pdfUrl || typeof pdfUrl !== 'string') return 'about:blank';
     const clean = pdfUrl.split('#')[0];
     const abs = clean.startsWith('http') ? clean : `${TSJ_BASE}/${clean.replace(/^\//, '')}`;
     return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(abs)}`;
@@ -47,16 +49,18 @@ const INJECTED_CSS = `
 `;
 
 const GacetaDetailScreen = ({ route }) => {
-    const { gaceta } = route.params;
+    const { gaceta = {} } = route?.params || {};
     const webViewRef = useRef(null);
 
-    const folder = gaceta.tipo?.includes('Extra') ? 'gaceta_ext' : 'gaceta';
-    const rawNum = (gaceta.numero_display || gaceta.numero?.toString() || '').replace(/\./g, '');
-    const baseUrl = gaceta.url_original || `${TSJ_BASE}/${folder}/blanco.asp?nrogaceta=${rawNum}`;
-    const isExtra = gaceta.tipo?.includes('Extra');
+    const folder = gaceta?.tipo?.includes('Extra') ? 'gaceta_ext' : 'gaceta';
+    const rawNum = (gaceta?.numero_display || gaceta?.numero?.toString() || '').replace(/\./g, '');
+    const baseUrl = (gaceta?.url_original && typeof gaceta.url_original === 'string' && gaceta.url_original.trim().length > 0)
+        ? gaceta.url_original.trim()
+        : (rawNum ? `${TSJ_BASE}/${folder}/blanco.asp?nrogaceta=${rawNum}` : null);
+    const isExtra = gaceta?.tipo?.includes('Extra');
 
     const [mode, setMode] = useState('detail'); // 'detail' | 'webview'
-    const [webviewSource, setWebviewSource] = useState({ uri: baseUrl });
+    const [webviewSource, setWebviewSource] = useState(() => ({ uri: baseUrl || 'about:blank' }));
     const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
     const [pdfLoading, setPdfLoading] = useState(false);
     const isMounted = useRef(true);
@@ -174,30 +178,44 @@ const GacetaDetailScreen = ({ route }) => {
                         onPress={() => Linking.openURL(currentPdfUrl || baseUrl)} />
                 </View>
 
-                {/* WebView idéntico a JurisprudenceDetailScreen */}
+                {/* WebView con source protegido contra NullPointerException */}
                 <WebView
                     ref={webViewRef}
-                    source={webviewSource}
+                    source={{
+                        uri: (webviewSource?.uri && typeof webviewSource.uri === 'string' && webviewSource.uri.startsWith('http'))
+                            ? webviewSource.uri
+                            : 'about:blank'
+                    }}
                     injectedJavaScript={INJECTED_CSS}
                     javaScriptEnabled={true}
                     domStorageEnabled={true}
                     startInLoadingState={false}
                     mixedContentMode="always"
+                    androidHardwareAccelerationDisabled={true}
                     onShouldStartLoadWithRequest={handleNavigation}
                     onLoadEnd={() => {
+                        if (isMounted.current) setPdfLoading(false);
+                    }}
+                    onError={(syntheticEvent) => {
+                        if (isMounted.current) setPdfLoading(false);
+                        const { nativeEvent } = syntheticEvent;
+                        console.warn('Gaceta WebView error: ', nativeEvent);
+                    }}
+                    onHttpError={() => {
                         if (isMounted.current) setPdfLoading(false);
                     }}
                     originWhitelist={['*']}
                     style={{ flex: 1 }}
                 />
-                {/* Overlay de carga manual — funciona para cargas iniciales y cambios de source */}
-                {pdfLoading && (
-                    <View style={styles.loadingOverlay}>
-                        <ActivityIndicator color={COLORS.primary} size="large" />
-                        <Text style={{ marginTop: 10, color: '#666', fontWeight: '500' }}>Abriendo documento PDF…</Text>
-                        <Text style={{ marginTop: 6, color: '#aaa', fontSize: 12 }}>Esto puede tardar unos segundos</Text>
-                    </View>
-                )}
+                {/* Overlay de carga manual — siempre montado para no alterar el orden de hijos en Android */}
+                <View
+                    pointerEvents={pdfLoading ? 'auto' : 'none'}
+                    style={[styles.loadingOverlay, { display: pdfLoading ? 'flex' : 'none' }]}
+                >
+                    <Spinner color={COLORS.primary} size={28} />
+                    <Text style={{ marginTop: 10, color: '#666', fontWeight: '500' }}>Abriendo documento PDF…</Text>
+                    <Text style={{ marginTop: 6, color: '#aaa', fontSize: 12 }}>Esto puede tardar unos segundos</Text>
+                </View>
             </View>
         );
     }
@@ -222,7 +240,14 @@ const GacetaDetailScreen = ({ route }) => {
                 <Card.Actions style={styles.cardActions}>
                     <Button
                         mode="contained"
-                        onPress={() => setMode('webview')}
+                        onPress={() => {
+                            if (!baseUrl) {
+                                Alert.alert("Documento No Disponible", "Esta gaceta no cuenta con un enlace web disponible para visualizar.", [{ text: "OK" }]);
+                                return;
+                            }
+                            setWebviewSource({ uri: baseUrl });
+                            setMode('webview');
+                        }}
                         buttonColor={COLORS.primary}
                         icon="book-open-variant"
                         labelStyle={{ color: '#fff' }}
@@ -258,18 +283,16 @@ const styles = StyleSheet.create({
 
     bar: {
         flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-        borderBottomWidth: 1, borderBottomColor: '#e5e7eb', height: 56,
-    },
+        borderBottomWidth: 1, borderBottomColor: '#e5e7eb', height: 56},
     barTitle: { flex: 1, fontSize: 14, fontWeight: 'bold', color: '#1e293b', textAlign: 'center' },
 
     downloadBanner: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: COLORS.primary, padding: 8,
-    },
+        backgroundColor: COLORS.primary, padding: 8},
 
     loadingOverlay: {
         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', zIndex: 10,
+        justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff',
     },
 
     card: { marginBottom: 12, boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)', backgroundColor: '#fff' },
@@ -287,7 +310,6 @@ const styles = StyleSheet.create({
     sumarioItem: { flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 4 },
     sumarioDivider: { marginHorizontal: 4, backgroundColor: '#e5e7eb' },
     bullet: { color: COLORS.primary, marginRight: 8, fontWeight: 'bold', marginTop: 2 },
-    sumarioLine: { flex: 1, fontSize: 14, color: COLORS.text || '#333', lineHeight: 22 },
-});
+    sumarioLine: { flex: 1, fontSize: 14, color: COLORS.text || '#333', lineHeight: 22 }});
 
 export default GacetaDetailScreen;

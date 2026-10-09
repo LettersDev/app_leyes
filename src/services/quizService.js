@@ -98,11 +98,12 @@ const QuizService = {
      * @param {boolean} isCorrect   - Si la respuesta es correcta
      * @param {number} streakAtTime - Racha actual al momento de responder
      * @param {string|null} deviceToken - Push token del usuario (puede ser null)
+     * @param {string|null} quizDate - Fecha del quiz (YYYY-MM-DD), opcional
      * @returns {Promise<void>}
      */
-    submitAnswer: async (quizId, selectedOption, isCorrect, streakAtTime, deviceToken = null) => {
+    submitAnswer: async (quizId, selectedOption, isCorrect, streakAtTime, deviceToken = null, quizDate = null) => {
         try {
-            const today = QuizService.getTodayDateString();
+            const dateKey = quizDate || QuizService.getTodayDateString();
 
             // 1. Guardar localmente para evitar responder dos veces
             const answerData = {
@@ -112,7 +113,11 @@ const QuizService = {
                 answeredAt: new Date().toISOString(),
             };
             await AsyncStorage.setItem(
-                `${ANSWERED_KEY_PREFIX}${today}`,
+                `${ANSWERED_KEY_PREFIX}${dateKey}`,
+                JSON.stringify(answerData)
+            );
+            await AsyncStorage.setItem(
+                `@quiz_answered_id_${quizId}`,
                 JSON.stringify(answerData)
             );
 
@@ -186,9 +191,12 @@ const QuizService = {
         }
     },
 
-    clearTodayAnswer: async () => {
+    clearTodayAnswer: async (quizId = null) => {
         const today = QuizService.getTodayDateString();
         await AsyncStorage.removeItem(`${ANSWERED_KEY_PREFIX}${today}`);
+        if (quizId) {
+            await AsyncStorage.removeItem(`@quiz_answered_id_${quizId}`);
+        }
     }
 };
 

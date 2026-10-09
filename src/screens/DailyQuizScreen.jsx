@@ -1,12 +1,11 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     ScrollView,
     Pressable,
-    ActivityIndicator,
-    Modal,
+    Modal
 } from 'react-native';
 import Animated, {
     useSharedValue,
@@ -18,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { IconButton } from 'react-native-paper';
+import { ActivityIndicator, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../utils/constants';
 import QuizService from '../services/quizService';
@@ -55,7 +54,23 @@ function quizReducer(state, action) {
         case 'SET_ERROR':
             return { ...state, screenState: 'NO_QUIZ' };
         case 'ANSWER_SUBMITTED':
-            return { ...state, selectedOption: action.optionId, isCorrect: action.isCorrect, screenState: 'ANSWERED' };
+            return {
+                ...state,
+                selectedOption: action.optionId,
+                isCorrect: action.isCorrect,
+                streak: action.streak || state.streak,
+                userStats: state.userStats ? {
+                    ...state.userStats,
+                    total: state.userStats.total + 1,
+                    correctas: action.isCorrect ? state.userStats.correctas + 1 : state.userStats.correctas,
+                    incorrectas: !action.isCorrect ? state.userStats.incorrectas + 1 : state.userStats.incorrectas,
+                } : {
+                    total: 1,
+                    correctas: action.isCorrect ? 1 : 0,
+                    incorrectas: action.isCorrect ? 0 : 1,
+                },
+                screenState: 'ANSWERED'
+            };
         case 'TOGGLE_EXPLANATION':
             return { ...state, showExplanation: action.value };
         case 'RESET':
@@ -159,10 +174,21 @@ const DailyQuizScreen = ({ navigation, route }) => {
             let selOpt = null;
             let isCorr = null;
 
-            // 1. Para el quiz de hoy: verificar AsyncStorage primero (rápido)
-            if (answered && answered.quizId === data.id) {
-                selOpt = answered.selectedOption;
-                isCorr = answered.isCorrect;
+            // 1. Para el quiz: verificar por ID específico o respuesta del día en AsyncStorage
+            let localSaved = null;
+            if (data?.id) {
+                const byId = await AsyncStorage.getItem(`@quiz_answered_id_${data.id}`);
+                if (byId) {
+                    try { localSaved = JSON.parse(byId); } catch (_) {}
+                }
+            }
+            if (!localSaved && answered && answered.quizId === data.id) {
+                localSaved = answered;
+            }
+
+            if (localSaved) {
+                selOpt = localSaved.selectedOption;
+                isCorr = localSaved.isCorrect;
                 sState = 'ALREADY';
             }
 
@@ -206,9 +232,21 @@ const DailyQuizScreen = ({ navigation, route }) => {
             resultScale.value = withSpring(1, { damping: 8, stiffness: 200 });
         }
 
-        // Pasa el device token para evitar respuestas duplicadas
-        await QuizService.submitAnswer(quiz.id, optionId, correct, streak?.currentStreak || 0, deviceTokenRef.current);
-        dispatch({ type: 'ANSWER_SUBMITTED', optionId, isCorrect: correct });
+        // 1. Actualizar y persistir la racha
+        const updatedStreak = await StreakManager.recordAnswer(correct);
+
+        // 2. Guardar respuesta localmente y en Supabase
+        await QuizService.submitAnswer(
+            quiz.id,
+            optionId,
+            correct,
+            updatedStreak?.currentStreak || 0,
+            deviceTokenRef.current,
+            quiz.date
+        );
+
+        // 3. Notificar reducer para actualizar interfaz
+        dispatch({ type: 'ANSWER_SUBMITTED', optionId, isCorrect: correct, streak: updatedStreak });
         ReviewService.recordInteraction();
     };
 
@@ -223,7 +261,7 @@ const DailyQuizScreen = ({ navigation, route }) => {
     if (screenState === 'LOADING') {
         return (
             <LinearGradient colors={['#0F172A', '#1E293B']} style={styles.loadingScreen}>
-                <ActivityIndicator size="large" color={COLORS.accent} />
+                <ActivityIndicator size={28} color={COLORS.accent} />
                 <Text style={styles.loadingText}>Cargando evaluación…</Text>
             </LinearGradient>
         );
@@ -373,7 +411,7 @@ const DailyQuizScreen = ({ navigation, route }) => {
                         {__DEV__ && (
                             <Pressable
                                 style={({ pressed }) => [styles.devButton, pressed && { opacity: 0.7 }]}
-                                onPress={async () => { await QuizService.clearTodayAnswer(); loadData(); }}
+                                onPress={async () => { await QuizService.clearTodayAnswer(quiz?.id); loadData(); }}
                             >
                                 <Text style={styles.devButtonText}>🔄 Reiniciar (solo dev)</Text>
                             </Pressable>

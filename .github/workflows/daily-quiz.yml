@@ -1,11 +1,15 @@
 name: 🤖 Generar Pregunta Legal Diaria
 
 on:
-  # Ejecutar todos los días a las 8:00 AM hora Venezuela (UTC-4 = 12:00 UTC)
   schedule:
-    - cron: '0 12 * * *'
+    # Intento principal: 7:00 AM Venezuela (11:00 UTC)
+    # Se adelanta 1h para compensar retrasos habituales de GitHub Actions
+    - cron: '0 11 * * *'
+    # Intento de respaldo: 10:00 AM Venezuela (14:00 UTC)
+    # Por si GitHub retrasó o saltó el primer intento
+    - cron: '0 14 * * *'
 
-  # Permite ejecutarlo manualmente desde GitHub Actions UI (para pruebas)
+  # Permite ejecutarlo manualmente desde GitHub Actions UI
   workflow_dispatch:
 
 jobs:

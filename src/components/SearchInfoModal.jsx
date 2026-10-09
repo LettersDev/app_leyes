@@ -1,9 +1,10 @@
+import Spinner from "./Spinner";
 import React, { useRef, useState } from 'react';
 import {
     View, Text, StyleSheet, FlatList,
-    Pressable, Modal, useWindowDimensions,
-} from 'react-native';
-import { Button, IconButton, ActivityIndicator } from 'react-native-paper';
+    Pressable, Modal, useWindowDimensions, ScrollView} from 'react-native';
+import { Button, IconButton} from 'react-native-paper';
+import Markdown from 'react-native-markdown-display';
 import { COLORS } from '../utils/constants';
 
 const SLIDES_GENERAL = [
@@ -12,22 +13,19 @@ const SLIDES_GENERAL = [
         title: 'Búsqueda por Palabras Clave',
         description: 'Escribe el nombre de una ley o un término jurídico y encontraremos coincidencias exactas en toda la base legal venezolana.',
         icon: 'magnify',
-        color: COLORS.primary,
-    },
+        color: COLORS.primary},
     {
         id: 'g2',
         title: 'Búsqueda por Significado (IA)',
         description: 'Escribe en lenguaje natural, como "¿cuáles son mis derechos laborales?" La IA busca artículos que respondan tu pregunta aunque no usen tus palabras exactas.',
         icon: 'brain',
-        color: '#5B21B6',
-    },
+        color: '#5B21B6'},
     {
         id: 'g3',
         title: 'Jurisprudencia del TSJ',
         description: 'Al mismo tiempo buscamos en las sentencias del Tribunal Supremo de Justicia. Los resultados aparecen al final de la lista.',
         icon: 'gavel',
-        color: '#B45309',
-    },
+        color: '#B45309'},
 ];
 
 const SLIDES_INTERNAL = [
@@ -36,22 +34,19 @@ const SLIDES_INTERNAL = [
         title: 'Salto por Número de Artículo',
         description: 'Escribe solo el número (ej: "23") para ir directamente al Artículo 23 de esta ley.',
         icon: 'numeric',
-        color: COLORS.primary,
-    },
+        color: COLORS.primary},
     {
         id: 'i2',
         title: 'Búsqueda por Texto',
         description: 'Escribe cualquier palabra o término jurídico para encontrar todos los artículos de esta ley que lo contengan.',
         icon: 'text-search',
-        color: '#065F46',
-    },
+        color: '#065F46'},
     {
         id: 'i3',
         title: 'Búsqueda Semántica (IA)',
         description: 'Escribe más de 2 palabras (ej: "obligaciones del arrendador") para activar la IA y buscar por significado dentro de esta ley.',
         icon: 'brain',
-        color: '#5B21B6',
-    },
+        color: '#5B21B6'},
 ];
 
 /**
@@ -83,15 +78,26 @@ const SearchInfoModal = ({ visible, onDismiss, mode = 'general', data, loading }
         </View>
     );
 
+    const getProviderLabel = (provider) => {
+        if (!provider) return 'IA';
+        if (provider.startsWith('groq/')) return provider.replace('groq/', '').replace('llama-3.3-70b-versatile', 'Llama 3.3').replace('llama-3.1-8b-instant', 'Llama 3.1').replace('openai/gpt-oss-20b', 'GPT-OSS 20B');
+        if (provider === 'gemini') return 'Gemini';
+        return provider;
+    };
+
     const renderInterpretationItem = ({ item }) => (
         <View>
-            <Text style={[styles.interpretationText, data.error && { color: COLORS.error, fontWeight: 'bold' }]}>
-                {item}
-            </Text>
+            {data.error ? (
+                <Text style={[styles.interpretationText, { color: COLORS.error, fontWeight: 'bold' }]}>
+                    {item}
+                </Text>
+            ) : (
+                <Markdown style={markdownStyles}>{item}</Markdown>
+            )}
             {!data.error && (
                 <View style={styles.footerNote}>
                     <Text style={styles.footerNoteText}>
-                        Interpretado por {data.provider === 'groq' ? 'Llama 3' : 'Gemini'}. No es asesoría legal.
+                        Analizado por {getProviderLabel(data.provider)}. No es asesoría legal.
                     </Text>
                 </View>
             )}
@@ -115,7 +121,7 @@ const SearchInfoModal = ({ visible, onDismiss, mode = 'general', data, loading }
                         
                         {loading ? (
                             <View style={styles.loadingContainer}>
-                                <ActivityIndicator color={COLORS.accent} />
+                                <Spinner color={COLORS.accent} />
                                 <Text style={styles.loadingText}>La IA está analizando este artículo…</Text>
                             </View>
                         ) : data ? (
@@ -194,78 +200,65 @@ const styles = StyleSheet.create({
     slide: {
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 40,
-    },
+        padding: 40},
     iconContainer: {
         width: 200,
         height: 200,
         borderRadius: 100,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 40,
-    },
+        marginBottom: 40},
     title: {
         fontSize: 28,
         fontWeight: 'bold',
         color: COLORS.primary,
         marginBottom: 16,
-        textAlign: 'center',
-    },
+        textAlign: 'center'},
     description: {
         fontSize: 16,
         color: '#666',
         textAlign: 'center',
-        lineHeight: 24,
-    },
+        lineHeight: 24},
     footer: {
         paddingHorizontal: 40,
-        paddingBottom: 60,
-    },
+        paddingBottom: 60},
     pagination: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginBottom: 30,
-    },
+        marginBottom: 30},
     dot: {
         width: 8,
         height: 8,
         borderRadius: 4,
         backgroundColor: '#D1D5DB',
-        marginHorizontal: 4,
-    },
+        marginHorizontal: 4},
     activeDot: {
         width: 24,
-        backgroundColor: COLORS.primary,
-    },
+        backgroundColor: COLORS.primary},
     button: {
         borderRadius: 12,
         paddingVertical: 4,
-        backgroundColor: COLORS.primary,
-    },
+        backgroundColor: COLORS.primary},
     buttonLabel: {
         fontSize: 16,
-        fontWeight: 'bold',
-    },
+        fontWeight: 'bold'},
     skipText: {
         textAlign: 'center',
         marginTop: 20,
         color: '#9CA3AF',
-        fontSize: 14,
-    },
+        fontSize: 14},
     overlay: {
         flex: 1,
         backgroundColor: 'rgba(15, 23, 42, 0.8)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
-    },
+        padding: 20},
     interpretationContainer: {
         backgroundColor: '#fff',
         width: '100%',
         maxHeight: '80%',
         borderRadius: 24,
-        padding: 24,
-    },
+        padding: 24},
     interpretationHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -273,52 +266,119 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         paddingBottom: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
-    },
+        borderBottomColor: '#F1F5F9'},
     interpretationTag: {
         fontSize: 10,
         fontWeight: '900',
         color: COLORS.accent,
-        letterSpacing: 2,
-    },
+        letterSpacing: 2},
     lawTitleSmall: {
         fontSize: 12,
         fontWeight: 'bold',
         color: COLORS.primary,
-        marginTop: 2,
-    },
+        marginTop: 2},
     closeText: {
         fontSize: 11,
         fontWeight: 'bold',
-        color: COLORS.textSecondary,
-    },
+        color: COLORS.textSecondary},
     interpretationText: {
         fontSize: 16,
         color: COLORS.text,
-        lineHeight: 26,
-    },
+        lineHeight: 26},
     loadingContainer: {
         padding: 40,
-        alignItems: 'center',
-    },
+        alignItems: 'center'},
     loadingText: {
         marginTop: 15,
         fontSize: 14,
         color: COLORS.textSecondary,
-        textAlign: 'center',
-    },
+        textAlign: 'center'},
     footerNote: {
         marginTop: 20,
         paddingTop: 15,
         borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
-    },
+        borderTopColor: '#F1F5F9'},
     footerNoteText: {
         fontSize: 11,
         color: '#94A3B8',
         textAlign: 'center',
+        fontStyle: 'italic'}});
+
+const markdownStyles = {
+    body: {
+        fontSize: 15,
+        color: COLORS.text,
+        lineHeight: 24},
+    heading1: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.primary,
+        marginTop: 12,
+        marginBottom: 6},
+    heading2: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: COLORS.primary,
+        marginTop: 10,
+        marginBottom: 4},
+    strong: {
+        fontWeight: 'bold',
+        color: COLORS.text},
+    em: {
         fontStyle: 'italic',
-    },
-});
+        color: '#475569'},
+    bullet_list: {
+        marginVertical: 6},
+    ordered_list: {
+        marginVertical: 6},
+    list_item: {
+        marginVertical: 3},
+    bullet_list_icon: {
+        color: COLORS.accent,
+        fontWeight: 'bold'},
+    table: {
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 8,
+        marginVertical: 10,
+        overflow: 'hidden'},
+    thead: {
+        backgroundColor: COLORS.primary + '15'},
+    th: {
+        padding: 8,
+        fontWeight: 'bold',
+        fontSize: 13,
+        color: COLORS.primary,
+        borderRightWidth: 1,
+        borderColor: '#E2E8F0'},
+    td: {
+        padding: 8,
+        fontSize: 13,
+        color: COLORS.text,
+        borderRightWidth: 1,
+        borderColor: '#E2E8F0'},
+    tr: {
+        borderBottomWidth: 1,
+        borderColor: '#E2E8F0'},
+    blockquote: {
+        backgroundColor: COLORS.accent + '10',
+        borderLeftWidth: 4,
+        borderLeftColor: COLORS.accent,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        marginVertical: 8,
+        borderRadius: 4},
+    code_inline: {
+        backgroundColor: '#F1F5F9',
+        color: '#0F172A',
+        fontFamily: 'monospace',
+        fontSize: 13,
+        paddingHorizontal: 4,
+        borderRadius: 4},
+    hr: {
+        backgroundColor: '#E2E8F0',
+        height: 1,
+        marginVertical: 12}};
 
 export default SearchInfoModal;
+

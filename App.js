@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import { MD3LightTheme, Provider as PaperProvider } from 'react-native-paper';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
 import { Platform } from 'react-native';
@@ -44,8 +45,8 @@ export default function App() {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
+      // setBehaviorAsync fue eliminado en expo-navigation-bar SDK 57
       NavigationBar.setVisibilityAsync('hidden');
-      NavigationBar.setBehaviorAsync('sticky-immersive');
     }
   }, []);
 
@@ -127,11 +128,11 @@ export default function App() {
     });
   };
 
-  if (isInitializing) {
-    return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <PaperProvider theme={theme}>
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <PaperProvider theme={theme} settings={{ icon: props => <MaterialCommunityIcons {...props} /> }}>
+          {isInitializing ? (
             <View style={styles.loadingContainer}>
               <Animated.Image
                 source={require('./assets/splash-icon.png')}
@@ -146,26 +147,18 @@ export default function App() {
                 Esto solo ocurre la primera vez
               </Text>
             </View>
-          </PaperProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    );
-  }
-
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <SettingsProvider>
-          <PaperProvider theme={theme}>
-            <AppNavigator />
-            <UpdateModal
-              visible={updateInfo.visible}
-              currentVersion={updateInfo.currentVersion}
-              latestVersion={updateInfo.latestVersion}
-              onDismiss={() => setUpdateInfo(prev => ({ ...prev, visible: false }))}
-            />
-          </PaperProvider>
-        </SettingsProvider>
+          ) : (
+            <SettingsProvider>
+              <AppNavigator />
+              <UpdateModal
+                visible={updateInfo.visible}
+                currentVersion={updateInfo.currentVersion}
+                latestVersion={updateInfo.latestVersion}
+                onDismiss={() => setUpdateInfo(prev => ({ ...prev, visible: false }))}
+              />
+            </SettingsProvider>
+          )}
+        </PaperProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

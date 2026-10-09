@@ -1,6 +1,13 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
-import { Card, Title, Paragraph, IconButton, Button } from 'react-native-paper';
+import Spinner from '../components/Spinner';
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    Pressable
+} from 'react-native';
+import { Button, Card, IconButton, Paragraph, Title } from 'react-native-paper';
 import { getLawsByCategory, getLawsByParentCategory } from '../services/lawService';
 import { COLORS, LAW_CATEGORIES } from '../utils/constants';
 import LawsIndexService from '../services/lawsIndexService';
@@ -42,8 +49,7 @@ const LawsListScreen = ({ route, navigation }) => {
                     displayDate: itemDate ? itemDate.toLocaleDateString('es-VE', {
                         year: 'numeric',
                         month: 'long',
-                        day: 'numeric',
-                    }) : null
+                        day: 'numeric'}) : null
                 };
             });
 
@@ -106,7 +112,7 @@ const LawsListScreen = ({ route, navigation }) => {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Spinner size={28} color={COLORS.primary} />
                 <Text style={styles.loadingText}>Cargando leyes…</Text>
             </View>
         );
@@ -180,39 +186,33 @@ const LawsListScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
-    },
+        backgroundColor: COLORS.background},
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
-        backgroundColor: COLORS.background,
-    },
+        backgroundColor: COLORS.background},
     listContainer: {
-        padding: 16,
-    },
+        padding: 16},
     lawCard: {
         marginBottom: 16,
         borderRadius: 16,
         backgroundColor: '#fff',
         boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.08)',
-        overflow: 'hidden',
-    },
+        overflow: 'hidden'},
     lawTitle: {
         fontSize: 18,
         fontWeight: '700',
         color: COLORS.text,
         lineHeight: 24,
-        marginBottom: 8,
-    },
+        marginBottom: 8},
     chipsRow: {
         flexDirection: 'row',
         alignItems: 'center',
         flexWrap: 'wrap',
         marginBottom: 12,
-        gap: 8,
-    },
+        gap: 8},
     chip: {
         backgroundColor: '#EEF2FF',
         borderColor: '#6366F1',
@@ -220,78 +220,64 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         paddingHorizontal: 10,
         paddingVertical: 4,
-        alignSelf: 'flex-start',
-    },
+        alignSelf: 'flex-start'},
     chipText: {
         fontSize: 11,
         fontWeight: '700',
         color: '#4F46E5',
-        textTransform: 'uppercase',
-    },
+        textTransform: 'uppercase'},
     newChip: {
         backgroundColor: '#EF4444',
         borderRadius: 6,
         paddingHorizontal: 10,
         paddingVertical: 4,
-        alignSelf: 'flex-start',
-    },
+        alignSelf: 'flex-start'},
     newChipText: {
         fontSize: 11,
         fontWeight: '800',
-        color: '#fff',
-    },
+        color: '#fff'},
     footerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderTopWidth: 1,
         borderTopColor: '#F1F5F9',
-        paddingTop: 8,
-    },
+        paddingTop: 8},
     date: {
         fontSize: 13,
         color: COLORS.textSecondary,
-        marginBottom: 0,
-    },
+        marginBottom: 0},
     metadata: {
         fontSize: 13,
         color: COLORS.primary,
-        fontWeight: '600',
-    },
+        fontWeight: '600'},
     loadingText: {
         marginTop: 12,
         fontSize: 16,
-        color: COLORS.textSecondary,
-    },
+        color: COLORS.textSecondary},
     errorText: {
         fontSize: 16,
         color: COLORS.error,
         textAlign: 'center',
-        marginBottom: 16,
-    },
+        marginBottom: 16},
     retryButton: {
         backgroundColor: COLORS.primary,
         paddingHorizontal: 24,
         paddingVertical: 12,
-        borderRadius: 8,
-    },
+        borderRadius: 8},
     retryButtonText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
-    },
+        fontWeight: '600'},
     emptyText: {
         fontSize: 18,
         color: COLORS.text,
         textAlign: 'center',
-        marginBottom: 8,
-    },
+        marginBottom: 8},
     emptySubtext: {
         fontSize: 14,
         color: COLORS.textSecondary,
-        textAlign: 'center',
-    },
-});
+        textAlign: 'center'}});
 
 export default LawsListScreen;
 
