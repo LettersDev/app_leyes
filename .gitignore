@@ -45,7 +45,7 @@ scripts/serviceAccountKey.json
 serviceAccountKey.json
 *.json.bak
 firebase-debug.log*
-.firebaserc
+.firebaserch
 
 # Environment files
 .env
@@ -73,3 +73,4 @@ Thumbs.db
 *.md 
 *.txt
 *.sql
+*.pdf
